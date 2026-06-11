@@ -55,6 +55,20 @@ describe("autoCategory", () => {
     expect(autoCategory("國泰人壽保險股份有限公司", ["保費"])).toBe("保險");
   });
 
+  it("百貨公司買玩具歸娛樂", () => {
+    expect(
+      autoCategory("遠東百貨股份有限公司信義分公司", ["綜合玩具"]),
+    ).toBe("娛樂");
+  });
+
+  it("電玩遊戲歸娛樂", () => {
+    expect(
+      autoCategory("網路家庭國際資訊股份有限公司", [
+        "PS5 最終幻想7 FINAL FANTASY VII 重生中文版 送隨機鑰匙圈",
+      ]),
+    ).toBe("娛樂");
+  });
+
   it("門票歸娛樂、交易處理費歸其他", () => {
     expect(
       autoCategory("螞蟻帝國企業有限公司", ["博物館門票-全票"]),
@@ -62,8 +76,30 @@ describe("autoCategory", () => {
     expect(autoCategory("幣託科技股份有限公司", ["交易處理費"])).toBe("其他");
   });
 
+  it("百貨公司買服飾，店名看不出來就看品項歸日用", () => {
+    expect(
+      autoCategory("新光三越百貨股份有限公司台北信義分公司", [
+        "休閒服飾用品Casuals",
+        "已開發票券類金額",
+      ]),
+    ).toBe("日用");
+  });
+
+  it("常見長尾案例", () => {
+    expect(autoCategory("GitHub, Inc.", ["GitHub Action - Linux 2 Core Advanced Usage"])).toBe("訂閱");
+    expect(autoCategory("將捷文創實業股份有限公司", ["ParkingFee"])).toBe("交通");
+    expect(autoCategory("清富開發企業有限公司瑞芳分公司", ["92無鉛"])).toBe("交通");
+    expect(autoCategory("盛豐行股份有限公司大直分公司", ["水芭蕉 蛇年限定 純米大吟釀 720ML"])).toBe("飲食");
+    expect(autoCategory("悠旅生活事業股份有限公司洲子門市部", ["夜幕星冰樂中"])).toBe("飲食");
+    expect(autoCategory("幼信有限公司", ["普拿疼止痛加強錠20錠"])).toBe("醫療");
+    expect(autoCategory("統一數網股份有限公司", ["運費-5/18-5/20"])).toBe("其他");
+    expect(autoCategory("宜家家居股份有限公司觀音營業所", ["RODALM frame 50x70 walnut effect AP"])).toBe("日用");
+    expect(autoCategory("Home Box Office (Singapore) Pte Ltd.", ["HBO Max 標準"])).toBe("訂閱");
+    expect(autoCategory("誠品生活股份有限公司", ["失控的焦慮世代"])).toBe("娛樂");
+  });
+
   it("無法判斷時回傳未分類", () => {
-    expect(autoCategory("統一數網股份有限公司", ["運費-5/18-5/20"])).toBe(
+    expect(autoCategory("東森得易購股份有限公司", ["應稅商品"])).toBe(
       "未分類",
     );
   });
