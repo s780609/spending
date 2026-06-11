@@ -109,6 +109,13 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
     });
   }
 
+  // 台股在前、美股在後；同市場內按市值由大到小
+  holdingViews.sort((a, b) =>
+    a.market === b.market
+      ? b.valueTwd - a.valueTwd
+      : a.market.localeCompare(b.market),
+  );
+
   const today = todayTaipei();
   const loanViews: LoanView[] = loanRows.map((row) => {
     const principal = Number(row.principal);
