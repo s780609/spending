@@ -1,6 +1,7 @@
 import { asc } from "drizzle-orm";
 import Link from "next/link";
 import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
+import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { DeleteButton } from "@/app/delete-button";
 import { Nav } from "@/app/nav";
@@ -123,9 +124,7 @@ export default async function AssetsPage({
         </div>
 
         {/* ===== 資產：持股 ===== */}
-        <h2 className="mt-8 text-lg font-bold tracking-tight text-gray-950">
-          持股
-        </h2>
+        <AddPanel title="持股" buttonLabel="新增持股">
         <form
           action={addHolding}
           className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[6rem_1fr_8rem_8rem]"
@@ -170,6 +169,7 @@ export default async function AssetsPage({
             新增持股
           </button>
         </form>
+        </AddPanel>
 
         {sheet.holdings.length > 0 && (
           <>
@@ -289,9 +289,7 @@ export default async function AssetsPage({
         )}
 
         {/* ===== 負債：貸款 ===== */}
-        <h2 className="mt-8 text-lg font-bold tracking-tight text-gray-950">
-          負債
-        </h2>
+        <AddPanel title="負債" buttonLabel="新增貸款">
         <form
           action={addLoan}
           className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-3"
@@ -361,6 +359,7 @@ export default async function AssetsPage({
             新增貸款
           </button>
         </form>
+        </AddPanel>
 
         {sheet.loans.length > 0 && (
           <ul className="mt-3 space-y-2">
