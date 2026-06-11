@@ -261,7 +261,13 @@ export default async function AssetsPage() {
                 className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="shrink-0 rounded-full bg-gray-950/[0.025] px-2 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5">
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset ${
+                      loan.type === "信貸"
+                        ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+                        : "bg-violet-50 text-violet-700 ring-violet-600/20"
+                    }`}
+                  >
                     {loan.type}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
