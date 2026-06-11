@@ -79,6 +79,10 @@ export const loans = pgTable("loans", {
   installments: integer("installments"),
   /** 質押期限 */
   termEnd: date("term_end"),
+  /** 質押擔保股票代號（維持率計算用） */
+  collateralSymbol: text("collateral_symbol"),
+  /** 質押擔保股數 */
+  collateralShares: numeric("collateral_shares", { precision: 16, scale: 4 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
