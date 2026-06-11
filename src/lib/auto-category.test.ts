@@ -121,6 +121,17 @@ describe("autoCategory", () => {
     expect(autoCategory("明月溫泉Taipei", [])).toBe("娛樂");
     expect(autoCategory("歐特儀股份有限公司Taipei", [])).toBe("交通");
     expect(autoCategory("PEACH AVIA", [])).toBe("娛樂");
+    expect(autoCategory("展昭國際企業股份有限公司五股營業所", [])).toBe("交通");
+    expect(autoCategory("富邦媒體科技股份有限公司", [])).toBe("日用");
+    expect(autoCategory("三商家購股份有限公司新店光華分公司", [])).toBe("飲食");
+    expect(autoCategory("宜睿智慧股份有限公司台灣分公司", [])).toBe("娛樂");
+    // 網路家庭：有娛樂關鍵字的品項優先，否則墊底歸日用
+    expect(
+      autoCategory("網路家庭國際資訊股份有限公司", ["PS5 遊戲片"]),
+    ).toBe("娛樂");
+    expect(
+      autoCategory("網路家庭國際資訊股份有限公司", ["看不出類型的商品"]),
+    ).toBe("日用");
   });
 
   it("全聯一律歸日用，優先於品項的飲食關鍵字", () => {
