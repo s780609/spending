@@ -11,11 +11,13 @@ function dueDateInMonth(month: string, dayOfMonth: number): string {
 /**
  * 回傳 lastGenerated（YYYY-MM）之後、截至 today（YYYY-MM-DD）
  * 所有已到期而尚未產生的日期，由舊到新。
+ * endMonth（YYYY-MM，含當月）之後的月份不產生；null 表示無期限。
  */
 export function dueDates(
   dayOfMonth: number,
   lastGenerated: string,
   today: string,
+  endMonth?: string | null,
 ): string[] {
   const currentMonth = today.slice(0, 7);
   const result: string[] = [];
@@ -24,6 +26,9 @@ export function dueDates(
     month <= currentMonth;
     month = shiftMonth(month, 1)
   ) {
+    if (endMonth && month > endMonth) {
+      break;
+    }
     const due = dueDateInMonth(month, dayOfMonth);
     if (due <= today) {
       result.push(due);

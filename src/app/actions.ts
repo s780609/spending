@@ -79,6 +79,8 @@ export async function addRecurring(formData: FormData) {
   const vendor = String(formData.get("vendor") ?? "").trim();
   const amount = Number(formData.get("amount"));
   const categoryRaw = String(formData.get("category") ?? "");
+  const endMonthRaw = String(formData.get("endMonth") ?? "");
+  const endMonth = /^\d{4}-\d{2}$/.test(endMonthRaw) ? endMonthRaw : null;
 
   if (
     !Number.isInteger(dayOfMonth) ||
@@ -98,6 +100,7 @@ export async function addRecurring(formData: FormData) {
       amount: String(amount),
       category: isCategory(categoryRaw) ? categoryRaw : DEFAULT_CATEGORY,
       lastGenerated: initialLastGenerated(dayOfMonth, todayTaipei()),
+      endMonth,
     });
   revalidatePath("/recurring");
 }

@@ -44,6 +44,8 @@ export const recurringExpenses = pgTable("recurring_expenses", {
   category: text("category").notNull().default("未分類"),
   /** 已產生至哪個月 YYYY-MM，用於補帳與防重複 */
   lastGenerated: text("last_generated").notNull(),
+  /** 到期月份 YYYY-MM（含當月），null 為無期限 */
+  endMonth: text("end_month"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
