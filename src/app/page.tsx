@@ -1,6 +1,7 @@
 import { and, desc, gte, lt, sql } from "drizzle-orm";
 import Link from "next/link";
 import { addExpense } from "@/app/actions";
+import { AddPanel } from "@/app/add-panel";
 import { BookkeepingTabs } from "@/app/bookkeeping-tabs";
 import { CategorySelect } from "@/app/category-select";
 import { CategoryPie, MonthlyTrend } from "@/app/charts";
@@ -190,9 +191,10 @@ export default async function Home({
           </div>
         )}
 
+        <AddPanel title="支出明細" buttonLabel="新增支出">
         <form
           action={addExpense}
-          className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[10rem_1fr_7rem_auto_auto]"
+          className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[10rem_1fr_7rem_auto_auto]"
         >
           {/* 手機排序：店家全寬 → 日期+金額 → 分類+新增；text-base 避免 iOS 聚焦自動縮放 */}
           <input
@@ -234,6 +236,7 @@ export default async function Home({
             新增
           </button>
         </form>
+        </AddPanel>
 
         {rows.length === 0 ? (
           <p className="mt-12 text-center text-sm leading-7 text-gray-600">
