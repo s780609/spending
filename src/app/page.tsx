@@ -1,6 +1,7 @@
 import { and, desc, gte, lt, sql } from "drizzle-orm";
 import Link from "next/link";
 import { addExpense } from "@/app/actions";
+import { BookkeepingTabs } from "@/app/bookkeeping-tabs";
 import { CategorySelect } from "@/app/category-select";
 import { CategoryPie, MonthlyTrend } from "@/app/charts";
 import { DeleteButton } from "@/app/delete-button";
@@ -89,7 +90,8 @@ export default async function Home({
     <>
       <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <BookkeepingTabs active="list" />
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
               href={monthHref(shiftMonth(month, -1))}

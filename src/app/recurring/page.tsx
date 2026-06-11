@@ -1,5 +1,6 @@
 import { asc } from "drizzle-orm";
 import { addRecurring, deleteRecurring } from "@/app/actions";
+import { BookkeepingTabs } from "@/app/bookkeeping-tabs";
 import { DeleteButton } from "@/app/delete-button";
 import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
@@ -23,7 +24,8 @@ export default async function RecurringPage() {
     <>
       <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-950">
+        <BookkeepingTabs active="recurring" />
+        <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950">
           定期支出
         </h1>
         <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 text-pretty">

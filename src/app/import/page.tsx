@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { importCsv, type ImportState } from "@/app/actions";
+import { BookkeepingTabs } from "@/app/bookkeeping-tabs";
 import { Nav } from "@/app/nav";
 
 const initialState: ImportState = { message: "" };
@@ -13,7 +14,8 @@ export default function ImportPage() {
     <>
       <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-950">
+        <BookkeepingTabs active="import" />
+        <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950">
           匯入電子發票 CSV
         </h1>
         <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 text-pretty">
