@@ -3,10 +3,10 @@ import {
   asc,
   desc,
   eq,
-  gt,
   gte,
   isNotNull,
   lt,
+  ne,
   notInArray,
   sql,
 } from "drizzle-orm";
@@ -98,16 +98,17 @@ export default async function FamilyPage({
         ),
       )
       .groupBy(bankMonthExpr, familyTransactions.category),
+    // 卡單依實際消費日歸月，排除繳款（卡費分類）、退款以負數淨掉
     db
       .select({
-        month: familyCardTransactions.statementMonth,
+        month: sql<string>`to_char(${familyCardTransactions.purchaseDate}, 'YYYY-MM')`,
         category: familyCardTransactions.category,
         total: sql<number>`sum(${familyCardTransactions.amount})::float`,
       })
       .from(familyCardTransactions)
-      .where(gt(familyCardTransactions.amount, "0"))
+      .where(ne(familyCardTransactions.category, "卡費"))
       .groupBy(
-        familyCardTransactions.statementMonth,
+        sql`to_char(${familyCardTransactions.purchaseDate}, 'YYYY-MM')`,
         familyCardTransactions.category,
       ),
   ]);
@@ -127,8 +128,9 @@ export default async function FamilyPage({
 
   const bankOut = bankTxs.reduce((s, t) => s + Number(t.withdrawal ?? 0), 0);
   const bankIn = bankTxs.reduce((s, t) => s + Number(t.deposit ?? 0), 0);
+  // 消費合計＝淨額（含退款負數），排除繳款（卡費分類）
   const cardSpend = cardTxs.reduce(
-    (s, t) => s + Math.max(Number(t.amount), 0),
+    (s, t) => (t.category === "卡費" ? s : s + Number(t.amount)),
     0,
   );
 
@@ -213,7 +215,7 @@ export default async function FamilyPage({
               </section>
             </div>
             <p className="mt-2 text-xs text-gray-400">
-              帳戶口徑不含內部轉帳；「合併」與趨勢線會剔除帳戶側的台新卡費（改以信用卡明細逐筆計入），避免重複計算。
+              帳戶口徑不含內部轉帳；「合併」與趨勢線剔除帳戶側台新卡費（改以信用卡明細逐筆計入）。卡單依實際消費日歸月、退款以負數淨掉、繳款不計。
             </p>
           </>
         )}

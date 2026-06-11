@@ -25,10 +25,11 @@ describe("familyCardCategory 信用卡明細", () => {
     expect(familyCardCategory("嘟嘟房台北車站站", 60)).toBe("交通");
   });
 
-  it("負數（繳款/退款）歸卡費", () => {
+  it("繳款歸卡費，一般退款依店家分類（負數淨掉）", () => {
     expect(
       familyCardCategory("台新銀行帳戶自動轉帳扣繳台新信用 卡款", -65785),
     ).toBe("卡費");
+    expect(familyCardCategory("ＣＯＵＰＡＮＧTAIPEI", -59)).toBe("日用");
   });
 
   it("無法判斷時回傳未分類", () => {
