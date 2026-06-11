@@ -8,19 +8,8 @@ import { MonthPicker } from "@/app/month-picker";
 import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
-import { CATEGORIES } from "@/lib/categories";
-
-function todayTaipei(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(
-    new Date(),
-  );
-}
-
-function shiftMonth(month: string, delta: number): string {
-  const [year, m] = month.split("-").map(Number);
-  const shifted = new Date(Date.UTC(year, m - 1 + delta, 1));
-  return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, "0")}`;
-}
+import { CATEGORIES, isCategory } from "@/lib/categories";
+import { shiftMonth, todayTaipei } from "@/lib/dates";
 
 function formatAmount(value: string | number): string {
   return Number(value).toLocaleString("zh-TW");
@@ -29,12 +18,14 @@ function formatAmount(value: string | number): string {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; category?: string }>;
 }) {
-  const { month: monthParam } = await searchParams;
+  const { month: monthParam, category: categoryParam } = await searchParams;
   const month = /^\d{4}-\d{2}$/.test(monthParam ?? "")
     ? (monthParam as string)
     : todayTaipei().slice(0, 7);
+  const filter =
+    categoryParam && isCategory(categoryParam) ? categoryParam : undefined;
 
   const db = getDb();
   const rows = await db.query.expenses.findMany({
@@ -57,6 +48,17 @@ export default async function Home({
     .groupBy(monthExpr)
     .orderBy(monthExpr);
 
+  // 每月 × 分類加總（圓餅圖區間用），只取檢視月份（含）以前
+  const categoryByMonth = await db
+    .select({
+      month: monthExpr,
+      category: expenses.category,
+      total: sql<number>`sum(${expenses.amount})::float`,
+    })
+    .from(expenses)
+    .where(lt(expenses.date, `${shiftMonth(month, 1)}-01`))
+    .groupBy(monthExpr, expenses.category);
+
   const year = month.slice(0, 4);
   const yearTotal = trend
     .filter((entry) => entry.month.startsWith(`${year}-`))
@@ -72,6 +74,13 @@ export default async function Home({
   }
   const categorySummary = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
 
+  // 列表依分類過濾；總計與圖表維持整月數據
+  const visible = filter
+    ? rows.filter((row) => row.category === filter)
+    : rows;
+  const monthHref = (m: string) =>
+    filter ? `/?month=${m}&category=${encodeURIComponent(filter)}` : `/?month=${m}`;
+
   return (
     <>
       <Nav />
@@ -79,7 +88,7 @@ export default async function Home({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
-              href={`/?month=${shiftMonth(month, -1)}`}
+              href={monthHref(shiftMonth(month, -1))}
               className="rounded-full px-2 py-1 text-sm text-gray-600 hover:bg-gray-950/5"
               aria-label="上個月"
             >
@@ -87,7 +96,7 @@ export default async function Home({
             </Link>
             <MonthPicker month={month} />
             <Link
-              href={`/?month=${shiftMonth(month, 1)}`}
+              href={monthHref(shiftMonth(month, 1))}
               className="rounded-full px-2 py-1 text-sm text-gray-600 hover:bg-gray-950/5"
               aria-label="下個月"
             >
@@ -112,33 +121,56 @@ export default async function Home({
 
         {categorySummary.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-2">
-            {categorySummary.map(([category, sum]) => (
-              <li
-                key={category}
-                className="rounded-full bg-white px-3 py-1 text-xs text-gray-600 ring-1 ring-gray-950/10"
+            <li>
+              <Link
+                href={`/?month=${month}`}
+                className={
+                  !filter
+                    ? "block rounded-full bg-gray-950 px-3 py-1.5 text-xs font-medium text-white"
+                    : "block rounded-full bg-white px-3 py-1.5 text-xs text-gray-600 ring-1 ring-gray-950/10 hover:bg-gray-950/5"
+                }
               >
-                {category}{" "}
-                <span className="font-medium text-gray-950">
-                  {formatAmount(sum)}
+                全部{" "}
+                <span className={!filter ? "" : "font-medium text-gray-950"}>
+                  {formatAmount(total)}
                 </span>
-              </li>
-            ))}
+              </Link>
+            </li>
+            {categorySummary.map(([category, sum]) => {
+              const active = category === filter;
+              return (
+                <li key={category}>
+                  <Link
+                    href={
+                      active
+                        ? `/?month=${month}`
+                        : `/?month=${month}&category=${encodeURIComponent(category)}`
+                    }
+                    className={
+                      active
+                        ? "block rounded-full bg-gray-950 px-3 py-1.5 text-xs font-medium text-white"
+                        : "block rounded-full bg-white px-3 py-1.5 text-xs text-gray-600 ring-1 ring-gray-950/10 hover:bg-gray-950/5"
+                    }
+                  >
+                    {category}{" "}
+                    <span className={active ? "" : "font-medium text-gray-950"}>
+                      {formatAmount(sum)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        {(categorySummary.length > 0 || trend.length > 0) && (
+        {(categoryByMonth.length > 0 || trend.length > 0) && (
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {categorySummary.length > 0 && (
+            {categoryByMonth.length > 0 && (
               <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
                 <h2 className="text-sm font-medium text-gray-950">
-                  {month} 分類佔比
+                  分類佔比
                 </h2>
-                <CategoryPie
-                  data={categorySummary.map(([name, value]) => ({
-                    name,
-                    value,
-                  }))}
-                />
+                <CategoryPie data={categoryByMonth} month={month} />
               </section>
             )}
             {trend.length > 0 && (
@@ -201,9 +233,13 @@ export default async function Home({
           <p className="mt-12 text-center text-sm leading-7 text-gray-600">
             這個月還沒有任何支出紀錄，新增一筆或到「匯入 CSV」匯入電子發票。
           </p>
+        ) : visible.length === 0 ? (
+          <p className="mt-12 text-center text-sm leading-7 text-gray-600">
+            「{filter}」這個月沒有紀錄，點「全部」清除篩選。
+          </p>
         ) : (
           <ul className="mt-6 space-y-2">
-            {rows.map((row) => {
+            {visible.map((row) => {
               const summary = (
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
                   {/* 手機第一行：店名 + 金額；桌面攤平成單行（sm:contents + order 排序） */}
