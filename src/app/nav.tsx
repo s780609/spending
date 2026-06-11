@@ -15,18 +15,6 @@ export function Nav() {
           記帳
         </Link>
         <Link
-          href="/import"
-          className="text-sm font-medium text-gray-950 hover:text-gray-600"
-        >
-          匯入 CSV
-        </Link>
-        <Link
-          href="/recurring"
-          className="text-sm font-medium text-gray-950 hover:text-gray-600"
-        >
-          定期支出
-        </Link>
-        <Link
           href="/assets"
           className="text-sm font-medium text-gray-950 hover:text-gray-600"
         >
