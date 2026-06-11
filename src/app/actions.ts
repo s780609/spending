@@ -137,6 +137,8 @@ export async function importCsv(
         })),
       );
     }
+    // 同一份檔案內重複的發票號碼也要去重，避免撞 UNIQUE 約束
+    existingNumbers.add(invoice.invoiceNumber);
     imported += 1;
   }
 

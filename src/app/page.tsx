@@ -1,7 +1,8 @@
-import { and, desc, gte, lt } from "drizzle-orm";
+import { and, desc, gte, lt, sql } from "drizzle-orm";
 import Link from "next/link";
 import { addExpense } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
+import { CategoryPie, MonthlyTrend } from "@/app/charts";
 import { DeleteButton } from "@/app/delete-button";
 import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
@@ -34,7 +35,8 @@ export default async function Home({
     ? (monthParam as string)
     : todayTaipei().slice(0, 7);
 
-  const rows = await getDb().query.expenses.findMany({
+  const db = getDb();
+  const rows = await db.query.expenses.findMany({
     where: and(
       gte(expenses.date, `${month}-01`),
       lt(expenses.date, `${shiftMonth(month, 1)}-01`),
@@ -42,6 +44,19 @@ export default async function Home({
     with: { items: true },
     orderBy: [desc(expenses.date), desc(expenses.id)],
   });
+
+  // 近 12 個月的每月加總（線圖用）
+  const monthExpr = sql<string>`to_char(${expenses.date}, 'YYYY-MM')`;
+  const trend = (
+    await db
+      .select({
+        month: monthExpr,
+        total: sql<number>`sum(${expenses.amount})::float`,
+      })
+      .from(expenses)
+      .groupBy(monthExpr)
+      .orderBy(monthExpr)
+  ).slice(-12);
 
   const total = rows.reduce((sum, row) => sum + Number(row.amount), 0);
   const byCategory = new Map<string, number>();
@@ -99,6 +114,32 @@ export default async function Home({
               </li>
             ))}
           </ul>
+        )}
+
+        {(categorySummary.length > 0 || trend.length > 0) && (
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {categorySummary.length > 0 && (
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                <h2 className="text-sm font-medium text-gray-950">
+                  {month} 分類佔比
+                </h2>
+                <CategoryPie
+                  data={categorySummary.map(([name, value]) => ({
+                    name,
+                    value,
+                  }))}
+                />
+              </section>
+            )}
+            {trend.length > 0 && (
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                <h2 className="text-sm font-medium text-gray-950">
+                  每月支出趨勢
+                </h2>
+                <MonthlyTrend data={trend} />
+              </section>
+            )}
+          </div>
         )}
 
         <form
