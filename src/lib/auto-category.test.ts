@@ -51,6 +51,10 @@ describe("autoCategory", () => {
     expect(autoCategory("大樹藥局股份有限公司", ["感冒藥"])).toBe("醫療");
   });
 
+  it("保險公司歸保險", () => {
+    expect(autoCategory("國泰人壽保險股份有限公司", ["保費"])).toBe("保險");
+  });
+
   it("門票歸娛樂、交易處理費歸其他", () => {
     expect(
       autoCategory("螞蟻帝國企業有限公司", ["博物館門票-全票"]),

@@ -5,6 +5,9 @@ export const CATEGORIES = [
   "訂閱",
   "娛樂",
   "醫療",
+  "保險",
+  "房租",
+  "貸款",
   "其他",
   "未分類",
 ] as const;

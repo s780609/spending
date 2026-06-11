@@ -25,6 +25,10 @@ const RULES: { category: Category; keywords: string[] }[] = [
     keywords: ["藥局", "藥妝", "診所", "醫院", "牙醫", "掛號費"],
   },
   {
+    category: "保險",
+    keywords: ["保險", "人壽", "產險", "保費"],
+  },
+  {
     category: "其他",
     keywords: ["幣託", "交易處理費", "手續費"],
   },
