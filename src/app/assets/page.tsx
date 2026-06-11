@@ -172,7 +172,9 @@ export default async function AssetsPage() {
                 <DeleteButton
                   id={h.id}
                   action={deleteHolding}
-                  message="確定刪除這筆持股？"
+                  message={`確定刪除「${h.broker} ${
+                    h.name ? `${h.name}（${h.symbol}）` : h.symbol
+                  }」這筆持股？`}
                 />
               </li>
             ))}
@@ -279,7 +281,7 @@ export default async function AssetsPage() {
                   <DeleteButton
                     id={loan.id}
                     action={deleteLoan}
-                    message="確定刪除這筆貸款？"
+                    message={`確定刪除「${loan.name}」這筆貸款？`}
                   />
                 </div>
                 <p className="mt-1 text-xs leading-5 text-gray-400">
