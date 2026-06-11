@@ -113,6 +113,14 @@ describe("autoCategory", () => {
     expect(autoCategory("連加＊連加＊鶴茶樓－ 鶴頂紅 TAIPEI", [])).toBe("飲食");
     expect(autoCategory("連加＊卡多摩嬰童館Taipei", [])).toBe("日用");
     expect(autoCategory("嘟嘟房台北車站站", [])).toBe("交通");
+    expect(autoCategory("美麗華百樂園TAIPEI", [])).toBe("娛樂");
+    expect(autoCategory("國立傳統藝術中心宜蘭傳藝園區Yilan", [])).toBe("娛樂");
+    expect(autoCategory("連加＊小柴？子Taipei", [])).toBe("飲食");
+    expect(autoCategory("小柴子（五股市場）TAIPEI", [])).toBe("飲食");
+    expect(autoCategory("全家便利TAIPEI", [])).toBe("飲食");
+    expect(autoCategory("明月溫泉Taipei", [])).toBe("娛樂");
+    expect(autoCategory("歐特儀股份有限公司Taipei", [])).toBe("交通");
+    expect(autoCategory("PEACH AVIA", [])).toBe("娛樂");
   });
 
   it("全聯一律歸日用，優先於品項的飲食關鍵字", () => {
