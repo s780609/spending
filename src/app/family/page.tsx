@@ -80,7 +80,8 @@ export default async function FamilyPage({
   ]);
 
   // 圖表用：每月 × 分類支出加總。
-  // 口徑＝帳戶支出（排除內部轉帳與卡費，卡費由信用卡明細逐筆計入）＋信用卡消費
+  // 帳戶圓餅含卡費（帳戶實際流出，僅排除內部轉帳）；
+  // 趨勢線排除帳戶側卡費，避免與信用卡明細重複計算
   const bankMonthExpr = sql<string>`to_char(${familyTransactions.date}, 'YYYY-MM')`;
   const [bankByMonthCat, cardByMonthCat] = await Promise.all([
     db
@@ -93,7 +94,7 @@ export default async function FamilyPage({
       .where(
         and(
           isNotNull(familyTransactions.withdrawal),
-          notInArray(familyTransactions.category, ["內部轉帳", "卡費"]),
+          notInArray(familyTransactions.category, ["內部轉帳"]),
         ),
       )
       .groupBy(bankMonthExpr, familyTransactions.category),
@@ -110,9 +111,11 @@ export default async function FamilyPage({
         familyCardTransactions.category,
       ),
   ]);
-  const categoryByMonth = [...bankByMonthCat, ...cardByMonthCat];
   const trendByMonth = new Map<string, number>();
-  for (const entry of categoryByMonth) {
+  for (const entry of [
+    ...bankByMonthCat.filter((e) => e.category !== "卡費"),
+    ...cardByMonthCat,
+  ]) {
     trendByMonth.set(
       entry.month,
       (trendByMonth.get(entry.month) ?? 0) + entry.total,
@@ -188,18 +191,34 @@ export default async function FamilyPage({
           ))}
         </div>
 
-        {categoryByMonth.length > 0 && (
+        {(bankByMonthCat.length > 0 || cardByMonthCat.length > 0) && (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                <h2 className="text-sm font-medium text-gray-950">分類佔比</h2>
-                <CategoryPie
-                  data={categoryByMonth}
-                  month={month}
-                  categories={FAMILY_CATEGORIES}
-                />
-              </section>
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+              {bankByMonthCat.length > 0 && (
+                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                  <h2 className="text-sm font-medium text-gray-950">
+                    帳戶支出佔比
+                  </h2>
+                  <CategoryPie
+                    data={bankByMonthCat}
+                    month={month}
+                    categories={FAMILY_CATEGORIES}
+                  />
+                </section>
+              )}
+              {cardByMonthCat.length > 0 && (
+                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                  <h2 className="text-sm font-medium text-gray-950">
+                    信用卡消費佔比
+                  </h2>
+                  <CategoryPie
+                    data={cardByMonthCat}
+                    month={month}
+                    categories={FAMILY_CATEGORIES}
+                  />
+                </section>
+              )}
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:col-span-2">
                 <h2 className="text-sm font-medium text-gray-950">
                   每月支出趨勢
                 </h2>
@@ -207,7 +226,7 @@ export default async function FamilyPage({
               </section>
             </div>
             <p className="mt-2 text-xs text-gray-400">
-              支出口徑：帳戶支出（不含內部轉帳與卡費）＋信用卡消費；卡費由信用卡明細逐筆分類計入，避免重複計算。
+              帳戶佔比不含內部轉帳；趨勢線＝帳戶支出（不含內部轉帳與卡費）＋信用卡消費，避免卡費重複計算。
             </p>
           </>
         )}
