@@ -2,7 +2,6 @@ import { desc, isNotNull, ne, notLike, sql } from "drizzle-orm";
 import Link from "next/link";
 import { NetWorthChart } from "@/app/asset-charts";
 import { MonthlyTrend } from "@/app/charts";
-import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
 import {
   expenses,
@@ -120,7 +119,6 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
         <h1 className="text-2xl font-bold tracking-tight text-gray-950">
           總覽

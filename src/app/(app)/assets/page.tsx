@@ -4,7 +4,6 @@ import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { DeleteButton } from "@/app/delete-button";
-import { Nav } from "@/app/nav";
 import { SharesEditor } from "@/app/shares-editor";
 import { getDb } from "@/db";
 import { networthSnapshots } from "@/db/schema";
@@ -80,7 +79,6 @@ export default async function AssetsPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-gray-950">

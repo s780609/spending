@@ -2,12 +2,10 @@ import { and, desc, gte, lt, sql } from "drizzle-orm";
 import Link from "next/link";
 import { addExpense } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
-import { BookkeepingTabs } from "@/app/bookkeeping-tabs";
 import { CategorySelect } from "@/app/category-select";
 import { CategoryPie, MonthlyTrend } from "@/app/charts";
 import { DeleteButton } from "@/app/delete-button";
 import { MonthPicker } from "@/app/month-picker";
-import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
 import { CATEGORIES, isCategory } from "@/lib/categories";
@@ -89,9 +87,6 @@ export default async function Home({
 
   return (
     <>
-      <Nav />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <BookkeepingTabs active="list" />
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
@@ -316,7 +311,6 @@ export default async function Home({
             })}
           </ul>
         )}
-      </main>
     </>
   );
 }
