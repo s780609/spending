@@ -1,6 +1,18 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  lt,
+  ne,
+  notLike,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -14,6 +26,7 @@ import {
   loans,
   recurringExpenses,
 } from "@/db/schema";
+import { shiftMonth } from "@/lib/dates";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
@@ -218,6 +231,95 @@ export async function addLoan(formData: FormData) {
 export async function deleteLoan(id: number) {
   await getDb().delete(loans).where(eq(loans.id, id));
   revalidatePath("/assets");
+}
+
+export interface FamilyDetailRow {
+  date: string;
+  description: string;
+  amount: number;
+  category: string;
+  origin: "帳戶" | "信用卡";
+}
+
+/** 圖表點擊用：撈指定來源/分類/月份區間的家庭支出明細（口徑與圖表一致） */
+export async function getFamilySpendingDetail(params: {
+  source: "all" | "bank" | "card";
+  category?: string;
+  /** YYYY-MM，空字串＝不限起點 */
+  startMonth?: string;
+  endMonth: string;
+}): Promise<FamilyDetailRow[]> {
+  if (!/^\d{4}-\d{2}$/.test(params.endMonth)) {
+    return [];
+  }
+  const start =
+    params.startMonth && /^\d{4}-\d{2}$/.test(params.startMonth)
+      ? params.startMonth
+      : null;
+  const db = getDb();
+  const rows: FamilyDetailRow[] = [];
+
+  if (params.source !== "card") {
+    const conds: SQL[] = [
+      isNotNull(familyTransactions.withdrawal) as SQL,
+      ne(familyTransactions.category, "內部轉帳"),
+      lt(familyTransactions.date, `${shiftMonth(params.endMonth, 1)}-01`),
+    ];
+    if (start) {
+      conds.push(gte(familyTransactions.date, `${start}-01`));
+    }
+    if (params.source === "all") {
+      conds.push(ne(familyTransactions.category, "卡費"));
+    }
+    if (params.category) {
+      conds.push(eq(familyTransactions.category, params.category));
+    }
+    const bank = await db
+      .select()
+      .from(familyTransactions)
+      .where(and(...conds))
+      .orderBy(asc(familyTransactions.date));
+    rows.push(
+      ...bank.map((r) => ({
+        date: r.date,
+        description: r.note ? `${r.description}（${r.note}）` : r.description,
+        amount: Number(r.withdrawal),
+        category: r.category,
+        origin: "帳戶" as const,
+      })),
+    );
+  }
+
+  if (params.source !== "bank") {
+    const monthExpr = sql`to_char(${familyCardTransactions.purchaseDate}, 'YYYY-MM')`;
+    const conds: SQL[] = [
+      notLike(familyCardTransactions.description, "%自動轉帳扣繳%"),
+      sql`${monthExpr} <= ${params.endMonth}`,
+    ];
+    if (start) {
+      conds.push(sql`${monthExpr} >= ${start}`);
+    }
+    if (params.category) {
+      conds.push(eq(familyCardTransactions.category, params.category));
+    }
+    const card = await db
+      .select()
+      .from(familyCardTransactions)
+      .where(and(...conds))
+      .orderBy(asc(familyCardTransactions.purchaseDate));
+    rows.push(
+      ...card.map((r) => ({
+        date: r.purchaseDate,
+        description: r.description,
+        amount: Number(r.amount),
+        category: r.category,
+        origin: "信用卡" as const,
+      })),
+    );
+  }
+
+  rows.sort((a, b) => a.date.localeCompare(b.date));
+  return rows.slice(0, 500);
 }
 
 export interface FamilyImportState {

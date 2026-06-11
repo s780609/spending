@@ -16,7 +16,7 @@ import {
   updateFamilyTransactionCategory,
 } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
-import { FamilySpendingPie, MonthlyTrend } from "@/app/charts";
+import { FamilyChartsPanel } from "@/app/family-charts-panel";
 import { FamilyTabs } from "@/app/family-tabs";
 import { MonthPicker } from "@/app/month-picker";
 import { Nav } from "@/app/nav";
@@ -195,30 +195,12 @@ export default async function FamilyPage({
         </div>
 
         {(bankByMonthCat.length > 0 || cardByMonthCat.length > 0) && (
-          <>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                <h2 className="text-sm font-medium text-gray-950">
-                  分類佔比
-                </h2>
-                <FamilySpendingPie
-                  bank={bankByMonthCat}
-                  card={cardByMonthCat}
-                  month={month}
-                  categories={FAMILY_CATEGORIES}
-                />
-              </section>
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                <h2 className="text-sm font-medium text-gray-950">
-                  每月支出趨勢
-                </h2>
-                <MonthlyTrend data={trend} />
-              </section>
-            </div>
-            <p className="mt-2 text-xs text-gray-400">
-              帳戶口徑不含內部轉帳；「合併」與趨勢線剔除帳戶側台新卡費（改以信用卡明細逐筆計入）。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。
-            </p>
-          </>
+          <FamilyChartsPanel
+            bank={bankByMonthCat}
+            card={cardByMonthCat}
+            trend={trend}
+            month={month}
+          />
         )}
 
         {/* ===== 帳戶往來明細 ===== */}

@@ -83,6 +83,7 @@ export function CategoryPie({
   data,
   month,
   categories = CATEGORIES,
+  onSliceClick,
 }: {
   /** 每月 × 分類加總（只含檢視月份以前） */
   data: { month: string; category: string; total: number }[];
@@ -90,6 +91,8 @@ export function CategoryPie({
   month: string;
   /** 分類清單（決定顏色對應），預設個人記帳分類 */
   categories?: readonly string[];
+  /** 點切片時回呼（分類、區間起點 YYYY-MM 或空字串、區間終點） */
+  onSliceClick?: (category: string, startMonth: string, endMonth: string) => void;
 }) {
   const [months, setMonths] = useState(1);
 
@@ -124,6 +127,12 @@ export function CategoryPie({
               innerRadius={50}
               outerRadius={85}
               paddingAngle={2}
+              cursor={onSliceClick ? "pointer" : undefined}
+              onClick={(entry: { name?: string }) => {
+                if (onSliceClick && entry?.name) {
+                  onSliceClick(entry.name, start, month);
+                }
+              }}
             >
               {pieData.map((entry) => (
                 <Cell key={entry.name} fill={colorOf(entry.name, categories)} />
@@ -160,11 +169,19 @@ export function FamilySpendingPie({
   card,
   month,
   categories,
+  onDetail,
 }: {
   bank: MonthCategoryEntry[];
   card: MonthCategoryEntry[];
   month: string;
   categories: readonly string[];
+  /** 點切片查明細 */
+  onDetail?: (params: {
+    source: "all" | "bank" | "card";
+    category: string;
+    startMonth: string;
+    endMonth: string;
+  }) => void;
 }) {
   const [source, setSource] =
     useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
@@ -190,7 +207,17 @@ export function FamilySpendingPie({
           </button>
         ))}
       </div>
-      <CategoryPie data={data} month={month} categories={categories} />
+      <CategoryPie
+        data={data}
+        month={month}
+        categories={categories}
+        onSliceClick={
+          onDetail
+            ? (category, startMonth, endMonth) =>
+                onDetail({ source, category, startMonth, endMonth })
+            : undefined
+        }
+      />
     </div>
   );
 }
@@ -204,8 +231,11 @@ const TREND_RANGES = [
 
 export function MonthlyTrend({
   data,
+  onPointClick,
 }: {
   data: { month: string; total: number }[];
+  /** 點資料點時回呼，label 為 YYYY-MM（月模式）或 YYYY（年模式） */
+  onPointClick?: (label: string) => void;
 }) {
   const [mode, setMode] = useState<"month" | "year">("month");
   const [months, setMonths] = useState(12);
@@ -260,6 +290,13 @@ export function MonthlyTrend({
         <LineChart
           data={shown}
           margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+          style={onPointClick ? { cursor: "pointer" } : undefined}
+          onClick={(state) => {
+            const label = state?.activeLabel;
+            if (onPointClick && typeof label === "string") {
+              onPointClick(label);
+            }
+          }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis dataKey="label" tick={{ fontSize: 12 }} tickMargin={6} />
