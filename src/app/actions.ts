@@ -5,11 +5,13 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { expenseItems, expenses } from "@/db/schema";
+import { expenseItems, expenses, recurringExpenses } from "@/db/schema";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
+import { todayTaipei } from "@/lib/dates";
 import { parseEInvoiceCsv } from "@/lib/parse-einvoice";
+import { initialLastGenerated } from "@/lib/recurring";
 
 export async function login(formData: FormData) {
   const password = formData.get("password");
@@ -70,6 +72,41 @@ export async function updateExpenseCategory(id: number, category: string) {
   }
   await getDb().update(expenses).set({ category }).where(eq(expenses.id, id));
   revalidatePath("/");
+}
+
+export async function addRecurring(formData: FormData) {
+  const dayOfMonth = Number(formData.get("dayOfMonth"));
+  const vendor = String(formData.get("vendor") ?? "").trim();
+  const amount = Number(formData.get("amount"));
+  const categoryRaw = String(formData.get("category") ?? "");
+
+  if (
+    !Number.isInteger(dayOfMonth) ||
+    dayOfMonth < 1 ||
+    dayOfMonth > 31 ||
+    !vendor ||
+    !Number.isFinite(amount)
+  ) {
+    return;
+  }
+
+  await getDb()
+    .insert(recurringExpenses)
+    .values({
+      dayOfMonth,
+      vendor,
+      amount: String(amount),
+      category: isCategory(categoryRaw) ? categoryRaw : DEFAULT_CATEGORY,
+      lastGenerated: initialLastGenerated(dayOfMonth, todayTaipei()),
+    });
+  revalidatePath("/recurring");
+}
+
+export async function deleteRecurring(id: number) {
+  await getDb()
+    .delete(recurringExpenses)
+    .where(eq(recurringExpenses.id, id));
+  revalidatePath("/recurring");
 }
 
 export interface ImportState {

@@ -10,6 +10,7 @@ import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
 import { CATEGORIES, isCategory } from "@/lib/categories";
 import { shiftMonth, todayTaipei } from "@/lib/dates";
+import { generateRecurringExpenses } from "@/lib/generate-recurring";
 
 function formatAmount(value: string | number): string {
   return Number(value).toLocaleString("zh-TW");
@@ -26,6 +27,9 @@ export default async function Home({
     : todayTaipei().slice(0, 7);
   const filter =
     categoryParam && isCategory(categoryParam) ? categoryParam : undefined;
+
+  // 開頁時補產生到期的定期支出
+  await generateRecurringExpenses();
 
   const db = getDb();
   const rows = await db.query.expenses.findMany({

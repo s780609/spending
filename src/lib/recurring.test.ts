@@ -1,0 +1,42 @@
+import { describe, expect, it } from "vitest";
+import { dueDates, initialLastGenerated } from "./recurring";
+
+describe("dueDates", () => {
+  it("到期日還沒到時不產生", () => {
+    expect(dueDates(25, "2026-05", "2026-06-11")).toEqual([]);
+  });
+
+  it("到期日當天產生", () => {
+    expect(dueDates(25, "2026-05", "2026-06-25")).toEqual(["2026-06-25"]);
+  });
+
+  it("久未開站會補齊中間每個月", () => {
+    expect(dueDates(25, "2026-03", "2026-06-11")).toEqual([
+      "2026-04-25",
+      "2026-05-25",
+    ]);
+  });
+
+  it("設 31 號遇到短月份取月底", () => {
+    expect(dueDates(31, "2026-01", "2026-03-05")).toEqual(["2026-02-28"]);
+  });
+
+  it("已產生到當月時不重複", () => {
+    expect(dueDates(25, "2026-06", "2026-06-30")).toEqual([]);
+  });
+});
+
+describe("initialLastGenerated", () => {
+  it("本月到期日尚未到，從本月開始產生", () => {
+    // 6/25 還沒到 → 標記為上個月已產生，6/25 當天會補
+    expect(initialLastGenerated(25, "2026-06-11")).toBe("2026-05");
+  });
+
+  it("本月到期日已過，從下個月開始產生", () => {
+    expect(initialLastGenerated(5, "2026-06-11")).toBe("2026-06");
+  });
+
+  it("今天就是到期日，今天立即產生", () => {
+    expect(initialLastGenerated(11, "2026-06-11")).toBe("2026-05");
+  });
+});
