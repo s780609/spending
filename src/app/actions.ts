@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { expenseItems, expenses } from "@/db/schema";
+import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
 import { parseEInvoiceCsv } from "@/lib/parse-einvoice";
@@ -120,7 +121,10 @@ export async function importCsv(
         date: invoice.date,
         vendor: invoice.sellerName,
         amount: String(invoice.totalAmount),
-        category: DEFAULT_CATEGORY,
+        category: autoCategory(
+          invoice.sellerName,
+          invoice.items.map((item) => item.name),
+        ),
         invoiceNumber: invoice.invoiceNumber,
       })
       .returning({ id: expenses.id });
