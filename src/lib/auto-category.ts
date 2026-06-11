@@ -16,7 +16,10 @@ const RULES: { category: Category; keywords: string[] }[] = [
   {
     // 注意：不放「捷運」，分店名稱常含捷運站名（如「捷運雙連門市」）會誤判
     category: "交通",
-    keywords: ["加油站", "汽油", "無鉛", "柴油", "停車", "parking", "中油", "高鐵", "台鐵", "客運"],
+    keywords: [
+      "加油站", "汽油", "無鉛", "柴油", "停車", "parking", "嘟嘟房",
+      "中油", "高鐵", "台鐵", "客運",
+    ],
   },
   {
     category: "娛樂",
@@ -24,6 +27,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
       "影城", "電影", "門票", "博物館", "遊戲", "玩具", "博客來", "密斯特喬",
       "電玩", "ps5", "ps4", "switch", "xbox", "任天堂", "sony",
       "誠品", "城邦", "學思行",
+      "klook", "客路", "booking",
     ],
   },
   {
@@ -40,14 +44,20 @@ const RULES: { category: Category; keywords: string[] }[] = [
     keywords: ["幣託", "交易處理費", "手續費", "運費", "速達"],
   },
   {
+    // 使用者指定：全聯一律歸日用，須優先於品項的飲食關鍵字
+    category: "日用",
+    keywords: ["全聯"],
+  },
+  {
     category: "飲食",
     keywords: [
       "餐", "料理", "便當", "鮮食", "點心", "烘焙", "甜品", "甜點", "美食", "小吃", "食品",
       "咖啡", "美式", "拿鐵", "茶", "奶", "乳", "果汁", "汁", "可樂", "汽水", "飲", "糖",
       "酒", "吟釀", "威士忌", "星冰樂", "優格", "豆漿", "養樂多", "可可", "檸檬", "蜂蜜", "寶礦力",
       "麵包", "吐司", "蛋糕", "餅", "三明治", "果凍", "爆米花", "飯", "麵", "堡", "薯", "地瓜", "炸",
-      "雞", "豬", "牛", "魚", "蛋", "葡萄", "蘋果", "草莓",
-      "星巴克", "麥當勞", "肯德基", "阿默",
+      "雞", "豬", "牛", "魚", "蛋", "葡萄", "蘋果", "草莓", "水果", "壽司",
+      "星巴克", "麥當勞", "肯德基", "阿默", "薩莉亞",
+      "超商", "便利商店", "美廉社", "美聯社",
     ],
   },
   {
@@ -55,13 +65,18 @@ const RULES: { category: Category; keywords: string[] }[] = [
     keywords: [
       "衛生紙", "洗衣", "沐浴", "洗髮", "牙膏", "菜瓜布", "清潔", "電池", "塑膠袋",
       "服飾", "服裝", "衣", "褲", "鞋", "襪",
-      "嬰", "濕巾", "宜家", "ikea",
+      "嬰", "濕巾", "宜家", "ikea", "宜得利", "卡多摩",
+      "coupang", "酷澎", "momo", "outlet", "寶雅",
     ],
   },
 ];
 
 export function autoCategory(vendor: string, itemNames: string[]): Category {
-  const text = [vendor, ...itemNames].join(" ").toLowerCase();
+  // NFKC 把全形英數（如信用卡帳單的ＣＯＵＰＡＮＧ）折成半形再比對
+  const text = [vendor, ...itemNames]
+    .join(" ")
+    .normalize("NFKC")
+    .toLowerCase();
   for (const rule of RULES) {
     if (rule.keywords.some((keyword) => text.includes(keyword.toLowerCase()))) {
       return rule.category;
