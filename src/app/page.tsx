@@ -4,6 +4,7 @@ import { addExpense } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
 import { CategoryPie, MonthlyTrend } from "@/app/charts";
 import { DeleteButton } from "@/app/delete-button";
+import { MonthPicker } from "@/app/month-picker";
 import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
@@ -45,18 +46,21 @@ export default async function Home({
     orderBy: [desc(expenses.date), desc(expenses.id)],
   });
 
-  // 近 12 個月的每月加總（線圖用）
+  // 每月加總（趨勢線圖、當年支出用），區間切換在前端做
   const monthExpr = sql<string>`to_char(${expenses.date}, 'YYYY-MM')`;
-  const trend = (
-    await db
-      .select({
-        month: monthExpr,
-        total: sql<number>`sum(${expenses.amount})::float`,
-      })
-      .from(expenses)
-      .groupBy(monthExpr)
-      .orderBy(monthExpr)
-  ).slice(-12);
+  const trend = await db
+    .select({
+      month: monthExpr,
+      total: sql<number>`sum(${expenses.amount})::float`,
+    })
+    .from(expenses)
+    .groupBy(monthExpr)
+    .orderBy(monthExpr);
+
+  const year = month.slice(0, 4);
+  const yearTotal = trend
+    .filter((entry) => entry.month.startsWith(`${year}-`))
+    .reduce((sum, entry) => sum + entry.total, 0);
 
   const total = rows.reduce((sum, row) => sum + Number(row.amount), 0);
   const byCategory = new Map<string, number>();
@@ -81,9 +85,7 @@ export default async function Home({
             >
               ←
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-950">
-              {month}
-            </h1>
+            <MonthPicker month={month} />
             <Link
               href={`/?month=${shiftMonth(month, 1)}`}
               className="rounded-full px-2 py-1 text-sm text-gray-600 hover:bg-gray-950/5"
@@ -92,12 +94,20 @@ export default async function Home({
               →
             </Link>
           </div>
-          <p className="text-sm text-gray-600">
-            本月支出{" "}
-            <span className="text-2xl font-bold tracking-tight text-gray-950">
-              NT$ {formatAmount(total)}
-            </span>
-          </p>
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-1">
+            <p className="text-sm text-gray-600">
+              本月支出{" "}
+              <span className="text-2xl font-bold tracking-tight text-gray-950">
+                NT$ {formatAmount(total)}
+              </span>
+            </p>
+            <p className="text-sm text-gray-600">
+              {year} 年支出{" "}
+              <span className="text-2xl font-bold tracking-tight text-gray-950">
+                NT$ {formatAmount(yearTotal)}
+              </span>
+            </p>
+          </div>
         </div>
 
         {categorySummary.length > 0 && (

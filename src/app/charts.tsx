@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   CartesianGrid,
   Cell,
@@ -70,31 +71,62 @@ export function CategoryPie({
   );
 }
 
+const TREND_RANGES = [
+  { label: "近 3 個月", months: 3 },
+  { label: "近 6 個月", months: 6 },
+  { label: "近 12 個月", months: 12 },
+  { label: "全部", months: Number.POSITIVE_INFINITY },
+];
+
 export function MonthlyTrend({
   data,
 }: {
   data: { month: string; total: number }[];
 }) {
+  const [months, setMonths] = useState(12);
+  const shown = Number.isFinite(months) ? data.slice(-months) : data;
+
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-        <XAxis dataKey="month" tick={{ fontSize: 12 }} tickMargin={6} />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          width={56}
-          tickFormatter={(value: number) => value.toLocaleString("zh-TW")}
-        />
-        <Tooltip formatter={formatNtd} />
-        <Line
-          type="monotone"
-          dataKey="total"
-          name="支出"
-          stroke="#0a0a0a"
-          strokeWidth={2}
-          dot={{ r: 3 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {TREND_RANGES.map((range) => (
+          <button
+            key={range.label}
+            type="button"
+            onClick={() => setMonths(range.months)}
+            className={
+              months === range.months
+                ? "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white"
+                : "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
+            }
+          >
+            {range.label}
+          </button>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={260}>
+        <LineChart
+          data={shown}
+          margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis dataKey="month" tick={{ fontSize: 12 }} tickMargin={6} />
+          <YAxis
+            tick={{ fontSize: 12 }}
+            width={56}
+            tickFormatter={(value: number) => value.toLocaleString("zh-TW")}
+          />
+          <Tooltip formatter={formatNtd} />
+          <Line
+            type="monotone"
+            dataKey="total"
+            name="支出"
+            stroke="#0a0a0a"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
