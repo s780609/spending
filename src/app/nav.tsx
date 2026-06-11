@@ -15,6 +15,12 @@ export function Nav() {
           記帳
         </Link>
         <Link
+          href="/family"
+          className="text-sm font-medium text-gray-950 hover:text-gray-600"
+        >
+          家庭
+        </Link>
+        <Link
           href="/assets"
           className="text-sm font-medium text-gray-950 hover:text-gray-600"
         >

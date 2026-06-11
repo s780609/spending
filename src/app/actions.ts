@@ -8,6 +8,8 @@ import { getDb } from "@/db";
 import {
   expenseItems,
   expenses,
+  familyCardTransactions,
+  familyTransactions,
   holdings,
   loans,
   recurringExpenses,
@@ -16,7 +18,15 @@ import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
 import { todayTaipei } from "@/lib/dates";
+import { isFamilyCategory } from "@/lib/family-category";
+import { importBankStatement, importCardStatement } from "@/lib/family-import";
 import { parseEInvoiceCsv } from "@/lib/parse-einvoice";
+import {
+  detectStatementType,
+  parseBankStatement,
+  parseCardStatement,
+} from "@/lib/parse-taishin";
+import { extractPdfItems } from "@/lib/pdf-text";
 import { initialLastGenerated } from "@/lib/recurring";
 
 export async function login(formData: FormData) {
@@ -208,6 +218,94 @@ export async function addLoan(formData: FormData) {
 export async function deleteLoan(id: number) {
   await getDb().delete(loans).where(eq(loans.id, id));
   revalidatePath("/assets");
+}
+
+export interface FamilyImportState {
+  message: string;
+  kind?: "bank" | "card";
+  month?: string;
+  inserted?: number;
+  skipped?: number;
+}
+
+export async function importFamilyPdf(
+  _prev: FamilyImportState,
+  formData: FormData,
+): Promise<FamilyImportState> {
+  const file = formData.get("file");
+  const password = String(formData.get("password") ?? "").trim();
+  if (!(file instanceof File) || file.size === 0) {
+    return { message: "請先選擇 PDF 檔案" };
+  }
+
+  let pages;
+  try {
+    pages = await extractPdfItems(
+      new Uint8Array(await file.arrayBuffer()),
+      password || undefined,
+    );
+  } catch (error) {
+    if ((error as { name?: string })?.name === "PasswordException") {
+      return { message: "PDF 密碼錯誤或未提供，請輸入正確的帳單密碼" };
+    }
+    return { message: "無法讀取 PDF，請確認檔案是否正確" };
+  }
+
+  const kind = detectStatementType(pages);
+  if (kind === "bank") {
+    const parsed = parseBankStatement(pages);
+    if (!parsed.month || parsed.transactions.length === 0) {
+      return { message: "解析不到對帳單明細，台新格式可能改版了" };
+    }
+    const counts = await importBankStatement(parsed);
+    revalidatePath("/family");
+    return {
+      message: "綜合對帳單匯入完成",
+      kind,
+      month: parsed.month,
+      ...counts,
+    };
+  }
+  if (kind === "card") {
+    const parsed = parseCardStatement(pages);
+    if (!parsed.month || parsed.transactions.length === 0) {
+      return { message: "解析不到信用卡明細，台新格式可能改版了" };
+    }
+    const counts = await importCardStatement(parsed);
+    revalidatePath("/family");
+    return {
+      message: "信用卡帳單匯入完成",
+      kind,
+      month: parsed.month,
+      ...counts,
+    };
+  }
+  return { message: "無法辨識帳單種類（支援台新綜合對帳單與信用卡電子帳單）" };
+}
+
+export async function updateFamilyTransactionCategory(
+  id: number,
+  category: string,
+) {
+  if (!isFamilyCategory(category)) {
+    return;
+  }
+  await getDb()
+    .update(familyTransactions)
+    .set({ category })
+    .where(eq(familyTransactions.id, id));
+  revalidatePath("/family");
+}
+
+export async function updateFamilyCardCategory(id: number, category: string) {
+  if (!isCategory(category)) {
+    return;
+  }
+  await getDb()
+    .update(familyCardTransactions)
+    .set({ category })
+    .where(eq(familyCardTransactions.id, id));
+  revalidatePath("/family");
 }
 
 export interface ImportState {

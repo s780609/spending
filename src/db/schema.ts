@@ -103,6 +103,59 @@ export const fxRates = pgTable("fx_rates", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+/** 家庭帳戶月結（台新綜合對帳單） */
+export const familyStatements = pgTable("family_statements", {
+  id: serial("id").primaryKey(),
+  /** YYYY-MM */
+  month: text("month").notNull().unique(),
+  /** Richart 總資產（目前存款） */
+  totalBalance: numeric("total_balance", { precision: 14, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/** 家庭帳戶往來明細 */
+export const familyTransactions = pgTable("family_transactions", {
+  id: serial("id").primaryKey(),
+  account: text("account").notNull(),
+  date: date("date").notNull(),
+  description: text("description").notNull(),
+  withdrawal: numeric("withdrawal", { precision: 14, scale: 2 }),
+  deposit: numeric("deposit", { precision: 14, scale: 2 }),
+  balance: numeric("balance", { precision: 14, scale: 2 }).notNull(),
+  note: text("note"),
+  category: text("category").notNull().default("未分類"),
+  /** 匯入去重用 */
+  dedupeKey: text("dedupe_key").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/** 家庭信用卡月結 */
+export const familyCardStatements = pgTable("family_card_statements", {
+  id: serial("id").primaryKey(),
+  /** 帳單月份 YYYY-MM */
+  month: text("month").notNull().unique(),
+  newCharges: numeric("new_charges", { precision: 14, scale: 2 }).notNull(),
+  totalDue: numeric("total_due", { precision: 14, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/** 家庭信用卡消費明細 */
+export const familyCardTransactions = pgTable("family_card_transactions", {
+  id: serial("id").primaryKey(),
+  /** 所屬帳單月份 YYYY-MM */
+  statementMonth: text("statement_month").notNull(),
+  purchaseDate: date("purchase_date").notNull(),
+  postDate: date("post_date").notNull(),
+  description: text("description").notNull(),
+  /** 負數為繳款/退款 */
+  amount: numeric("amount", { precision: 14, scale: 2 }).notNull(),
+  cardLast4: text("card_last4").notNull().default(""),
+  note: text("note"),
+  category: text("category").notNull().default("未分類"),
+  dedupeKey: text("dedupe_key").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const expensesRelations = relations(expenses, ({ many }) => ({
   items: many(expenseItems),
 }));
