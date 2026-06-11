@@ -1,4 +1,5 @@
 import { asc } from "drizzle-orm";
+import Link from "next/link";
 import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { DeleteButton } from "@/app/delete-button";
@@ -17,9 +18,43 @@ function ntd(value: number): string {
 const INPUT_CLS =
   "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm";
 
-export default async function AssetsPage() {
+const PILL_ACTIVE =
+  "rounded-full bg-gray-950 px-2.5 py-1 text-xs font-medium text-white";
+const PILL_IDLE =
+  "rounded-full px-2.5 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
+
+function assetHref(broker?: string, symbol?: string): string {
+  const params = new URLSearchParams();
+  if (broker) params.set("broker", broker);
+  if (symbol) params.set("symbol", symbol);
+  const query = params.toString();
+  return query ? `/assets?${query}` : "/assets";
+}
+
+export default async function AssetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ broker?: string; symbol?: string }>;
+}) {
+  const { broker: brokerParam, symbol: symbolParam } = await searchParams;
+
   // 開頁同時計算資產負債並補記今日快照
   const sheet = await recordDailySnapshot();
+
+  const brokers = [...new Set(sheet.holdings.map((h) => h.broker))];
+  const brokerFilter =
+    brokerParam && brokers.includes(brokerParam) ? brokerParam : undefined;
+  // 代號選項只列目前券商範圍內的，換券商時不相容的代號篩選自動失效
+  const brokerScoped = brokerFilter
+    ? sheet.holdings.filter((h) => h.broker === brokerFilter)
+    : sheet.holdings;
+  const symbols = [...new Set(brokerScoped.map((h) => h.symbol))];
+  const symbolFilter =
+    symbolParam && symbols.includes(symbolParam) ? symbolParam : undefined;
+  const visibleHoldings = symbolFilter
+    ? brokerScoped.filter((h) => h.symbol === symbolFilter)
+    : brokerScoped;
+  const visibleValue = visibleHoldings.reduce((sum, h) => sum + h.valueTwd, 0);
   const snapshots = await getDb()
     .select()
     .from(networthSnapshots)
@@ -137,8 +172,65 @@ export default async function AssetsPage() {
         </form>
 
         {sheet.holdings.length > 0 && (
+          <>
+            <div className="mt-4 flex flex-wrap items-center gap-1.5">
+              <span className="w-8 text-xs text-gray-400">券商</span>
+              <Link
+                href={assetHref(undefined, symbolFilter)}
+                className={!brokerFilter ? PILL_ACTIVE : PILL_IDLE}
+              >
+                全部
+              </Link>
+              {brokers.map((broker) => (
+                <Link
+                  key={broker}
+                  href={assetHref(
+                    brokerFilter === broker ? undefined : broker,
+                    symbolFilter,
+                  )}
+                  className={brokerFilter === broker ? PILL_ACTIVE : PILL_IDLE}
+                >
+                  {broker}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="w-8 text-xs text-gray-400">代號</span>
+              <Link
+                href={assetHref(brokerFilter, undefined)}
+                className={!symbolFilter ? PILL_ACTIVE : PILL_IDLE}
+              >
+                全部
+              </Link>
+              {symbols.map((symbol) => (
+                <Link
+                  key={symbol}
+                  href={assetHref(
+                    brokerFilter,
+                    symbolFilter === symbol ? undefined : symbol,
+                  )}
+                  className={`font-mono ${
+                    symbolFilter === symbol ? PILL_ACTIVE : PILL_IDLE
+                  }`}
+                >
+                  {symbol}
+                </Link>
+              ))}
+            </div>
+            {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
+              <p className="mt-3 text-xs text-gray-600">
+                篩選結果：{visibleHoldings.length} 筆，市值{" "}
+                <span className="font-medium text-gray-950">
+                  {ntd(visibleValue)}
+                </span>
+              </p>
+            )}
+          </>
+        )}
+
+        {visibleHoldings.length > 0 && (
           <ul className="mt-3 space-y-2">
-            {sheet.holdings.map((h) => (
+            {visibleHoldings.map((h) => (
               <li
                 key={h.id}
                 className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
