@@ -17,9 +17,7 @@ import {
 } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
 import { FamilyChartsPanel } from "@/app/family-charts-panel";
-import { FamilyTabs } from "@/app/family-tabs";
 import { MonthPicker } from "@/app/month-picker";
-import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
 import {
   familyCardStatements,
@@ -137,9 +135,6 @@ export default async function FamilyPage({
 
   return (
     <>
-      <Nav />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <FamilyTabs active="list" />
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
@@ -327,7 +322,6 @@ export default async function FamilyPage({
             ))}
           </ul>
         )}
-      </main>
     </>
   );
 }

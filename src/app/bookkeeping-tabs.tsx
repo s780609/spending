@@ -6,9 +6,7 @@ const TABS = [
   { key: "recurring", label: "定期支出", href: "/expenses/recurring" },
 ] as const;
 
-export type BookkeepingTab = (typeof TABS)[number]["key"];
-
 /** 記帳子功能頁籤（明細／匯入／定期支出） */
-export function BookkeepingTabs({ active }: { active: BookkeepingTab }) {
-  return <SubTabs tabs={TABS} active={active} />;
+export function BookkeepingTabs() {
+  return <SubTabs tabs={TABS} />;
 }

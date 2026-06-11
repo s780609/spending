@@ -5,9 +5,7 @@ const TABS = [
   { key: "import", label: "匯入帳單 PDF", href: "/family/import" },
 ] as const;
 
-export type FamilyTab = (typeof TABS)[number]["key"];
-
 /** 家庭記帳子功能頁籤 */
-export function FamilyTabs({ active }: { active: FamilyTab }) {
-  return <SubTabs tabs={TABS} active={active} />;
+export function FamilyTabs() {
+  return <SubTabs tabs={TABS} />;
 }
