@@ -87,12 +87,12 @@ export async function addExpense(formData: FormData) {
       amount: String(amount),
       category: isCategory(categoryRaw) ? categoryRaw : DEFAULT_CATEGORY,
     });
-  revalidatePath("/");
+  revalidatePath("/expenses");
 }
 
 export async function deleteExpense(id: number) {
   await getDb().delete(expenses).where(eq(expenses.id, id));
-  revalidatePath("/");
+  revalidatePath("/expenses");
 }
 
 export async function updateExpenseCategory(id: number, category: string) {
@@ -100,7 +100,7 @@ export async function updateExpenseCategory(id: number, category: string) {
     return;
   }
   await getDb().update(expenses).set({ category }).where(eq(expenses.id, id));
-  revalidatePath("/");
+  revalidatePath("/expenses");
 }
 
 export async function addRecurring(formData: FormData) {
@@ -131,14 +131,14 @@ export async function addRecurring(formData: FormData) {
       lastGenerated: initialLastGenerated(dayOfMonth, todayTaipei()),
       endMonth,
     });
-  revalidatePath("/recurring");
+  revalidatePath("/expenses/recurring");
 }
 
 export async function deleteRecurring(id: number) {
   await getDb()
     .delete(recurringExpenses)
     .where(eq(recurringExpenses.id, id));
-  revalidatePath("/recurring");
+  revalidatePath("/expenses/recurring");
 }
 
 export async function addHolding(formData: FormData) {
@@ -491,7 +491,7 @@ export async function importCsv(
     imported += 1;
   }
 
-  revalidatePath("/");
+  revalidatePath("/expenses");
   return {
     message: "匯入完成",
     imported,
