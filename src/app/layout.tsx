@@ -27,7 +27,8 @@ export default function RootLayout({
       lang="zh-Hant"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* 手機底部分頁列為 fixed，預留底部空間避免蓋住內容 */}
+      <body className="min-h-full flex flex-col pb-16 sm:pb-0">{children}</body>
     </html>
   );
 }
