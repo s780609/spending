@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 記帳小工具（Spending）
 
-## Getting Started
+簡單的個人記帳網站：手動記支出、每月匯入財政部電子發票 CSV、按月檢視與分類統計。
 
-First, run the development server:
+## 技術棧
+
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- Neon (Serverless PostgreSQL) + Drizzle ORM
+- Vitest（CSV 解析器單元測試）
+- 部署：Vercel
+
+## 功能
+
+- 密碼登入保護（單一密碼，環境變數設定）
+- 按月檢視支出列表、月總額、分類統計
+- 手動新增支出（日期 / 店家 / 金額 / 分類）、刪除、調整分類
+- 匯入電子發票 CSV（`|` 分隔、UTF-8）：
+  - 一張發票一筆支出，品項明細可展開
+  - 以發票號碼去重，重複匯入自動略過
+  - 作廢發票自動跳過
+
+## 本機開發
 
 ```bash
+npm install
+cp .env.example .env   # 填入 DATABASE_URL、APP_PASSWORD、AUTH_SECRET
+npm run db:push        # 建立資料表（首次或 schema 變更後）
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+執行測試：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 建立 Neon 資料庫
 
-## Learn More
+1. 到 <https://neon.tech> 註冊並建立專案（區域選 Singapore 較近）。
+2. 在專案頁面點 **Connect**，複製 Connection string。
+3. 貼到 `.env` 的 `DATABASE_URL`。
+4. 執行 `npm run db:push` 建立 `expenses`、`expense_items` 資料表。
 
-To learn more about Next.js, take a look at the following resources:
+## 部署到 Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. 推送程式碼到 GitHub。
+2. 到 <https://vercel.com> → **Add New Project** → 匯入此 repo（框架會自動偵測為 Next.js）。
+3. 在 **Environment Variables** 設定：
+   - `DATABASE_URL`：Neon 連線字串
+   - `APP_PASSWORD`：登入密碼
+   - `AUTH_SECRET`：隨機長字串
+4. Deploy。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> 也可以在 Vercel 的 Storage 分頁直接整合 Neon，會自動注入 `DATABASE_URL`。
 
-## Deploy on Vercel
+## CSV 格式
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+財政部電子發票整合服務平台每月寄送的消費發票彙整檔：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+M|載具名稱|載具號碼|發票日期|商店統編|商店店名|發票號碼|總金額|發票狀態|
+D|發票號碼|小計|品項名稱|
+```
+
+- `M` 列為發票主檔、`D` 列為品項明細，以發票號碼關聯
+- 日期為西元 `YYYYMMDD`
+- 小計可為負數（折抵）
