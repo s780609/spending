@@ -33,6 +33,8 @@ const RULES: { category: FamilyCategory; keywords: string[] }[] = [
   { category: "房租", keywords: ["房租"] },
   { category: "電信", keywords: ["電信", "台灣大哥大", "遠傳"] },
   { category: "利息", keywords: ["存款息", "利息"] },
+  // 使用者指定：給許欣予的轉帳為教育支出
+  { category: "教育", keywords: ["許欣予"] },
   { category: "生活費", keywords: ["生活費", "贊助"] },
 ];
 
