@@ -32,8 +32,8 @@ const PALETTE = [
   "#9ca3af", // 未分類
 ];
 
-function colorOf(category: string): string {
-  const index = (CATEGORIES as readonly string[]).indexOf(category);
+function colorOf(category: string, categories: readonly string[]): string {
+  const index = categories.indexOf(category);
   return PALETTE[index >= 0 ? index % PALETTE.length : PALETTE.length - 1];
 }
 
@@ -82,11 +82,14 @@ const PIE_RANGES = [
 export function CategoryPie({
   data,
   month,
+  categories = CATEGORIES,
 }: {
   /** 每月 × 分類加總（只含檢視月份以前） */
   data: { month: string; category: string; total: number }[];
   /** 目前檢視的月份 YYYY-MM，區間以此為終點 */
   month: string;
+  /** 分類清單（決定顏色對應），預設個人記帳分類 */
+  categories?: readonly string[];
 }) {
   const [months, setMonths] = useState(1);
 
@@ -123,7 +126,7 @@ export function CategoryPie({
               paddingAngle={2}
             >
               {pieData.map((entry) => (
-                <Cell key={entry.name} fill={colorOf(entry.name)} />
+                <Cell key={entry.name} fill={colorOf(entry.name, categories)} />
               ))}
             </Pie>
             <Tooltip formatter={formatNtd} />

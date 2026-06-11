@@ -298,7 +298,7 @@ export async function updateFamilyTransactionCategory(
 }
 
 export async function updateFamilyCardCategory(id: number, category: string) {
-  if (!isCategory(category)) {
+  if (!isFamilyCategory(category)) {
     return;
   }
   await getDb()

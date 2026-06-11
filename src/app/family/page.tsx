@@ -1,11 +1,23 @@
-import { and, asc, desc, eq, gte, lt } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  isNotNull,
+  lt,
+  notInArray,
+  sql,
+} from "drizzle-orm";
 import Link from "next/link";
 import {
   updateFamilyCardCategory,
   updateFamilyTransactionCategory,
 } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
-import { FamilyImportForm } from "@/app/family-import-form";
+import { CategoryPie, MonthlyTrend } from "@/app/charts";
+import { FamilyTabs } from "@/app/family-tabs";
 import { MonthPicker } from "@/app/month-picker";
 import { Nav } from "@/app/nav";
 import { getDb } from "@/db";
@@ -67,6 +79,49 @@ export default async function FamilyPage({
       ),
   ]);
 
+  // 圖表用：每月 × 分類支出加總。
+  // 口徑＝帳戶支出（排除內部轉帳與卡費，卡費由信用卡明細逐筆計入）＋信用卡消費
+  const bankMonthExpr = sql<string>`to_char(${familyTransactions.date}, 'YYYY-MM')`;
+  const [bankByMonthCat, cardByMonthCat] = await Promise.all([
+    db
+      .select({
+        month: bankMonthExpr,
+        category: familyTransactions.category,
+        total: sql<number>`sum(${familyTransactions.withdrawal})::float`,
+      })
+      .from(familyTransactions)
+      .where(
+        and(
+          isNotNull(familyTransactions.withdrawal),
+          notInArray(familyTransactions.category, ["內部轉帳", "卡費"]),
+        ),
+      )
+      .groupBy(bankMonthExpr, familyTransactions.category),
+    db
+      .select({
+        month: familyCardTransactions.statementMonth,
+        category: familyCardTransactions.category,
+        total: sql<number>`sum(${familyCardTransactions.amount})::float`,
+      })
+      .from(familyCardTransactions)
+      .where(gt(familyCardTransactions.amount, "0"))
+      .groupBy(
+        familyCardTransactions.statementMonth,
+        familyCardTransactions.category,
+      ),
+  ]);
+  const categoryByMonth = [...bankByMonthCat, ...cardByMonthCat];
+  const trendByMonth = new Map<string, number>();
+  for (const entry of categoryByMonth) {
+    trendByMonth.set(
+      entry.month,
+      (trendByMonth.get(entry.month) ?? 0) + entry.total,
+    );
+  }
+  const trend = [...trendByMonth.entries()]
+    .map(([m, total]) => ({ month: m, total }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
   const bankOut = bankTxs.reduce((s, t) => s + Number(t.withdrawal ?? 0), 0);
   const bankIn = bankTxs.reduce((s, t) => s + Number(t.deposit ?? 0), 0);
   const cardSpend = cardTxs.reduce(
@@ -78,7 +133,8 @@ export default async function FamilyPage({
     <>
       <Nav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <FamilyTabs active="list" />
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
               href={`/family?month=${shiftMonth(month, -1)}`}
@@ -132,7 +188,29 @@ export default async function FamilyPage({
           ))}
         </div>
 
-        <FamilyImportForm />
+        {categoryByMonth.length > 0 && (
+          <>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                <h2 className="text-sm font-medium text-gray-950">分類佔比</h2>
+                <CategoryPie
+                  data={categoryByMonth}
+                  month={month}
+                  categories={FAMILY_CATEGORIES}
+                />
+              </section>
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                <h2 className="text-sm font-medium text-gray-950">
+                  每月支出趨勢
+                </h2>
+                <MonthlyTrend data={trend} />
+              </section>
+            </div>
+            <p className="mt-2 text-xs text-gray-400">
+              支出口徑：帳戶支出（不含內部轉帳與卡費）＋信用卡消費；卡費由信用卡明細逐筆分類計入，避免重複計算。
+            </p>
+          </>
+        )}
 
         {/* ===== 帳戶往來明細 ===== */}
         <h2 className="mt-8 text-lg font-bold tracking-tight text-gray-950">
@@ -244,6 +322,7 @@ export default async function FamilyPage({
                         id={tx.id}
                         value={tx.category}
                         action={updateFamilyCardCategory}
+                        options={FAMILY_CATEGORIES}
                       />
                     </span>
                     {tx.cardLast4 && (
