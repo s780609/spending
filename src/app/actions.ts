@@ -5,7 +5,13 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { expenseItems, expenses, recurringExpenses } from "@/db/schema";
+import {
+  expenseItems,
+  expenses,
+  holdings,
+  loans,
+  recurringExpenses,
+} from "@/db/schema";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
@@ -110,6 +116,98 @@ export async function deleteRecurring(id: number) {
     .delete(recurringExpenses)
     .where(eq(recurringExpenses.id, id));
   revalidatePath("/recurring");
+}
+
+export async function addHolding(formData: FormData) {
+  const market = String(formData.get("market") ?? "");
+  const broker = String(formData.get("broker") ?? "").trim();
+  const symbol = String(formData.get("symbol") ?? "").trim().toUpperCase();
+  const name = String(formData.get("name") ?? "").trim();
+  const shares = Number(formData.get("shares"));
+
+  if (
+    !["TW", "US"].includes(market) ||
+    !broker ||
+    !symbol ||
+    !Number.isFinite(shares) ||
+    shares <= 0
+  ) {
+    return;
+  }
+
+  await getDb()
+    .insert(holdings)
+    .values({
+      market,
+      broker,
+      symbol,
+      name: name || null,
+      shares: String(shares),
+    });
+  revalidatePath("/assets");
+}
+
+export async function updateHoldingShares(id: number, shares: number) {
+  if (!Number.isFinite(shares) || shares <= 0) {
+    return;
+  }
+  await getDb()
+    .update(holdings)
+    .set({ shares: String(shares) })
+    .where(eq(holdings.id, id));
+  revalidatePath("/assets");
+}
+
+export async function deleteHolding(id: number) {
+  await getDb().delete(holdings).where(eq(holdings.id, id));
+  revalidatePath("/assets");
+}
+
+export async function addLoan(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const type = String(formData.get("type") ?? "");
+  const principal = Number(formData.get("principal"));
+  const annualRate = Number(formData.get("annualRate"));
+  const startDate = String(formData.get("startDate") ?? "");
+  const installmentsRaw = Number(formData.get("installments"));
+  const termEndRaw = String(formData.get("termEnd") ?? "");
+
+  if (
+    !name ||
+    !["質押", "信貸"].includes(type) ||
+    !Number.isFinite(principal) ||
+    principal <= 0 ||
+    !Number.isFinite(annualRate) ||
+    annualRate < 0 ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(startDate)
+  ) {
+    return;
+  }
+  const installments =
+    type === "信貸" && Number.isInteger(installmentsRaw) && installmentsRaw > 0
+      ? installmentsRaw
+      : null;
+  if (type === "信貸" && installments === null) {
+    return;
+  }
+
+  await getDb()
+    .insert(loans)
+    .values({
+      name,
+      type,
+      principal: String(principal),
+      annualRate: String(annualRate),
+      startDate,
+      installments,
+      termEnd: /^\d{4}-\d{2}-\d{2}$/.test(termEndRaw) ? termEndRaw : null,
+    });
+  revalidatePath("/assets");
+}
+
+export async function deleteLoan(id: number) {
+  await getDb().delete(loans).where(eq(loans.id, id));
+  revalidatePath("/assets");
 }
 
 export interface ImportState {
