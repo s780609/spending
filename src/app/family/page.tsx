@@ -6,8 +6,8 @@ import {
   gte,
   isNotNull,
   lt,
-  ne,
   notInArray,
+  notLike,
   sql,
 } from "drizzle-orm";
 import Link from "next/link";
@@ -98,7 +98,7 @@ export default async function FamilyPage({
         ),
       )
       .groupBy(bankMonthExpr, familyTransactions.category),
-    // 卡單依實際消費日歸月，排除繳款（卡費分類）、退款以負數淨掉
+    // 卡單依實際消費日歸月，只排除「自動轉帳扣繳」繳款列，退款以負數淨掉
     db
       .select({
         month: sql<string>`to_char(${familyCardTransactions.purchaseDate}, 'YYYY-MM')`,
@@ -106,7 +106,7 @@ export default async function FamilyPage({
         total: sql<number>`sum(${familyCardTransactions.amount})::float`,
       })
       .from(familyCardTransactions)
-      .where(ne(familyCardTransactions.category, "卡費"))
+      .where(notLike(familyCardTransactions.description, "%自動轉帳扣繳%"))
       .groupBy(
         sql`to_char(${familyCardTransactions.purchaseDate}, 'YYYY-MM')`,
         familyCardTransactions.category,
@@ -128,9 +128,10 @@ export default async function FamilyPage({
 
   const bankOut = bankTxs.reduce((s, t) => s + Number(t.withdrawal ?? 0), 0);
   const bankIn = bankTxs.reduce((s, t) => s + Number(t.deposit ?? 0), 0);
-  // 消費合計＝淨額（含退款負數），排除繳款（卡費分類）
+  // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
   const cardSpend = cardTxs.reduce(
-    (s, t) => (t.category === "卡費" ? s : s + Number(t.amount)),
+    (s, t) =>
+      t.description.includes("自動轉帳扣繳") ? s : s + Number(t.amount),
     0,
   );
 
@@ -215,7 +216,7 @@ export default async function FamilyPage({
               </section>
             </div>
             <p className="mt-2 text-xs text-gray-400">
-              帳戶口徑不含內部轉帳；「合併」與趨勢線剔除帳戶側台新卡費（改以信用卡明細逐筆計入）。卡單依實際消費日歸月、退款以負數淨掉、繳款不計。
+              帳戶口徑不含內部轉帳；「合併」與趨勢線剔除帳戶側台新卡費（改以信用卡明細逐筆計入）。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。
             </p>
           </>
         )}
