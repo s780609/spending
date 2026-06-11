@@ -33,11 +33,30 @@ export function parseEInvoiceCsv(content: string): ParseResult {
   const errors: string[] = [];
   let voidedCount = 0;
 
-  const lines = content.replace(/^﻿/, "").split(/\r?\n/);
-
-  for (const raw of lines) {
+  // 品項名稱可能內含換行（如停車場發票），完整的一筆會以 | 結尾；
+  // 行尾沒有 | 表示尚未結束，把後續行併回同一筆
+  const lines: string[] = [];
+  for (const raw of content.replace(/^﻿/, "").split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line || line.startsWith("表頭=") || line.startsWith("明細=")) {
+    if (!line) {
+      continue;
+    }
+    const prev = lines[lines.length - 1];
+    if (
+      prev !== undefined &&
+      !prev.endsWith("|") &&
+      !/^[MD]\|/.test(line) &&
+      !line.startsWith("表頭=") &&
+      !line.startsWith("明細=")
+    ) {
+      lines[lines.length - 1] = `${prev} ${line}`;
+    } else {
+      lines.push(line);
+    }
+  }
+
+  for (const line of lines) {
+    if (line.startsWith("表頭=") || line.startsWith("明細=")) {
       continue;
     }
 

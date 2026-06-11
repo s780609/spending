@@ -86,6 +86,32 @@ describe("parseEInvoiceCsv", () => {
     expect(result.voidedCount).toBe(0);
   });
 
+  it("品項名稱內含換行時，後續行併回同一筆品項", () => {
+    const csv = [
+      "M|手機條碼|/X|20260524|60260052|千斗開發有限公司台64橋下停車場營業所|BR07497744|100|開立|",
+      "D|BR07497744|100|進場時間:2026/05/24 17:25:22",
+      "繳費時間:2026/05/24 22:25:06",
+      "臨停費率金額:100",
+      "停車費|",
+      "M|手機條碼|/X|20260525|16099582|下一家店|AX84651575|147|開立|",
+      "D|AX84651575|147|正常品項|",
+    ].join("\r\n");
+
+    const result = parseEInvoiceCsv(csv);
+
+    expect(result.errors).toEqual([]);
+    expect(result.invoices).toHaveLength(2);
+    expect(result.invoices[0].items).toEqual([
+      {
+        name: "進場時間:2026/05/24 17:25:22 繳費時間:2026/05/24 22:25:06 臨停費率金額:100 停車費",
+        amount: 100,
+      },
+    ]);
+    expect(result.invoices[1].items).toEqual([
+      { name: "正常品項", amount: 147 },
+    ]);
+  });
+
   it("無法解析的列收進 errors 而不中斷", () => {
     const csv = [
       "M|手機條碼|/X|20260101|55555555|店名|EE55555555|10|開立|",
