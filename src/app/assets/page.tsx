@@ -143,7 +143,13 @@ export default async function AssetsPage() {
                 key={h.id}
                 className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
               >
-                <span className="shrink-0 rounded-full bg-gray-950/[0.025] px-2 py-0.5 font-mono text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5">
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
+                    h.market === "TW"
+                      ? "bg-red-50 text-red-700 ring-red-600/20"
+                      : "bg-blue-50 text-blue-700 ring-blue-600/20"
+                  }`}
+                >
                   {h.market === "TW" ? "台" : "美"}
                 </span>
                 <span className="min-w-0 flex-1">
