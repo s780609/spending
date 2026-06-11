@@ -4,6 +4,7 @@ import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { DeleteButton } from "@/app/delete-button";
+import { PrivacyShield } from "@/app/privacy-shield";
 import { SharesEditor } from "@/app/shares-editor";
 import { getDb } from "@/db";
 import { networthSnapshots } from "@/db/schema";
@@ -80,15 +81,15 @@ export default async function AssetsPage({
   return (
     <>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-950">
-            資產負債表
-          </h1>
-          <p className="text-xs text-gray-400">
-            美金匯率 {sheet.usdTwd ? sheet.usdTwd.toFixed(2) : "—"}
-            {sheet.fxStale && "（快取）"}
-          </p>
-        </div>
+        <PrivacyShield
+          title="資產負債表"
+          headerExtra={
+            <p className="text-xs text-gray-400">
+              美金匯率 {sheet.usdTwd ? sheet.usdTwd.toFixed(2) : "—"}
+              {sheet.fxStale && "（快取）"}
+            </p>
+          }
+        >
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -105,7 +106,7 @@ export default async function AssetsPage({
               className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10"
             >
               <p className="text-xs text-gray-600">{card.label}</p>
-              <p className="mt-1 text-lg font-bold tracking-tight text-gray-950">
+              <p className="sensitive mt-1 text-lg font-bold tracking-tight text-gray-950">
                 {card.value}
               </p>
             </div>
@@ -115,7 +116,7 @@ export default async function AssetsPage({
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
             <h2 className="text-sm font-medium text-gray-950">持股佔比</h2>
-            <AssetPie
+            <div className="sensitive"><AssetPie
               data={sheet.holdings.map((h) => ({
                 symbol: h.symbol,
                 name: h.name,
@@ -123,12 +124,13 @@ export default async function AssetsPage({
                 valueTwd: h.valueTwd,
               }))}
             />
+              </div>
           </section>
           <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
             <h2 className="text-sm font-medium text-gray-950">
               淨資產與槓桿走勢
             </h2>
-            <NetWorthChart data={chartData} />
+            <div className="sensitive"><NetWorthChart data={chartData} /></div>
           </section>
         </div>
 
@@ -246,9 +248,7 @@ export default async function AssetsPage({
             {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
               <p className="mt-3 text-xs text-gray-600">
                 篩選結果：{visibleHoldings.length} 筆，市值{" "}
-                <span className="font-medium text-gray-950">
-                  {ntd(visibleValue)}
-                </span>
+                <span className="sensitive font-medium text-gray-950">{ntd(visibleValue)}</span>
               </p>
             )}
           </>
@@ -289,13 +289,13 @@ export default async function AssetsPage({
                   </div>
                   {/* 手機第二行：股數＋市值＋刪除 */}
                   <div className="flex items-center gap-2 sm:contents">
-                    <span className="flex items-center gap-1.5 sm:order-3">
+                    <span className="sensitive flex items-center gap-1.5 sm:order-3">
                       <span className="text-xs text-gray-400 sm:hidden">
                         股數
                       </span>
                       <SharesEditor id={h.id} shares={h.shares} />
                     </span>
-                    <span className="ml-auto shrink-0 text-right text-base font-semibold text-gray-950 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
+                    <span className="sensitive ml-auto shrink-0 text-right text-base font-semibold text-gray-950 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
                       {ntd(h.valueTwd)}
                     </span>
                     <span className="sm:order-5">
@@ -430,7 +430,7 @@ export default async function AssetsPage({
                   </div>
                   {/* 手機第二行：餘額＋刪除 */}
                   <div className="flex items-center gap-3 sm:contents">
-                    <span className="shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
+                    <span className="sensitive shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
                       {ntd(loan.liability)}
                     </span>
                     <span className="ml-auto sm:order-4 sm:ml-0">
@@ -442,7 +442,7 @@ export default async function AssetsPage({
                     </span>
                   </div>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-gray-400">
+                <p className="sensitive mt-1 text-xs leading-5 text-gray-400">
                   本金 {ntd(loan.principal)} · 年利率 {loan.annualRate}% ·{" "}
                   {loan.startDate} 起
                   {loan.type === "信貸" && loan.installments !== null && (
@@ -492,6 +492,7 @@ export default async function AssetsPage({
             ))}
           </ul>
         )}
+      </PrivacyShield>
       </main>
     </>
   );
