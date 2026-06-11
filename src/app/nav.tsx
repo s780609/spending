@@ -27,19 +27,24 @@ export function Nav() {
             Spending
           </span>
           <div className="hidden items-center gap-6 sm:flex">
-            {LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={
-                  isActive(pathname, link.href)
-                    ? "text-sm font-semibold text-gray-950"
-                    : "text-sm font-medium text-gray-600 hover:text-gray-950"
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
+            {LINKS.map((link) => {
+              const active = isActive(pathname, link.href);
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-1.5 text-sm ${
+                    active
+                      ? "font-semibold text-gray-950"
+                      : "font-medium text-gray-600 hover:text-gray-950"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 1.8} />
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
           <form action={logout} className="ml-auto">
             <button
