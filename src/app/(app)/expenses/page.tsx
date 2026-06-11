@@ -3,8 +3,8 @@ import Link from "next/link";
 import { addExpense } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
 import { CategorySelect } from "@/app/category-select";
-import { CategoryPie, MonthlyTrend } from "@/app/charts";
 import { DeleteButton } from "@/app/delete-button";
+import { ExpenseChartsPanel } from "@/app/expense-charts-panel";
 import { MonthPicker } from "@/app/month-picker";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
@@ -166,24 +166,11 @@ export default async function Home({
         )}
 
         {(categoryByMonth.length > 0 || trend.length > 0) && (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {categoryByMonth.length > 0 && (
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                <h2 className="text-sm font-medium text-gray-950">
-                  分類佔比
-                </h2>
-                <CategoryPie data={categoryByMonth} month={month} />
-              </section>
-            )}
-            {trend.length > 0 && (
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                <h2 className="text-sm font-medium text-gray-950">
-                  每月支出趨勢
-                </h2>
-                <MonthlyTrend data={trend} />
-              </section>
-            )}
-          </div>
+          <ExpenseChartsPanel
+            categoryByMonth={categoryByMonth}
+            trend={trend}
+            month={month}
+          />
         )}
 
         <AddPanel title="支出明細" buttonLabel="新增支出">

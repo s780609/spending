@@ -333,6 +333,54 @@ export async function getFamilySpendingDetail(params: {
   return rows.slice(0, 500);
 }
 
+export interface ExpenseDetailRow {
+  date: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
+/** 圖表點擊用：撈指定分類/月份區間的個人記帳明細（口徑與圖表一致） */
+export async function getExpenseDetail(params: {
+  category?: string;
+  /** YYYY-MM，空字串＝不限起點 */
+  startMonth?: string;
+  endMonth: string;
+}): Promise<ExpenseDetailRow[]> {
+  if (!/^\d{4}-\d{2}$/.test(params.endMonth)) {
+    return [];
+  }
+  const start =
+    params.startMonth && /^\d{4}-\d{2}$/.test(params.startMonth)
+      ? params.startMonth
+      : null;
+
+  const conds: SQL[] = [
+    lt(expenses.date, `${shiftMonth(params.endMonth, 1)}-01`),
+  ];
+  if (start) {
+    conds.push(gte(expenses.date, `${start}-01`));
+  }
+  if (params.category) {
+    conds.push(eq(expenses.category, params.category));
+  }
+
+  const rows = await getDb()
+    .select()
+    .from(expenses)
+    .where(and(...conds))
+    .orderBy(asc(expenses.date), asc(expenses.id));
+
+  return rows
+    .map((r) => ({
+      date: r.date,
+      description: r.vendor,
+      amount: Number(r.amount),
+      category: r.category,
+    }))
+    .slice(0, 500);
+}
+
 export interface FamilyImportState {
   message: string;
   kind?: "bank" | "card";
