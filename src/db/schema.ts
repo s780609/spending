@@ -34,6 +34,19 @@ export const expenseItems = pgTable("expense_items", {
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
 });
 
+export const recurringExpenses = pgTable("recurring_expenses", {
+  id: serial("id").primaryKey(),
+  /** 每月幾號（1-31，超過該月天數時取月底） */
+  dayOfMonth: integer("day_of_month").notNull(),
+  /** 名目，如「房租」 */
+  vendor: text("vendor").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  category: text("category").notNull().default("未分類"),
+  /** 已產生至哪個月 YYYY-MM，用於補帳與防重複 */
+  lastGenerated: text("last_generated").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const expensesRelations = relations(expenses, ({ many }) => ({
   items: many(expenseItems),
 }));

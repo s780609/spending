@@ -20,6 +20,12 @@ export function Nav() {
         >
           匯入 CSV
         </Link>
+        <Link
+          href="/recurring"
+          className="text-sm font-medium text-gray-950 hover:text-gray-600"
+        >
+          定期支出
+        </Link>
         <form action={logout} className="ml-auto">
           <button
             type="submit"
