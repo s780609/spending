@@ -24,10 +24,11 @@ const PILL_ACTIVE =
 const PILL_IDLE =
   "rounded-full px-2.5 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
 
-function assetHref(broker?: string, symbol?: string): string {
+function assetHref(broker?: string, symbol?: string, sort?: string): string {
   const params = new URLSearchParams();
   if (broker) params.set("broker", broker);
   if (symbol) params.set("symbol", symbol);
+  if (sort) params.set("sort", sort);
   const query = params.toString();
   return query ? `/assets?${query}` : "/assets";
 }
@@ -35,9 +36,14 @@ function assetHref(broker?: string, symbol?: string): string {
 export default async function AssetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ broker?: string; symbol?: string }>;
+  searchParams: Promise<{ broker?: string; symbol?: string; sort?: string }>;
 }) {
-  const { broker: brokerParam, symbol: symbolParam } = await searchParams;
+  const {
+    broker: brokerParam,
+    symbol: symbolParam,
+    sort: sortParam,
+  } = await searchParams;
+  const sort = sortParam === "value" ? "value" : undefined;
 
   // 開頁同時計算資產負債並補記今日快照
   const sheet = await recordDailySnapshot();
@@ -52,9 +58,14 @@ export default async function AssetsPage({
   const symbols = [...new Set(brokerScoped.map((h) => h.symbol))];
   const symbolFilter =
     symbolParam && symbols.includes(symbolParam) ? symbolParam : undefined;
-  const visibleHoldings = symbolFilter
+  const filteredHoldings = symbolFilter
     ? brokerScoped.filter((h) => h.symbol === symbolFilter)
     : brokerScoped;
+  // 預設排序（市場、組內市值）由 computeBalanceSheet 給；選「市值」時不分市場重排
+  const visibleHoldings =
+    sort === "value"
+      ? [...filteredHoldings].sort((a, b) => b.valueTwd - a.valueTwd)
+      : filteredHoldings;
   const visibleValue = visibleHoldings.reduce((sum, h) => sum + h.valueTwd, 0);
   const snapshots = await getDb()
     .select()
@@ -176,7 +187,7 @@ export default async function AssetsPage({
             <div className="mt-4 flex flex-wrap items-center gap-1.5">
               <span className="w-8 text-xs text-gray-400">券商</span>
               <Link
-                href={assetHref(undefined, symbolFilter)}
+                href={assetHref(undefined, symbolFilter, sort)}
                 className={!brokerFilter ? PILL_ACTIVE : PILL_IDLE}
               >
                 全部
@@ -187,6 +198,7 @@ export default async function AssetsPage({
                   href={assetHref(
                     brokerFilter === broker ? undefined : broker,
                     symbolFilter,
+                    sort,
                   )}
                   className={brokerFilter === broker ? PILL_ACTIVE : PILL_IDLE}
                 >
@@ -197,7 +209,7 @@ export default async function AssetsPage({
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="w-8 text-xs text-gray-400">代號</span>
               <Link
-                href={assetHref(brokerFilter, undefined)}
+                href={assetHref(brokerFilter, undefined, sort)}
                 className={!symbolFilter ? PILL_ACTIVE : PILL_IDLE}
               >
                 全部
@@ -208,6 +220,7 @@ export default async function AssetsPage({
                   href={assetHref(
                     brokerFilter,
                     symbolFilter === symbol ? undefined : symbol,
+                    sort,
                   )}
                   className={`font-mono ${
                     symbolFilter === symbol ? PILL_ACTIVE : PILL_IDLE
@@ -216,6 +229,21 @@ export default async function AssetsPage({
                   {symbol}
                 </Link>
               ))}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="w-8 text-xs text-gray-400">排序</span>
+              <Link
+                href={assetHref(brokerFilter, symbolFilter)}
+                className={!sort ? PILL_ACTIVE : PILL_IDLE}
+              >
+                市場
+              </Link>
+              <Link
+                href={assetHref(brokerFilter, symbolFilter, "value")}
+                className={sort === "value" ? PILL_ACTIVE : PILL_IDLE}
+              >
+                市值
+              </Link>
             </div>
             {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
               <p className="mt-3 text-xs text-gray-600">
