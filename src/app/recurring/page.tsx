@@ -33,7 +33,7 @@ export default async function RecurringPage() {
 
         <form
           action={addRecurring}
-          className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[7rem_1fr_7rem_auto_auto]"
+          className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[8rem_1fr_8rem]"
         >
           <label className="order-2 flex items-center gap-2 text-sm text-gray-600 sm:order-none">
             每月
@@ -44,7 +44,7 @@ export default async function RecurringPage() {
               max={31}
               defaultValue={1}
               required
-              className="w-16 rounded-lg px-2 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm"
+              className="w-14 rounded-lg px-2 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm"
             />
             號
           </label>
@@ -74,9 +74,18 @@ export default async function RecurringPage() {
               </option>
             ))}
           </select>
+          <label className="order-5 col-span-2 flex items-center gap-2 text-sm text-gray-600 sm:order-none sm:col-span-1">
+            到期
+            <input
+              type="month"
+              name="endMonth"
+              className="flex-1 rounded-lg px-2 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm"
+            />
+            <span className="text-xs text-gray-400">留空＝無期限</span>
+          </label>
           <button
             type="submit"
-            className="order-5 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:order-none sm:py-2 sm:text-sm"
+            className="order-6 col-span-2 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:order-none sm:col-span-1 sm:py-2 sm:text-sm"
           >
             新增
           </button>
@@ -96,8 +105,15 @@ export default async function RecurringPage() {
                 <span className="w-16 shrink-0 font-mono text-xs text-gray-600">
                   每月 {rule.dayOfMonth} 號
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
-                  {rule.vendor}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm text-gray-950">
+                    {rule.vendor}
+                  </span>
+                  {rule.endMonth && (
+                    <span className="block text-xs text-gray-400">
+                      至 {rule.endMonth}
+                    </span>
+                  )}
                 </span>
                 <span className="shrink-0 rounded-full bg-gray-950/[0.025] px-2 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5">
                   {rule.category}

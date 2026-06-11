@@ -14,7 +14,12 @@ export async function generateRecurringExpenses(): Promise<void> {
   const today = todayTaipei();
 
   for (const rule of rules) {
-    const dates = dueDates(rule.dayOfMonth, rule.lastGenerated, today);
+    const dates = dueDates(
+      rule.dayOfMonth,
+      rule.lastGenerated,
+      today,
+      rule.endMonth,
+    );
     if (dates.length === 0) {
       continue;
     }
