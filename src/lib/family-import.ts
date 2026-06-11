@@ -5,8 +5,7 @@ import {
   familyStatements,
   familyTransactions,
 } from "@/db/schema";
-import { autoCategory } from "./auto-category";
-import { autoFamilyCategory } from "./family-category";
+import { autoFamilyCategory, familyCardCategory } from "./family-category";
 import type { BankStatement, CardStatement } from "./parse-taishin";
 
 export interface ImportCounts {
@@ -100,8 +99,7 @@ export async function importCardStatement(
         amount: String(tx.amount),
         cardLast4: tx.cardLast4,
         note: tx.note || null,
-        category:
-          tx.amount < 0 ? "其他" : autoCategory(tx.description, []),
+        category: familyCardCategory(tx.description, tx.amount),
         dedupeKey: `${base}#${occurrence}`,
       })
       .onConflictDoNothing()

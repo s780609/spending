@@ -1,9 +1,19 @@
+import { autoCategory } from "./auto-category";
+
+/** 家庭記帳專用分類，與個人記帳的 CATEGORIES 完全獨立 */
 export const FAMILY_CATEGORIES = [
-  "生活費",
+  "飲食",
+  "日用",
+  "交通",
+  "娛樂",
+  "醫療",
+  "教育",
+  "訂閱",
   "水電瓦斯",
   "電信",
   "卡費",
   "房租",
+  "生活費",
   "內部轉帳",
   "利息",
   "其他",
@@ -38,4 +48,17 @@ export function autoFamilyCategory(
     }
   }
   return "未分類";
+}
+
+/** 信用卡明細自動分類：重用消費關鍵字規則，結果映射進家庭分類 */
+export function familyCardCategory(
+  description: string,
+  amount: number,
+): FamilyCategory {
+  if (amount < 0) {
+    // 繳款 / 退款
+    return "卡費";
+  }
+  const guess = autoCategory(description, []);
+  return isFamilyCategory(guess) ? guess : "未分類";
 }
