@@ -156,19 +156,20 @@ export default async function Home({
           action={addExpense}
           className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[10rem_1fr_7rem_auto_auto]"
         >
+          {/* 手機排序：店家全寬 → 日期+金額 → 分類+新增；text-base 避免 iOS 聚焦自動縮放 */}
           <input
             type="date"
             name="date"
             defaultValue={todayTaipei()}
             required
-            className="rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950"
+            className="order-2 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:order-none sm:text-sm"
           />
           <input
             type="text"
             name="vendor"
             placeholder="店家或描述"
             required
-            className="rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950"
+            className="order-1 col-span-2 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:order-none sm:col-span-1 sm:text-sm"
           />
           <input
             type="number"
@@ -176,11 +177,11 @@ export default async function Home({
             placeholder="金額"
             step="any"
             required
-            className="rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950"
+            className="order-3 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:order-none sm:text-sm"
           />
           <select
             name="category"
-            className="rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950"
+            className="order-4 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:order-none sm:text-sm"
           >
             {CATEGORIES.map((category) => (
               <option key={category} value={category}>
@@ -190,7 +191,7 @@ export default async function Home({
           </select>
           <button
             type="submit"
-            className="rounded-full bg-gray-950 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            className="order-5 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:order-none sm:py-2 sm:text-sm"
           >
             新增
           </button>
@@ -204,26 +205,36 @@ export default async function Home({
           <ul className="mt-6 space-y-2">
             {rows.map((row) => {
               const summary = (
-                <>
-                  <span className="w-12 shrink-0 font-mono text-xs text-gray-600">
-                    {row.date.slice(5).replace("-", "/")}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-gray-950">
-                      {row.vendor}
-                    </span>
-                    {row.items.length > 0 && (
-                      <span className="block text-xs text-gray-400">
-                        {row.items.length} 項明細
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+                  {/* 手機第一行：店名 + 金額；桌面攤平成單行（sm:contents + order 排序） */}
+                  <div className="flex min-w-0 items-center gap-3 sm:contents">
+                    <span className="min-w-0 flex-1 sm:order-2">
+                      <span className="block truncate text-sm text-gray-950">
+                        {row.vendor}
                       </span>
-                    )}
-                  </span>
-                  <CategorySelect id={row.id} value={row.category} />
-                  <span className="w-20 shrink-0 text-right text-sm font-medium text-gray-950">
-                    {formatAmount(row.amount)}
-                  </span>
-                  <DeleteButton id={row.id} />
-                </>
+                      {row.items.length > 0 && (
+                        <span className="block text-xs text-gray-400">
+                          {row.items.length} 項明細
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0 text-right text-base font-semibold text-gray-950 sm:order-4 sm:w-20 sm:text-sm sm:font-medium">
+                      {formatAmount(row.amount)}
+                    </span>
+                  </div>
+                  {/* 手機第二行：日期 + 分類 + 刪除 */}
+                  <div className="flex items-center gap-3 sm:contents">
+                    <span className="shrink-0 font-mono text-xs text-gray-600 sm:order-1 sm:w-12">
+                      {row.date.slice(5).replace("-", "/")}
+                    </span>
+                    <span className="sm:order-3">
+                      <CategorySelect id={row.id} value={row.category} />
+                    </span>
+                    <span className="ml-auto sm:order-5 sm:ml-0">
+                      <DeleteButton id={row.id} />
+                    </span>
+                  </div>
+                </div>
               );
 
               return (
