@@ -141,41 +141,56 @@ export default async function AssetsPage() {
             {sheet.holdings.map((h) => (
               <li
                 key={h.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
               >
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
-                    h.market === "TW"
-                      ? "bg-red-50 text-red-700 ring-red-600/20"
-                      : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                  }`}
-                >
-                  {h.market === "TW" ? "台" : "美"}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-gray-950">
-                    {h.name || h.symbol}
-                    <span className="ml-1 font-mono text-xs text-gray-400">
-                      {h.symbol}
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+                  {/* 手機第一行：市場＋名稱；桌面攤平成單行（sm:contents + order） */}
+                  <div className="flex min-w-0 items-center gap-3 sm:contents">
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset sm:order-1 ${
+                        h.market === "TW"
+                          ? "bg-red-50 text-red-700 ring-red-600/20"
+                          : "bg-blue-50 text-blue-700 ring-blue-600/20"
+                      }`}
+                    >
+                      {h.market === "TW" ? "台" : "美"}
                     </span>
-                  </span>
-                  <span className="block text-xs text-gray-400">
-                    {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
-                    {h.market === "US" && " USD"}
-                    {h.priceStale && "（快取）"}
-                  </span>
-                </span>
-                <SharesEditor id={h.id} shares={h.shares} />
-                <span className="w-28 shrink-0 text-right text-sm font-medium text-gray-950">
-                  {ntd(h.valueTwd)}
-                </span>
-                <DeleteButton
-                  id={h.id}
-                  action={deleteHolding}
-                  message={`確定刪除「${h.broker} ${
-                    h.name ? `${h.name}（${h.symbol}）` : h.symbol
-                  }」這筆持股？`}
-                />
+                    <span className="min-w-0 flex-1 sm:order-2">
+                      <span className="block truncate text-sm text-gray-950">
+                        {h.name || h.symbol}
+                        <span className="ml-1 font-mono text-xs text-gray-400">
+                          {h.symbol}
+                        </span>
+                      </span>
+                      <span className="block text-xs text-gray-400">
+                        {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
+                        {h.market === "US" && " USD"}
+                        {h.priceStale && "（快取）"}
+                      </span>
+                    </span>
+                  </div>
+                  {/* 手機第二行：股數＋市值＋刪除 */}
+                  <div className="flex items-center gap-2 sm:contents">
+                    <span className="flex items-center gap-1.5 sm:order-3">
+                      <span className="text-xs text-gray-400 sm:hidden">
+                        股數
+                      </span>
+                      <SharesEditor id={h.id} shares={h.shares} />
+                    </span>
+                    <span className="ml-auto shrink-0 text-right text-base font-semibold text-gray-950 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
+                      {ntd(h.valueTwd)}
+                    </span>
+                    <span className="sm:order-5">
+                      <DeleteButton
+                        id={h.id}
+                        action={deleteHolding}
+                        message={`確定刪除「${h.broker} ${
+                          h.name ? `${h.name}（${h.symbol}）` : h.symbol
+                        }」這筆持股？`}
+                      />
+                    </span>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -262,27 +277,35 @@ export default async function AssetsPage() {
                 key={loan.id}
                 className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
               >
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset ${
-                      loan.type === "信貸"
-                        ? "bg-amber-50 text-amber-700 ring-amber-600/20"
-                        : "bg-violet-50 text-violet-700 ring-violet-600/20"
-                    }`}
-                  >
-                    {loan.type}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
-                    {loan.name}
-                  </span>
-                  <span className="shrink-0 text-right text-sm font-medium text-gray-950">
-                    {ntd(loan.liability)}
-                  </span>
-                  <DeleteButton
-                    id={loan.id}
-                    action={deleteLoan}
-                    message={`確定刪除「${loan.name}」這筆貸款？`}
-                  />
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                  {/* 手機第一行：類型＋名稱；桌面攤平成單行 */}
+                  <div className="flex min-w-0 items-center gap-3 sm:contents">
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset sm:order-1 ${
+                        loan.type === "信貸"
+                          ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+                          : "bg-violet-50 text-violet-700 ring-violet-600/20"
+                      }`}
+                    >
+                      {loan.type}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-gray-950 sm:order-2">
+                      {loan.name}
+                    </span>
+                  </div>
+                  {/* 手機第二行：餘額＋刪除 */}
+                  <div className="flex items-center gap-3 sm:contents">
+                    <span className="shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
+                      {ntd(loan.liability)}
+                    </span>
+                    <span className="ml-auto sm:order-4 sm:ml-0">
+                      <DeleteButton
+                        id={loan.id}
+                        action={deleteLoan}
+                        message={`確定刪除「${loan.name}」這筆貸款？`}
+                      />
+                    </span>
+                  </div>
                 </div>
                 <p className="mt-1 text-xs leading-5 text-gray-400">
                   本金 {ntd(loan.principal)} · 年利率 {loan.annualRate}% ·{" "}
