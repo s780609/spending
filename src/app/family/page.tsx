@@ -16,7 +16,7 @@ import {
   updateFamilyTransactionCategory,
 } from "@/app/actions";
 import { CategorySelect } from "@/app/category-select";
-import { CategoryPie, MonthlyTrend } from "@/app/charts";
+import { FamilySpendingPie, MonthlyTrend } from "@/app/charts";
 import { FamilyTabs } from "@/app/family-tabs";
 import { MonthPicker } from "@/app/month-picker";
 import { Nav } from "@/app/nav";
@@ -194,31 +194,18 @@ export default async function FamilyPage({
         {(bankByMonthCat.length > 0 || cardByMonthCat.length > 0) && (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {bankByMonthCat.length > 0 && (
-                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                  <h2 className="text-sm font-medium text-gray-950">
-                    帳戶支出佔比
-                  </h2>
-                  <CategoryPie
-                    data={bankByMonthCat}
-                    month={month}
-                    categories={FAMILY_CATEGORIES}
-                  />
-                </section>
-              )}
-              {cardByMonthCat.length > 0 && (
-                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                  <h2 className="text-sm font-medium text-gray-950">
-                    信用卡消費佔比
-                  </h2>
-                  <CategoryPie
-                    data={cardByMonthCat}
-                    month={month}
-                    categories={FAMILY_CATEGORIES}
-                  />
-                </section>
-              )}
-              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:col-span-2">
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+                <h2 className="text-sm font-medium text-gray-950">
+                  分類佔比
+                </h2>
+                <FamilySpendingPie
+                  bank={bankByMonthCat}
+                  card={cardByMonthCat}
+                  month={month}
+                  categories={FAMILY_CATEGORIES}
+                />
+              </section>
+              <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
                 <h2 className="text-sm font-medium text-gray-950">
                   每月支出趨勢
                 </h2>
@@ -226,7 +213,7 @@ export default async function FamilyPage({
               </section>
             </div>
             <p className="mt-2 text-xs text-gray-400">
-              帳戶佔比不含內部轉帳；趨勢線＝帳戶支出（不含內部轉帳與卡費）＋信用卡消費，避免卡費重複計算。
+              帳戶口徑不含內部轉帳；「合併」與趨勢線會剔除帳戶側的台新卡費（改以信用卡明細逐筆計入），避免重複計算。
             </p>
           </>
         )}

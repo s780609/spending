@@ -142,6 +142,59 @@ export function CategoryPie({
   );
 }
 
+interface MonthCategoryEntry {
+  month: string;
+  category: string;
+  total: number;
+}
+
+const FAMILY_SOURCES = [
+  { label: "合併", value: "all" },
+  { label: "帳戶", value: "bank" },
+  { label: "信用卡", value: "card" },
+] as const;
+
+/** 家庭分類佔比：可切換帳戶/信用卡/合併；合併時剔除帳戶側卡費避免與卡單明細重複 */
+export function FamilySpendingPie({
+  bank,
+  card,
+  month,
+  categories,
+}: {
+  bank: MonthCategoryEntry[];
+  card: MonthCategoryEntry[];
+  month: string;
+  categories: readonly string[];
+}) {
+  const [source, setSource] =
+    useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
+
+  const data =
+    source === "bank"
+      ? bank
+      : source === "card"
+        ? card
+        : [...bank.filter((entry) => entry.category !== "卡費"), ...card];
+
+  return (
+    <div>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {FAMILY_SOURCES.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setSource(option.value)}
+            className={source === option.value ? ACTIVE_PILL : IDLE_PILL}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+      <CategoryPie data={data} month={month} categories={categories} />
+    </div>
+  );
+}
+
 const TREND_RANGES = [
   { label: "近 3 個月", months: 3 },
   { label: "近 6 個月", months: 6 },
