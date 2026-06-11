@@ -41,6 +41,11 @@ function formatNtd(value: unknown): string {
   return `NT$ ${Number(value).toLocaleString("zh-TW")}`;
 }
 
+const ACTIVE_PILL =
+  "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white";
+const IDLE_PILL =
+  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
+
 function RangeButtons({
   options,
   value,
@@ -57,11 +62,7 @@ function RangeButtons({
           key={option.label}
           type="button"
           onClick={() => onChange(option.months)}
-          className={
-            value === option.months
-              ? "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white"
-              : "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
-          }
+          className={value === option.months ? ACTIVE_PILL : IDLE_PILL}
         >
           {option.label}
         </button>
@@ -150,23 +151,62 @@ export function MonthlyTrend({
 }: {
   data: { month: string; total: number }[];
 }) {
+  const [mode, setMode] = useState<"month" | "year">("month");
   const [months, setMonths] = useState(12);
-  const shown = Number.isFinite(months) ? data.slice(-months) : data;
+
+  let shown: { label: string; total: number }[];
+  if (mode === "year") {
+    const byYear = new Map<string, number>();
+    for (const entry of data) {
+      const year = entry.month.slice(0, 4);
+      byYear.set(year, (byYear.get(year) ?? 0) + entry.total);
+    }
+    shown = [...byYear.entries()].map(([label, total]) => ({ label, total }));
+  } else {
+    const sliced = Number.isFinite(months) ? data.slice(-months) : data;
+    shown = sliced.map((entry) => ({ label: entry.month, total: entry.total }));
+  }
 
   return (
     <div>
-      <RangeButtons
-        options={TREND_RANGES}
-        value={months}
-        onChange={setMonths}
-      />
+      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setMode("month")}
+          className={mode === "month" ? ACTIVE_PILL : IDLE_PILL}
+        >
+          月
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("year")}
+          className={mode === "year" ? ACTIVE_PILL : IDLE_PILL}
+        >
+          年
+        </button>
+        {mode === "month" && (
+          <>
+            <span className="mx-1 h-4 w-px bg-gray-950/10" aria-hidden />
+            {TREND_RANGES.map((range) => (
+              <button
+                key={range.label}
+                type="button"
+                onClick={() => setMonths(range.months)}
+                className={months === range.months ? ACTIVE_PILL : IDLE_PILL}
+              >
+                {range.label}
+              </button>
+            ))}
+          </>
+        )}
+      </div>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart
           data={shown}
           margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="month" tick={{ fontSize: 12 }} tickMargin={6} />
+          <XAxis dataKey="label" tick={{ fontSize: 12 }} tickMargin={6} />
           <YAxis
             tick={{ fontSize: 12 }}
             width={56}
