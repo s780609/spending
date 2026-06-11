@@ -34,6 +34,12 @@ export interface LoanView {
   liability: number;
   monthlyPayment: number | null;
   paymentsMade: number | null;
+  collateralSymbol: string | null;
+  collateralShares: number | null;
+  /** 擔保品市值（台幣），抓不到價時為 null */
+  collateralValue: number | null;
+  /** 維持率（%）＝擔保品市值 ÷ 借款本金 × 100 */
+  maintenanceRatio: number | null;
 }
 
 export interface BalanceSheet {
@@ -116,10 +122,33 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
       : a.market.localeCompare(b.market),
   );
 
+  // 質押擔保品即時價（純數字代號視為台股）
+  const collateralQuotes = await Promise.all(
+    loanRows.map((row) =>
+      row.collateralSymbol
+        ? fetchQuote(
+            /^\d/.test(row.collateralSymbol) ? "TW" : "US",
+            row.collateralSymbol,
+          )
+        : Promise.resolve(null),
+    ),
+  );
+
   const today = todayTaipei();
-  const loanViews: LoanView[] = loanRows.map((row) => {
+  const loanViews: LoanView[] = loanRows.map((row, index) => {
     const principal = Number(row.principal);
     const annualRate = Number(row.annualRate);
+    const collateralPrice = collateralQuotes[index];
+    const collateralShares =
+      row.collateralShares !== null ? Number(row.collateralShares) : null;
+    const collateralValue =
+      collateralPrice !== null && collateralShares !== null
+        ? collateralShares *
+          collateralPrice *
+          (row.collateralSymbol && /^\d/.test(row.collateralSymbol)
+            ? 1
+            : usdTwd)
+        : null;
     const base = {
       id: row.id,
       name: row.name,
@@ -129,6 +158,13 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
       startDate: row.startDate,
       installments: row.installments,
       termEnd: row.termEnd,
+      collateralSymbol: row.collateralSymbol,
+      collateralShares,
+      collateralValue,
+      maintenanceRatio:
+        collateralValue !== null && principal > 0
+          ? (collateralValue / principal) * 100
+          : null,
     };
     if (row.type === "信貸" && row.installments) {
       const status = creditLoanStatus(

@@ -213,6 +213,15 @@ export async function addLoan(formData: FormData) {
   if (type === "信貸" && installments === null) {
     return;
   }
+  const collateralSymbol = String(formData.get("collateralSymbol") ?? "")
+    .trim()
+    .toUpperCase();
+  const collateralShares = Number(formData.get("collateralShares"));
+  const hasCollateral =
+    type === "質押" &&
+    collateralSymbol !== "" &&
+    Number.isFinite(collateralShares) &&
+    collateralShares > 0;
 
   await getDb()
     .insert(loans)
@@ -224,6 +233,8 @@ export async function addLoan(formData: FormData) {
       startDate,
       installments,
       termEnd: /^\d{4}-\d{2}-\d{2}$/.test(termEndRaw) ? termEndRaw : null,
+      collateralSymbol: hasCollateral ? collateralSymbol : null,
+      collateralShares: hasCollateral ? String(collateralShares) : null,
     });
   revalidatePath("/assets");
 }

@@ -352,6 +352,24 @@ export default async function AssetsPage({
             <input type="date" name="termEnd" className={`${INPUT_CLS} flex-1`} />
             <span className="text-xs text-gray-400">質押用（選填）</span>
           </label>
+          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 sm:col-span-3">
+            擔保
+            <input
+              type="text"
+              name="collateralSymbol"
+              placeholder="代號（2330）"
+              className={`${INPUT_CLS} w-32`}
+            />
+            <input
+              type="number"
+              name="collateralShares"
+              placeholder="股數"
+              step="any"
+              min={0}
+              className={`${INPUT_CLS} w-28`}
+            />
+            <span className="text-xs text-gray-400">質押用，填了會算維持率</span>
+          </label>
           <button
             type="submit"
             className="col-span-2 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:col-span-1 sm:py-2 sm:text-sm"
@@ -414,6 +432,33 @@ export default async function AssetsPage({
                       {" "}
                       · 累計利息 {ntd(loan.interest)}
                       {loan.termEnd && ` · 期限至 ${loan.termEnd}`}
+                      {loan.collateralSymbol && loan.collateralShares !== null && (
+                        <>
+                          {" "}
+                          · 擔保 {loan.collateralSymbol} ×
+                          {loan.collateralShares.toLocaleString("zh-TW")}
+                          {loan.collateralValue !== null && (
+                            <> 市值 {ntd(loan.collateralValue)}</>
+                          )}
+                          {loan.maintenanceRatio !== null && (
+                            <>
+                              {" "}
+                              · 維持率{" "}
+                              <span
+                                className={
+                                  loan.maintenanceRatio < 130
+                                    ? "font-semibold text-red-600"
+                                    : loan.maintenanceRatio < 167
+                                      ? "font-semibold text-amber-600"
+                                      : "font-medium text-green-600"
+                                }
+                              >
+                                {Math.round(loan.maintenanceRatio)}%
+                              </span>
+                            </>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
                 </p>
