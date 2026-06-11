@@ -13,7 +13,8 @@ describe("autoFamilyCategory 家庭帳戶明細", () => {
     expect(autoFamilyCategory("存款息", "")).toBe("利息");
     expect(autoFamilyCategory("CD轉出", "**8604 廷煥昱臻房租")).toBe("房租");
     expect(autoFamilyCategory("CD轉入", "148 生活費")).toBe("生活費");
-    expect(autoFamilyCategory("CD轉出", "**8722 許欣予")).toBe("未分類");
+    expect(autoFamilyCategory("CD轉出", "**8722 許欣予７６５１")).toBe("教育");
+    expect(autoFamilyCategory("CD轉出", "完全看不出來的備註")).toBe("未分類");
   });
 });
 
