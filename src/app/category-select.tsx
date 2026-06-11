@@ -16,7 +16,7 @@ export function CategorySelect({ id, value }: { id: number; value: string }) {
         startTransition(() => updateExpenseCategory(id, category));
       }}
       onClick={(event) => event.stopPropagation()}
-      className="rounded-lg bg-gray-950/[0.025] px-2 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5 focus:outline-none focus:ring-2 focus:ring-gray-950 disabled:opacity-50"
+      className="rounded-lg bg-gray-950/[0.025] px-2 py-1.5 text-base text-gray-600 ring-1 ring-inset ring-gray-950/5 focus:outline-none focus:ring-2 focus:ring-gray-950 disabled:opacity-50 sm:py-1 sm:text-xs"
     >
       {CATEGORIES.map((category) => (
         <option key={category} value={category}>

@@ -16,7 +16,7 @@ export function DeleteButton({ id }: { id: number }) {
           startTransition(() => deleteExpense(id));
         }
       }}
-      className="text-xs text-gray-400 hover:text-red-600 disabled:opacity-50"
+      className="rounded-lg px-2 py-1.5 text-sm text-gray-400 hover:text-red-600 disabled:opacity-50 sm:py-1 sm:text-xs"
     >
       刪除
     </button>
