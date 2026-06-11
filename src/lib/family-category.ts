@@ -57,8 +57,11 @@ export function familyCardCategory(
   description: string,
   amount: number,
 ): FamilyCategory {
-  if (amount < 0) {
-    // 繳款 / 退款
+  if (
+    amount < 0 &&
+    ["扣繳", "繳款", "卡款"].some((kw) => description.includes(kw))
+  ) {
+    // 繳款（統計時排除）；一般退款則依店家分類，以負數在該分類淨掉
     return "卡費";
   }
   const guess = autoCategory(description, []);
