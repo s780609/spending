@@ -32,6 +32,8 @@ describe("familyCardCategory 信用卡明細", () => {
   });
 
   it("無法判斷時回傳未分類", () => {
-    expect(familyCardCategory("連加＊小柴？子Taipei", 55)).toBe("未分類");
+    expect(familyCardCategory("連加＊連加＊聚珍臺灣TAIPEI", 301)).toBe(
+      "未分類",
+    );
   });
 });
