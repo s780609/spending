@@ -49,6 +49,60 @@ export const recurringExpenses = pgTable("recurring_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const holdings = pgTable("holdings", {
+  id: serial("id").primaryKey(),
+  /** "TW" | "US" */
+  market: text("market").notNull(),
+  /** 券商戶頭名稱 */
+  broker: text("broker").notNull(),
+  /** 股票代號：台股 2330、美股 AAPL */
+  symbol: text("symbol").notNull(),
+  /** 顯示名稱（選填） */
+  name: text("name"),
+  shares: numeric("shares", { precision: 16, scale: 4 }).notNull(),
+  /** 最後成功抓到的價格（原幣別），Yahoo 抓不到時墊底用 */
+  lastPrice: numeric("last_price", { precision: 14, scale: 4 }),
+  lastPriceAt: timestamp("last_price_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const loans = pgTable("loans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  /** "質押" | "信貸" */
+  type: text("type").notNull(),
+  principal: numeric("principal", { precision: 14, scale: 2 }).notNull(),
+  /** 年利率（%） */
+  annualRate: numeric("annual_rate", { precision: 6, scale: 3 }).notNull(),
+  startDate: date("start_date").notNull(),
+  /** 信貸期數（月） */
+  installments: integer("installments"),
+  /** 質押期限 */
+  termEnd: date("term_end"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const networthSnapshots = pgTable("networth_snapshots", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull().unique(),
+  totalAssets: numeric("total_assets", { precision: 16, scale: 2 }).notNull(),
+  totalLiabilities: numeric("total_liabilities", {
+    precision: 16,
+    scale: 2,
+  }).notNull(),
+  netWorth: numeric("net_worth", { precision: 16, scale: 2 }).notNull(),
+  /** 總資產 / 淨資產，淨資產 <= 0 時為 null */
+  leverage: numeric("leverage", { precision: 8, scale: 4 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const fxRates = pgTable("fx_rates", {
+  /** 如 "USDTWD" */
+  pair: text("pair").primaryKey(),
+  rate: numeric("rate", { precision: 12, scale: 6 }).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const expensesRelations = relations(expenses, ({ many }) => ({
   items: many(expenseItems),
 }));

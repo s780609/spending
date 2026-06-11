@@ -26,6 +26,12 @@ export function Nav() {
         >
           定期支出
         </Link>
+        <Link
+          href="/assets"
+          className="text-sm font-medium text-gray-950 hover:text-gray-600"
+        >
+          資產
+        </Link>
         <form action={logout} className="ml-auto">
           <button
             type="submit"
