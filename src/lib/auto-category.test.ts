@@ -98,6 +98,30 @@ describe("autoCategory", () => {
     expect(autoCategory("誠品生活股份有限公司", ["失控的焦慮世代"])).toBe("娛樂");
   });
 
+  it("信用卡帳單店名（含全形英文）按常理分類", () => {
+    expect(autoCategory("連加＊連加＊統一超商TAIPEI", [])).toBe("飲食");
+    expect(autoCategory("連加＊連加＊麥當勞TAIPEI", [])).toBe("飲食");
+    expect(autoCategory("ＣＯＵＰＡＮＧTAIPEI", [])).toBe("日用");
+    expect(autoCategory("連加＊連加＊Ｋｌｏｏｋ 客路 TAIPEI", [])).toBe("娛樂");
+    expect(autoCategory("Booking.com HotelO7112 Amster", [])).toBe("娛樂");
+    expect(autoCategory("連加＊連加＊ＰＯＹＡ寶雅TAIPEI", [])).toBe("日用");
+    expect(autoCategory("連加＊本華壽司Taipei", [])).toBe("飲食");
+    expect(autoCategory("連加＊菁菁水果鋪（五股Taipei", [])).toBe("飲食");
+    expect(autoCategory("宜得利家居 第04/06期 /TW", [])).toBe("日用");
+    expect(autoCategory("連加＊ｍｏｍｏ購物網Taipei", [])).toBe("日用");
+    expect(autoCategory("酷澎ＷＯＷ會員訂閱服務月費TAIPEI", [])).toBe("訂閱");
+    expect(autoCategory("連加＊連加＊鶴茶樓－ 鶴頂紅 TAIPEI", [])).toBe("飲食");
+    expect(autoCategory("連加＊卡多摩嬰童館Taipei", [])).toBe("日用");
+    expect(autoCategory("嘟嘟房台北車站站", [])).toBe("交通");
+  });
+
+  it("全聯一律歸日用，優先於品項的飲食關鍵字", () => {
+    expect(autoCategory("全支付－全聯福利中心TAIPEI", [])).toBe("日用");
+    expect(
+      autoCategory("全聯實業股份有限公司五股工商分公司", ["光泉木瓜牛乳"]),
+    ).toBe("日用");
+  });
+
   it("無法判斷時回傳未分類", () => {
     expect(autoCategory("東森得易購股份有限公司", ["應稅商品"])).toBe(
       "未分類",
