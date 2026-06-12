@@ -22,6 +22,10 @@ const RULES: { category: Category; keywords: string[] }[] = [
     ],
   },
   {
+    category: "手遊",
+    keywords: ["妮姬"],
+  },
+  {
     category: "娛樂",
     keywords: [
       "影城", "電影", "門票", "博物館", "遊戲", "玩具", "博客來", "密斯特喬",
