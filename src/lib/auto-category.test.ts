@@ -55,6 +55,13 @@ describe("autoCategory", () => {
     expect(autoCategory("國泰人壽保險股份有限公司", ["保費"])).toBe("保險");
   });
 
+  it("妮姬歸手遊，優先於娛樂的遊戲關鍵字", () => {
+    expect(autoCategory("妮姬", [])).toBe("手遊");
+    expect(autoCategory("Google Play", ["勝利女神：妮姬 遊戲內購"])).toBe(
+      "手遊",
+    );
+  });
+
   it("百貨公司買玩具歸娛樂", () => {
     expect(
       autoCategory("遠東百貨股份有限公司信義分公司", ["綜合玩具"]),
