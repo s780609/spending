@@ -5,7 +5,12 @@ import {
   getFamilySpendingDetail,
   type FamilyDetailRow,
 } from "@/app/actions";
-import { FamilySpendingPie, MonthlyTrend } from "@/app/charts";
+import {
+  ACTIVE_PILL,
+  FamilySpendingPie,
+  IDLE_PILL,
+  MonthlyTrend,
+} from "@/app/charts";
 import { FAMILY_CATEGORIES } from "@/lib/family-category";
 
 interface MonthCategoryEntry {
@@ -15,16 +20,15 @@ interface MonthCategoryEntry {
 }
 
 const SOURCE_LABELS = { all: "合併", bank: "帳戶", card: "信用卡" } as const;
+type Source = keyof typeof SOURCE_LABELS;
 
 export function FamilyChartsPanel({
   bank,
   card,
-  trend,
   month,
 }: {
   bank: MonthCategoryEntry[];
   card: MonthCategoryEntry[];
-  trend: { month: string; total: number }[];
   month: string;
 }) {
   const [modal, setModal] = useState<{
@@ -32,6 +36,25 @@ export function FamilyChartsPanel({
     rows: FamilyDetailRow[];
   } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [trendSource, setTrendSource] = useState<Source>("all");
+
+  // 與圓餅圖同口徑：帳戶含卡費、合併剔除帳戶側卡費（卡費由卡單逐筆計入）
+  const trendEntries =
+    trendSource === "bank"
+      ? bank
+      : trendSource === "card"
+        ? card
+        : [...bank.filter((entry) => entry.category !== "卡費"), ...card];
+  const trendByMonth = new Map<string, number>();
+  for (const entry of trendEntries) {
+    trendByMonth.set(
+      entry.month,
+      (trendByMonth.get(entry.month) ?? 0) + entry.total,
+    );
+  }
+  const trend = [...trendByMonth.entries()]
+    .map(([m, total]) => ({ month: m, total }))
+    .sort((a, b) => a.month.localeCompare(b.month));
 
   const openDetail = (
     title: string,
@@ -71,15 +94,30 @@ export function FamilyChartsPanel({
         </section>
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
           <h2 className="text-sm font-medium text-gray-950">每月支出趨勢</h2>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {(Object.keys(SOURCE_LABELS) as Source[]).map((source) => (
+              <button
+                key={source}
+                type="button"
+                onClick={() => setTrendSource(source)}
+                className={trendSource === source ? ACTIVE_PILL : IDLE_PILL}
+              >
+                {SOURCE_LABELS[source]}
+              </button>
+            ))}
+          </div>
           <MonthlyTrend
             data={trend}
             onPointClick={(label) => {
               const isYear = /^\d{4}$/.test(label);
-              openDetail(`${label} 全部支出`, {
-                source: "all",
-                startMonth: isYear ? `${label}-01` : label,
-                endMonth: isYear ? `${label}-12` : label,
-              });
+              openDetail(
+                `${label} 支出 · ${SOURCE_LABELS[trendSource]}`,
+                {
+                  source: trendSource,
+                  startMonth: isYear ? `${label}-01` : label,
+                  endMonth: isYear ? `${label}-12` : label,
+                },
+              );
             }}
           />
         </section>

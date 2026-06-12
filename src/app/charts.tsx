@@ -41,9 +41,9 @@ function formatNtd(value: unknown): string {
   return `NT$ ${Number(value).toLocaleString("zh-TW")}`;
 }
 
-const ACTIVE_PILL =
+export const ACTIVE_PILL =
   "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white";
-const IDLE_PILL =
+export const IDLE_PILL =
   "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
 
 function RangeButtons({
