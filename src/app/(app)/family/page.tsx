@@ -110,20 +110,6 @@ export default async function FamilyPage({
         familyCardTransactions.category,
       ),
   ]);
-  const trendByMonth = new Map<string, number>();
-  for (const entry of [
-    ...bankByMonthCat.filter((e) => e.category !== "卡費"),
-    ...cardByMonthCat,
-  ]) {
-    trendByMonth.set(
-      entry.month,
-      (trendByMonth.get(entry.month) ?? 0) + entry.total,
-    );
-  }
-  const trend = [...trendByMonth.entries()]
-    .map(([m, total]) => ({ month: m, total }))
-    .sort((a, b) => a.month.localeCompare(b.month));
-
   const bankOut = bankTxs.reduce((s, t) => s + Number(t.withdrawal ?? 0), 0);
   const bankIn = bankTxs.reduce((s, t) => s + Number(t.deposit ?? 0), 0);
   // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
@@ -193,7 +179,6 @@ export default async function FamilyPage({
           <FamilyChartsPanel
             bank={bankByMonthCat}
             card={cardByMonthCat}
-            trend={trend}
             month={month}
           />
         )}
