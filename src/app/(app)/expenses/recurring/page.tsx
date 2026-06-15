@@ -9,7 +9,7 @@ import { CATEGORIES } from "@/lib/categories";
 export const dynamic = "force-dynamic";
 
 function formatAmount(value: string | number): string {
-  return Number(value).toLocaleString("zh-TW");
+  return Math.round(Number(value)).toLocaleString("zh-TW");
 }
 
 export default async function RecurringPage() {

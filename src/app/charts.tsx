@@ -39,7 +39,7 @@ function colorOf(category: string, categories: readonly string[]): string {
 }
 
 function formatNtd(value: unknown): string {
-  return `NT$ ${Number(value).toLocaleString("zh-TW")}`;
+  return `NT$ ${Math.round(Number(value)).toLocaleString("zh-TW")}`;
 }
 
 export const ACTIVE_PILL =
@@ -304,7 +304,7 @@ export function MonthlyTrend({
           <YAxis
             tick={{ fontSize: 12 }}
             width={56}
-            tickFormatter={(value: number) => value.toLocaleString("zh-TW")}
+            tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
           />
           <Tooltip formatter={formatNtd} />
           <Line

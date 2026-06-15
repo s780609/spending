@@ -120,7 +120,7 @@ export function NetWorthChart({
           yAxisId="networth"
           tick={{ fontSize: 11 }}
           width={64}
-          tickFormatter={(value: number) => value.toLocaleString("zh-TW")}
+          tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
         />
         <YAxis
           yAxisId="leverage"

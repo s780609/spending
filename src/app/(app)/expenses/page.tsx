@@ -13,7 +13,7 @@ import { shiftMonth, todayTaipei } from "@/lib/dates";
 import { generateRecurringExpenses } from "@/lib/generate-recurring";
 
 function formatAmount(value: string | number): string {
-  return Number(value).toLocaleString("zh-TW");
+  return Math.round(Number(value)).toLocaleString("zh-TW");
 }
 
 export default async function Home({
