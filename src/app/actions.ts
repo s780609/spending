@@ -406,6 +406,7 @@ export async function importFamilyPdf(
       password || undefined,
     );
   } catch (error) {
+    console.error("[importFamilyPdf] PDF 解析失敗：", error);
     if ((error as { name?: string })?.name === "PasswordException") {
       return { message: "PDF 密碼錯誤或未提供，請輸入正確的帳單密碼" };
     }
