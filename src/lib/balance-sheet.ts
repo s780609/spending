@@ -111,7 +111,7 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
       shares,
       price,
       priceStale,
-      valueTwd: shares * price * (row.market === "US" ? usdTwd : 1),
+      valueTwd: Math.round(shares * price * (row.market === "US" ? usdTwd : 1)),
     });
   }
 
@@ -143,11 +143,13 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
       row.collateralShares !== null ? Number(row.collateralShares) : null;
     const collateralValue =
       collateralPrice !== null && collateralShares !== null
-        ? collateralShares *
-          collateralPrice *
-          (row.collateralSymbol && /^\d/.test(row.collateralSymbol)
-            ? 1
-            : usdTwd)
+        ? Math.round(
+            collateralShares *
+              collateralPrice *
+              (row.collateralSymbol && /^\d/.test(row.collateralSymbol)
+                ? 1
+                : usdTwd),
+          )
         : null;
     const base = {
       id: row.id,
