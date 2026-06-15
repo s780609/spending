@@ -184,9 +184,18 @@ export default async function FamilyPage({
         )}
 
         {/* ===== 帳戶往來明細 ===== */}
-        <h2 className="mt-8 text-lg font-bold tracking-tight text-gray-950">
-          帳戶明細
-        </h2>
+        <details className="group mt-8">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 [&::-webkit-details-marker]:hidden">
+            <svg
+              className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-90"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M7 5l6 5-6 5z" />
+            </svg>
+            帳戶明細
+          </summary>
         {bankTxs.length === 0 ? (
           <p className="mt-4 text-sm leading-7 text-gray-600">
             {month} 沒有帳戶明細，上傳該月的綜合對帳單即可匯入。
@@ -241,16 +250,26 @@ export default async function FamilyPage({
             ))}
           </ul>
         )}
+        </details>
 
         {/* ===== 信用卡消費明細 ===== */}
-        <h2 className="mt-8 text-lg font-bold tracking-tight text-gray-950">
-          信用卡明細
-          {cardTxs.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-gray-600">
-              消費合計 NT$ {fmt(cardSpend)}
-            </span>
-          )}
-        </h2>
+        <details className="group mt-8">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 [&::-webkit-details-marker]:hidden">
+            <svg
+              className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-90"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M7 5l6 5-6 5z" />
+            </svg>
+            信用卡明細
+            {cardTxs.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-gray-600">
+                消費合計 NT$ {fmt(cardSpend)}
+              </span>
+            )}
+          </summary>
         {cardTxs.length === 0 ? (
           <p className="mt-4 text-sm leading-7 text-gray-600">
             {month} 帳單沒有信用卡明細，上傳該月的信用卡電子帳單即可匯入。
@@ -307,6 +326,7 @@ export default async function FamilyPage({
             ))}
           </ul>
         )}
+        </details>
     </>
   );
 }
