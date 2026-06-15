@@ -52,7 +52,16 @@ export function autoFamilyCategory(
   return "未分類";
 }
 
-/** 信用卡明細自動分類：重用消費關鍵字規則，結果映射進家庭分類 */
+/**
+ * 信用卡店家 → 家庭分類的專屬覆寫：個人 autoCategory 不涵蓋的家庭分類（如水電瓦斯）
+ * 在此補上，優先於 autoCategory。先中先贏。
+ */
+const CARD_RULES: { category: FamilyCategory; keywords: string[] }[] = [
+  // 使用者指定：欣泰瓦斯費 → 水電瓦斯
+  { category: "水電瓦斯", keywords: ["欣泰"] },
+];
+
+/** 信用卡明細自動分類：先套家庭專屬規則，再重用消費關鍵字規則映射進家庭分類 */
 export function familyCardCategory(
   description: string,
   amount: number,
@@ -63,6 +72,11 @@ export function familyCardCategory(
   ) {
     // 繳款（統計時排除）；一般退款則依店家分類，以負數在該分類淨掉
     return "卡費";
+  }
+  for (const rule of CARD_RULES) {
+    if (rule.keywords.some((keyword) => description.includes(keyword))) {
+      return rule.category;
+    }
   }
   const guess = autoCategory(description, []);
   return isFamilyCategory(guess) ? guess : "未分類";

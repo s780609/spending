@@ -23,6 +23,7 @@ describe("familyCardCategory 信用卡明細", () => {
     expect(familyCardCategory("連加＊連加＊統一超商TAIPEI", 25)).toBe("飲食");
     expect(familyCardCategory("ＣＯＵＰＡＮＧTAIPEI", 300)).toBe("日用");
     expect(familyCardCategory("嘟嘟房台北車站站", 60)).toBe("交通");
+    expect(familyCardCategory("欣泰瓦斯費", 850)).toBe("水電瓦斯");
   });
 
   it("繳款歸卡費，一般退款依店家分類（負數淨掉）", () => {
