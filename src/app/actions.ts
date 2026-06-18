@@ -18,6 +18,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import {
+  budgets,
   expenseItems,
   expenses,
   familyCardTransactions,
@@ -139,6 +140,32 @@ export async function deleteRecurring(id: number) {
     .delete(recurringExpenses)
     .where(eq(recurringExpenses.id, id));
   revalidatePath("/expenses/recurring");
+}
+
+export async function addBudget(formData: FormData) {
+  const categoryRaw = String(formData.get("category") ?? "");
+  const amount = Number(formData.get("amount"));
+
+  if (!isCategory(categoryRaw) || !Number.isFinite(amount) || amount < 0) {
+    return;
+  }
+
+  // 每個分類最多一筆，重複設定即更新金額
+  await getDb()
+    .insert(budgets)
+    .values({ category: categoryRaw, amount: String(amount) })
+    .onConflictDoUpdate({
+      target: budgets.category,
+      set: { amount: String(amount) },
+    });
+  revalidatePath("/expenses/budget");
+  revalidatePath("/expenses");
+}
+
+export async function deleteBudget(id: number) {
+  await getDb().delete(budgets).where(eq(budgets.id, id));
+  revalidatePath("/expenses/budget");
+  revalidatePath("/expenses");
 }
 
 export async function addHolding(formData: FormData) {

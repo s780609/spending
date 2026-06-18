@@ -21,6 +21,8 @@ export function PrivacyShield({
 
   useEffect(() => {
     if (localStorage.getItem(STORAGE_KEY) === "0") {
+      // localStorage 只能在 client 掛載後讀取，無法在 render 期間決定是否遮蔽
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMaskedState(false);
     }
   }, []);

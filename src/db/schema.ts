@@ -49,6 +49,16 @@ export const recurringExpenses = pgTable("recurring_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/** 每月分類預算（每個分類最多一筆，超過即在記帳頁提醒） */
+export const budgets = pgTable("budgets", {
+  id: serial("id").primaryKey(),
+  /** 對應 categories.ts 的分類名稱 */
+  category: text("category").notNull().unique(),
+  /** 每月預算金額 */
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const holdings = pgTable("holdings", {
   id: serial("id").primaryKey(),
   /** "TW" | "US" */

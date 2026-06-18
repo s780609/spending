@@ -3,11 +3,13 @@ import Link from "next/link";
 import { addExpense } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
 import { BookkeepingChartsPanel } from "@/app/bookkeeping-charts-panel";
+import { BudgetAlert } from "@/app/budget-alert";
 import { CategorySelect } from "@/app/category-select";
 import { DeleteButton } from "@/app/delete-button";
 import { MonthPicker } from "@/app/month-picker";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
+import { getBudgetStatus } from "@/lib/budget-query";
 import { CATEGORIES, isCategory } from "@/lib/categories";
 import { shiftMonth, todayTaipei } from "@/lib/dates";
 import { generateRecurringExpenses } from "@/lib/generate-recurring";
@@ -30,6 +32,12 @@ export default async function Home({
 
   // 開頁時補產生到期的定期支出
   await generateRecurringExpenses();
+
+  // 預算提醒一律看「實際當月」，與正在檢視的月份無關
+  const today = todayTaipei();
+  const overBudget = (await getBudgetStatus(today.slice(0, 7))).filter(
+    (s) => s.over,
+  );
 
   const db = getDb();
   const rows = await db.query.expenses.findMany({
@@ -87,6 +95,7 @@ export default async function Home({
 
   return (
     <>
+        <BudgetAlert overBudget={overBudget} today={today} />
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
