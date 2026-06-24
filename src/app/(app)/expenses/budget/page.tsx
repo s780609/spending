@@ -34,7 +34,7 @@ export default async function BudgetPage() {
       </h1>
       <p className="mt-1 max-w-[60ch] text-sm leading-7 text-gray-600 text-pretty">
         為各分類設定每月預算（例如手遊）。下方顯示「{month}」當月已入帳花費（深色），
-        以及用過去 3 個月平均推估的「月底預估」（淺色）。因發票/帳單明細通常延遲一個月才到，
+        以及用過去 3 個完整月（不含當月）平均推估的「月底預估」（淺色）。因發票/帳單明細通常延遲一個月才到，
         當月實際偏低，故以歷史平均提早預警：預估會超支時卡片轉為琥珀色，實際已超支則轉紅。
         重複設定同一分類即更新金額。
       </p>
@@ -135,7 +135,7 @@ export default async function BudgetPage() {
                     月底預估 {formatAmount(s.projected)}
                     <span className="text-gray-400">
                       {" "}
-                      · 近 3 月平均 {formatAmount(s.average)}
+                      · 前 3 月平均 {formatAmount(s.average)}
                     </span>
                   </span>
                   {s.over ? (
