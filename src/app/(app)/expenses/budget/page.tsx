@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { budgets } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import { CATEGORIES } from "@/lib/categories";
-import { getBudgetStatus } from "@/lib/budget-query";
+import { getBudgetProjection } from "@/lib/budget-query";
 import { todayTaipei } from "@/lib/dates";
 
 // 每次請求都讀最新花費與預算，避免建置時打 DB 產生靜態快照
@@ -19,7 +19,7 @@ const BUDGET_CATEGORIES = CATEGORIES.filter((c) => c !== "未分類");
 
 export default async function BudgetPage() {
   const month = todayTaipei().slice(0, 7);
-  const status = await getBudgetStatus(month);
+  const status = await getBudgetProjection(month);
   // 取 id 供刪除用（getBudgetStatus 只回狀態，不含 id）
   const rows = await getDb()
     .select()
@@ -32,9 +32,11 @@ export default async function BudgetPage() {
       <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950">
         預算
       </h1>
-      <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 text-pretty">
-        為各分類設定每月預算（例如手遊）。下方顯示的是「{month}」當月花費，超出預算會變紅；
-        當月只要有任一分類超支，每天第一次進入記帳頁時會跳出提醒，直到月底。重複設定同一分類即更新金額。
+      <p className="mt-1 max-w-[60ch] text-sm leading-7 text-gray-600 text-pretty">
+        為各分類設定每月預算（例如手遊）。下方顯示「{month}」當月已入帳花費（深色），
+        以及用過去 3 個月平均推估的「月底預估」（淺色）。因發票/帳單明細通常延遲一個月才到，
+        當月實際偏低，故以歷史平均提早預警：預估會超支時卡片轉為琥珀色，實際已超支則轉紅。
+        重複設定同一分類即更新金額。
       </p>
 
       <form
@@ -78,12 +80,20 @@ export default async function BudgetPage() {
           {status.map((s) => {
             const id = idByCategory.get(s.category);
             const pct = Math.min(100, Math.round(s.ratio * 100));
+            const projectedPct = Math.min(
+              100,
+              Math.round(s.projectedRatio * 100),
+            );
+            // 已實際超支（紅）優先於僅預估超支（琥珀）
+            const ring = s.over
+              ? "ring-red-500/30"
+              : s.projectedOver
+                ? "ring-amber-500/40"
+                : "ring-gray-950/10";
             return (
               <li
                 key={s.category}
-                className={`rounded-xl bg-white p-4 shadow-sm ring-1 ${
-                  s.over ? "ring-red-500/30" : "ring-gray-950/10"
-                }`}
+                className={`rounded-xl bg-white p-4 shadow-sm ring-1 ${ring}`}
               >
                 <div className="flex items-center gap-3">
                   <span className="shrink-0 rounded-full bg-gray-950/[0.025] px-2 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5">
@@ -105,19 +115,43 @@ export default async function BudgetPage() {
                     />
                   )}
                 </div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
+                {/* 淺色＝月底預估、深色＝當月已入帳，疊在同一條上 */}
+                <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
                   <div
-                    className={`h-full rounded-full ${
+                    className={`absolute inset-y-0 left-0 rounded-full ${
+                      s.projectedOver ? "bg-amber-400/60" : "bg-gray-950/20"
+                    }`}
+                    style={{ width: `${projectedPct}%` }}
+                  />
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full ${
                       s.over ? "bg-red-500" : "bg-gray-950"
                     }`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                {s.over && (
-                  <p className="mt-2 text-xs font-medium text-red-600">
-                    已超出預算 NT$ {formatAmount(s.spent - s.budget)}
-                  </p>
-                )}
+                <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+                  <span className="text-gray-500 tabular-nums">
+                    月底預估 {formatAmount(s.projected)}
+                    <span className="text-gray-400">
+                      {" "}
+                      · 近 3 月平均 {formatAmount(s.average)}
+                    </span>
+                  </span>
+                  {s.over ? (
+                    <span className="shrink-0 font-medium text-red-600 tabular-nums">
+                      已超支 {formatAmount(s.spent - s.budget)}
+                    </span>
+                  ) : s.projectedOver ? (
+                    <span className="shrink-0 font-medium text-amber-600 tabular-nums">
+                      預估超支 {formatAmount(s.projected - s.budget)}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-gray-400 tabular-nums">
+                      預估結餘 {formatAmount(s.budget - s.projected)}
+                    </span>
+                  )}
+                </div>
               </li>
             );
           })}
