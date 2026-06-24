@@ -170,6 +170,31 @@ export const familyCardTransactions = pgTable("family_card_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/** 機車基本設定（單列，固定 id = 1） */
+export const bikeSettings = pgTable("bike_settings", {
+  id: integer("id").primaryKey(),
+  /** 時間制項目的起算日（出廠年月或購入日）YYYY-MM-DD，未設定為 null */
+  startDate: date("start_date"),
+  /** 每換一次機油代表的里程，預設 2000 */
+  kmPerOilChange: integer("km_per_oil_change").notNull().default(2000),
+  /** 手動校正：實際里程與「換機油次數 × kmPerOilChange」的差，可正可負 */
+  mileageAdjustment: integer("mileage_adjustment").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/** 機車保養紀錄（每筆服務事件；換機油也是一筆，itemKey = "engine_oil"） */
+export const maintenanceRecords = pgTable("maintenance_records", {
+  id: serial("id").primaryKey(),
+  /** 對應 lib/maintenance.ts 的 MAINTENANCE_ITEMS key */
+  itemKey: text("item_key").notNull(),
+  /** 保養日期 YYYY-MM-DD */
+  date: date("date").notNull(),
+  /** 當時估算里程（換機油次數 × kmPerOilChange + 校正） */
+  mileage: integer("mileage").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const expensesRelations = relations(expenses, ({ many }) => ({
   items: many(expenseItems),
 }));

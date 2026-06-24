@@ -18,6 +18,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import {
+  bikeSettings,
   budgets,
   expenseItems,
   expenses,
@@ -25,9 +26,15 @@ import {
   familyTransactions,
   holdings,
   loans,
+  maintenanceRecords,
   recurringExpenses,
 } from "@/db/schema";
 import { shiftMonth } from "@/lib/dates";
+import {
+  ENGINE_OIL_KEY,
+  isMaintenanceItem,
+} from "@/lib/maintenance";
+import { getBikeSettings } from "@/lib/maintenance-query";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
@@ -166,6 +173,85 @@ export async function deleteBudget(id: number) {
   await getDb().delete(budgets).where(eq(budgets.id, id));
   revalidatePath("/expenses/budget");
   revalidatePath("/expenses");
+}
+
+export async function addMaintenanceRecord(formData: FormData) {
+  const itemKey = String(formData.get("itemKey") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!isMaintenanceItem(itemKey) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return;
+  }
+
+  const db = getDb();
+  const settings = await getBikeSettings();
+  const oilRows = await db
+    .select({ id: maintenanceRecords.id })
+    .from(maintenanceRecords)
+    .where(eq(maintenanceRecords.itemKey, ENGINE_OIL_KEY));
+  // 換機油這筆會讓里程 +kmPerOilChange，故以「含本次」的次數估算當下里程
+  const effectiveOilCount =
+    itemKey === ENGINE_OIL_KEY ? oilRows.length + 1 : oilRows.length;
+  const mileage =
+    effectiveOilCount * settings.kmPerOilChange + settings.mileageAdjustment;
+
+  await db.insert(maintenanceRecords).values({
+    itemKey,
+    date,
+    mileage,
+    note: note || null,
+  });
+  revalidatePath("/motorcycle");
+}
+
+export async function deleteMaintenanceRecord(id: number) {
+  await getDb()
+    .delete(maintenanceRecords)
+    .where(eq(maintenanceRecords.id, id));
+  revalidatePath("/motorcycle");
+}
+
+export async function saveBikeSettings(formData: FormData) {
+  const startMonthRaw = String(formData.get("startMonth") ?? "");
+  const startDate = /^\d{4}-\d{2}$/.test(startMonthRaw)
+    ? `${startMonthRaw}-01`
+    : null;
+
+  const db = getDb();
+  const settings = await getBikeSettings();
+
+  // 目前里程 → 校正值：使估算里程恰等於使用者輸入的真實里程
+  let mileageAdjustment = settings.mileageAdjustment;
+  const currentMileageRaw = formData.get("currentMileage");
+  const currentMileage = Number(currentMileageRaw);
+  if (
+    currentMileageRaw != null &&
+    String(currentMileageRaw) !== "" &&
+    Number.isFinite(currentMileage) &&
+    currentMileage >= 0
+  ) {
+    const oilRows = await db
+      .select({ id: maintenanceRecords.id })
+      .from(maintenanceRecords)
+      .where(eq(maintenanceRecords.itemKey, ENGINE_OIL_KEY));
+    mileageAdjustment =
+      Math.round(currentMileage) - oilRows.length * settings.kmPerOilChange;
+  }
+
+  await db
+    .insert(bikeSettings)
+    .values({
+      id: 1,
+      startDate,
+      kmPerOilChange: settings.kmPerOilChange,
+      mileageAdjustment,
+    })
+    .onConflictDoUpdate({
+      target: bikeSettings.id,
+      set: { startDate, mileageAdjustment },
+    });
+  revalidatePath("/motorcycle");
 }
 
 export async function addHolding(formData: FormData) {

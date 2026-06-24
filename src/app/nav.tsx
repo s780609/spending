@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/expenses", label: "記帳", icon: ListIcon },
   { href: "/family", label: "家庭", icon: HomeIcon },
   { href: "/assets", label: "資產", icon: TrendIcon },
+  { href: "/motorcycle", label: "機車", icon: ScooterIcon },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -137,6 +138,17 @@ function TrendIcon(props: IconProps) {
     <svg {...iconProps(props)} aria-hidden>
       <path d="M22 7l-8.5 8.5-5-5L2 17" />
       <path d="M16 7h6v6" />
+    </svg>
+  );
+}
+
+function ScooterIcon(props: IconProps) {
+  return (
+    <svg {...iconProps(props)} aria-hidden>
+      <circle cx="6" cy="17" r="3" />
+      <circle cx="18" cy="17" r="3" />
+      <path d="M9 17h6l1.5-7H19" />
+      <path d="M16.5 10 14 5h-3" />
     </svg>
   );
 }
