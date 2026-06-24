@@ -4,8 +4,8 @@ import { getDb } from "@/db";
 import { budgets } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import { CATEGORIES } from "@/lib/categories";
-import { getBudgetProjection } from "@/lib/budget-query";
-import { todayTaipei } from "@/lib/dates";
+import { BUDGET_LOOKBACK, getBudgetProjection } from "@/lib/budget-query";
+import { shiftMonth, todayTaipei } from "@/lib/dates";
 
 // 每次請求都讀最新花費與預算，避免建置時打 DB 產生靜態快照
 export const dynamic = "force-dynamic";
@@ -27,15 +27,25 @@ export default async function BudgetPage() {
     .orderBy(asc(budgets.category), asc(budgets.id));
   const idByCategory = new Map(rows.map((r) => [r.category, r.id]));
 
+  // 前 N 個完整月的月份區間標籤，如「3–5 月」
+  const trailStartMonth = shiftMonth(month, -BUDGET_LOOKBACK);
+  const trailEndMonth = shiftMonth(month, -1);
+  const trailRange = `${Number(trailStartMonth.slice(5, 7))}–${Number(
+    trailEndMonth.slice(5, 7),
+  )} 月`;
+
   return (
     <>
       <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950">
         預算
       </h1>
-      <p className="mt-1 max-w-[60ch] text-sm leading-7 text-gray-600 text-pretty">
-        為各分類設定每月預算（例如手遊）。下方顯示「{month}」當月已入帳花費（深色），
-        以及用過去 3 個完整月（不含當月）平均推估的「月底預估」（淺色）。因發票/帳單明細通常延遲一個月才到，
-        當月實際偏低，故以歷史平均提早預警：預估會超支時卡片轉為琥珀色，實際已超支則轉紅。
+      <p className="mt-1 max-w-[62ch] text-sm leading-7 text-gray-600 text-pretty">
+        為各分類設定每月預算（例如手遊）。每張卡同時顯示兩個視角：
+        <span className="font-medium text-gray-700">當月</span>
+        ＝「{month}」已入帳花費（深色）＋過去 3 個完整月平均推估的月底預估（淺色），
+        因發票/帳單延遲、當月實際偏低，故以平均提早預警（預估超支轉琥珀、實際超支轉紅）；
+        <span className="font-medium text-gray-700">前 3 個月</span>
+        ＝{trailRange}（不含當月）實際總額對比「月預算 × 3」，用完整資料看這段是否超支。
         重複設定同一分類即更新金額。
       </p>
 
@@ -84,6 +94,10 @@ export default async function BudgetPage() {
               100,
               Math.round(s.projectedRatio * 100),
             );
+            const trailingPct = Math.min(
+              100,
+              Math.round(s.trailingRatio * 100),
+            );
             // 已實際超支（紅）優先於僅預估超支（琥珀）
             const ring = s.over
               ? "ring-red-500/30"
@@ -115,8 +129,9 @@ export default async function BudgetPage() {
                     />
                   )}
                 </div>
+                <p className="mt-3 text-xs font-medium text-gray-400">當月</p>
                 {/* 淺色＝月底預估、深色＝當月已入帳，疊在同一條上 */}
-                <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
+                <div className="relative mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
                   <div
                     className={`absolute inset-y-0 left-0 rounded-full ${
                       s.projectedOver ? "bg-amber-400/60" : "bg-gray-950/20"
@@ -151,6 +166,47 @@ export default async function BudgetPage() {
                       預估結餘 {formatAmount(s.budget - s.projected)}
                     </span>
                   )}
+                </div>
+
+                {/* 前 N 個完整月（不含當月）：實際總額 vs 月預算 × N */}
+                <div className="mt-3 border-t border-gray-950/5 pt-3">
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="font-medium text-gray-400">
+                      前 {s.lookback} 個月（{trailRange}）
+                    </span>
+                    <span
+                      className={`tabular-nums ${
+                        s.trailingOver
+                          ? "font-semibold text-red-600"
+                          : "text-gray-950"
+                      }`}
+                    >
+                      {formatAmount(s.trailingSpent)}
+                      <span className="text-gray-400">
+                        {" "}
+                        / {formatAmount(s.trailingBudget)}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
+                    <div
+                      className={`h-full rounded-full ${
+                        s.trailingOver ? "bg-red-500" : "bg-gray-950"
+                      }`}
+                      style={{ width: `${trailingPct}%` }}
+                    />
+                  </div>
+                  <div className="mt-1.5 text-right text-xs">
+                    {s.trailingOver ? (
+                      <span className="font-medium text-red-600 tabular-nums">
+                        超支 {formatAmount(s.trailingSpent - s.trailingBudget)}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 tabular-nums">
+                        結餘 {formatAmount(s.trailingBudget - s.trailingSpent)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </li>
             );

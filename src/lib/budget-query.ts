@@ -42,14 +42,18 @@ export async function getBudgetStatus(month: string): Promise<BudgetStatus[]> {
   return computeBudgetStatus(rules, spentByCategory);
 }
 
+/** 預算投影／前 N 月視角預設回看的完整月份數（不含當月） */
+export const BUDGET_LOOKBACK = 3;
+
 /**
- * 在 getBudgetStatus 之上，加上「歷史平均」推估的本月預估花費。
- * 因為發票/帳單明細通常延遲一個月才到，當月實際幾乎為 0，
- * 故以過去 lookback 個完整月份的每月平均，提早警示分類是否會超支。
+ * 在 getBudgetStatus 之上，加上以「前 N 個完整月（不含當月）」為基礎的兩種視角：
+ * 因為發票/帳單明細通常延遲一個月才到、當月實際幾乎為 0，
+ *  - 投影：用每月平均推估本月底花費，提早警示分類是否會爆當月預算；
+ *  - 前 N 月：用實際總額對比「月預算 × N」，以完整資料檢視該段是否超支。
  */
 export async function getBudgetProjection(
   month: string,
-  lookback = 3,
+  lookback = BUDGET_LOOKBACK,
 ): Promise<BudgetProjection[]> {
   const db = getDb();
 
@@ -75,7 +79,7 @@ export async function getBudgetProjection(
     .where(and(gte(expenses.date, monthStart), lt(expenses.date, nextMonthStart)))
     .groupBy(expenses.category);
 
-  // 過去 lookback 個完整月份（不含當月）的總花費 → 除以 lookback 得每月平均
+  // 前 lookback 個完整月份（不含當月）的花費總額
   const history = await db
     .select({
       category: expenses.category,
@@ -86,8 +90,13 @@ export async function getBudgetProjection(
     .groupBy(expenses.category);
 
   const spentByCategory = new Map(sums.map((r) => [r.category, r.total]));
-  const avgByCategory = new Map(
-    history.map((r) => [r.category, r.total / lookback]),
+  const trailingByCategory = new Map(
+    history.map((r) => [r.category, r.total]),
   );
-  return computeBudgetProjection(rules, spentByCategory, avgByCategory);
+  return computeBudgetProjection(
+    rules,
+    spentByCategory,
+    trailingByCategory,
+    lookback,
+  );
 }
