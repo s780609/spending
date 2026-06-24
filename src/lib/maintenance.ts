@@ -24,10 +24,17 @@ export const ENGINE_OIL_KEY = "engine_oil";
 export const MAINTENANCE_ITEMS: MaintenanceItem[] = [
   {
     key: ENGINE_OIL_KEY,
-    name: "引擎機油＋齒輪油",
+    name: "引擎機油",
     km: 2000,
     group: "routine",
     note: "最頻繁的項目，騎得勤一年換好幾次",
+  },
+  {
+    key: "gear_oil",
+    name: "齒輪油",
+    km: 10000,
+    group: "routine",
+    note: "與機油分開計，約每 1 萬公里更換",
   },
   {
     key: "air_filter",
