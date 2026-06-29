@@ -110,8 +110,15 @@ export default async function FamilyPage({
         familyCardTransactions.category,
       ),
   ]);
-  const bankOut = bankTxs.reduce((s, t) => s + Number(t.withdrawal ?? 0), 0);
-  const bankIn = bankTxs.reduce((s, t) => s + Number(t.deposit ?? 0), 0);
+  // 內部轉帳（主/子帳戶互轉）不是真實收支，從支出/存入總額排除；帳戶明細仍照常顯示
+  const bankOut = bankTxs.reduce(
+    (s, t) => (t.category === "內部轉帳" ? s : s + Number(t.withdrawal ?? 0)),
+    0,
+  );
+  const bankIn = bankTxs.reduce(
+    (s, t) => (t.category === "內部轉帳" ? s : s + Number(t.deposit ?? 0)),
+    0,
+  );
   // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
   const cardSpend = cardTxs.reduce(
     (s, t) =>
