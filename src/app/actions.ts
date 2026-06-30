@@ -112,17 +112,32 @@ export async function updateExpenseCategory(id: number, category: string) {
 }
 
 export async function addRecurring(formData: FormData) {
+  const frequency =
+    String(formData.get("frequency") ?? "monthly") === "yearly"
+      ? "yearly"
+      : "monthly";
   const dayOfMonth = Number(formData.get("dayOfMonth"));
+  const monthOfYearRaw = Number(formData.get("monthOfYear"));
   const vendor = String(formData.get("vendor") ?? "").trim();
   const amount = Number(formData.get("amount"));
   const categoryRaw = String(formData.get("category") ?? "");
   const endMonthRaw = String(formData.get("endMonth") ?? "");
   const endMonth = /^\d{4}-\d{2}$/.test(endMonthRaw) ? endMonthRaw : null;
 
+  // 每年才需要月份；每月時固定存 null
+  const monthOfYear =
+    frequency === "yearly" &&
+    Number.isInteger(monthOfYearRaw) &&
+    monthOfYearRaw >= 1 &&
+    monthOfYearRaw <= 12
+      ? monthOfYearRaw
+      : null;
+
   if (
     !Number.isInteger(dayOfMonth) ||
     dayOfMonth < 1 ||
     dayOfMonth > 31 ||
+    (frequency === "yearly" && monthOfYear === null) ||
     !vendor ||
     !Number.isFinite(amount)
   ) {
@@ -132,11 +147,18 @@ export async function addRecurring(formData: FormData) {
   await getDb()
     .insert(recurringExpenses)
     .values({
+      frequency,
       dayOfMonth,
+      monthOfYear,
       vendor,
       amount: String(amount),
       category: isCategory(categoryRaw) ? categoryRaw : DEFAULT_CATEGORY,
-      lastGenerated: initialLastGenerated(dayOfMonth, todayTaipei()),
+      lastGenerated: initialLastGenerated(
+        dayOfMonth,
+        todayTaipei(),
+        frequency,
+        monthOfYear,
+      ),
       endMonth,
     });
   revalidatePath("/expenses/recurring");

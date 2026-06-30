@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { expenses, recurringExpenses } from "@/db/schema";
 import { todayTaipei } from "./dates";
-import { dueDates } from "./recurring";
+import { dueDates, type RecurringFrequency } from "./recurring";
 
 /**
  * 補產生所有到期的定期支出（開頁時呼叫）。
@@ -19,6 +19,8 @@ export async function generateRecurringExpenses(): Promise<void> {
       rule.lastGenerated,
       today,
       rule.endMonth,
+      rule.frequency as RecurringFrequency,
+      rule.monthOfYear,
     );
     if (dates.length === 0) {
       continue;
