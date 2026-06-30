@@ -1,6 +1,7 @@
 import { asc } from "drizzle-orm";
 import { addRecurring, deleteRecurring } from "@/app/actions";
 import { DeleteButton } from "@/app/delete-button";
+import { RecurringScheduleFields } from "@/app/recurring-schedule-fields";
 import { getDb } from "@/db";
 import { recurringExpenses } from "@/db/schema";
 import { CATEGORIES } from "@/lib/categories";
@@ -48,33 +49,7 @@ export default async function RecurringPage() {
         >
           {/* 排程：頻率 + 月（每年才用）+ 日 */}
           <div className="col-span-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-            <select name="frequency" defaultValue="monthly" className={INPUT_CLS}>
-              <option value="monthly">每月</option>
-              <option value="yearly">每年</option>
-            </select>
-            <label className="flex items-center gap-1.5 text-sm text-gray-600">
-              <input
-                type="number"
-                name="monthOfYear"
-                min={1}
-                max={12}
-                defaultValue={1}
-                className={`${INPUT_CLS} w-16`}
-              />
-              月
-            </label>
-            <label className="flex items-center gap-1.5 text-sm text-gray-600">
-              <input
-                type="number"
-                name="dayOfMonth"
-                min={1}
-                max={31}
-                defaultValue={1}
-                required
-                className={`${INPUT_CLS} w-16`}
-              />
-              號
-            </label>
+            <RecurringScheduleFields inputClassName={INPUT_CLS} />
             <span className="text-xs text-gray-400">「月」僅每年適用</span>
           </div>
           <input
