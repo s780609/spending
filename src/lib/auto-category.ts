@@ -23,7 +23,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
   },
   {
     category: "手遊",
-    keywords: ["妮姬"],
+    keywords: ["妮姬", "Apple Distribution International"],
   },
   {
     category: "娛樂",
