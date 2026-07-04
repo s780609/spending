@@ -236,62 +236,61 @@ export default async function AssetsPage({
         </AddPanel>
 
         {symbolSummary.length > 0 && (
-          <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-sm font-medium text-gray-950">依代號彙總</h3>
+          <CollapsibleSection title="依代號彙總">
+            <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
               <p className="text-xs text-gray-400">年配息以近 12 個月估算</p>
-            </div>
-            <ul className="mt-1 divide-y divide-gray-950/5">
-              {symbolSummary.map((s) => (
-                <li key={s.symbol} className="py-2.5">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
-                        s.market === "TW"
-                          ? "bg-red-50 text-red-700 ring-red-600/20"
-                          : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                      }`}
-                    >
-                      {s.market === "TW" ? "台" : "美"}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
-                      {s.name || s.symbol}
-                      <span className="ml-1 font-mono text-xs text-gray-400">
-                        {s.symbol}
-                      </span>
-                    </span>
-                    <span className="sensitive shrink-0 text-sm font-medium text-gray-950">
-                      {s.totalShares.toLocaleString("zh-TW")} 股
-                    </span>
-                  </div>
-                  <p className="sensitive mt-1 text-xs text-gray-400">
-                    市值 {ntd(s.valueTwd)} · 每股配息{" "}
-                    {s.dividendPerShare === null
-                      ? "—"
-                      : `${s.dividendPerShare.toFixed(2)}${
-                          s.market === "US" ? " USD" : " 元"
+              <ul className="mt-1 divide-y divide-gray-950/5">
+                {symbolSummary.map((s) => (
+                  <li key={s.symbol} className="py-2.5">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
+                          s.market === "TW"
+                            ? "bg-red-50 text-red-700 ring-red-600/20"
+                            : "bg-blue-50 text-blue-700 ring-blue-600/20"
                         }`}
-                    {s.dividendTwd !== null && (
-                      <>
-                        {" "}
-                        · 預估年現金股利{" "}
-                        <span className="font-medium text-gray-950">
-                          {ntd(s.dividendTwd)}
+                      >
+                        {s.market === "TW" ? "台" : "美"}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
+                        {s.name || s.symbol}
+                        <span className="ml-1 font-mono text-xs text-gray-400">
+                          {s.symbol}
                         </span>
-                      </>
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-1 border-t border-gray-950/10 pt-2 text-right text-xs text-gray-600">
-              預估年現金股利合計
-              {dividendIncomplete && "（部分代號抓不到配息）"}{" "}
-              <span className="sensitive text-sm font-semibold text-gray-950">
-                {ntd(totalDividendTwd)}
-              </span>
-            </p>
-          </section>
+                      </span>
+                      <span className="sensitive shrink-0 text-sm font-medium text-gray-950">
+                        {s.totalShares.toLocaleString("zh-TW")} 股
+                      </span>
+                    </div>
+                    <p className="sensitive mt-1 text-xs text-gray-400">
+                      市值 {ntd(s.valueTwd)} · 每股配息{" "}
+                      {s.dividendPerShare === null
+                        ? "—"
+                        : `${s.dividendPerShare.toFixed(2)}${
+                            s.market === "US" ? " USD" : " 元"
+                          }`}
+                      {s.dividendTwd !== null && (
+                        <>
+                          {" "}
+                          · 預估年現金股利{" "}
+                          <span className="font-medium text-gray-950">
+                            {ntd(s.dividendTwd)}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1 border-t border-gray-950/10 pt-2 text-right text-xs text-gray-600">
+                預估年現金股利合計
+                {dividendIncomplete && "（部分代號抓不到配息）"}{" "}
+                <span className="sensitive text-sm font-semibold text-gray-950">
+                  {ntd(totalDividendTwd)}
+                </span>
+              </p>
+            </section>
+          </CollapsibleSection>
         )}
 
         {sheet.holdings.length > 0 && (
@@ -518,91 +517,93 @@ export default async function AssetsPage({
         </AddPanel>
 
         {sheet.loans.length > 0 && (
-          <ul className="mt-3 space-y-2">
-            {sheet.loans.map((loan) => (
-              <li
-                key={loan.id}
-                className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
-              >
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  {/* 手機第一行：類型＋名稱；桌面攤平成單行 */}
-                  <div className="flex min-w-0 items-center gap-3 sm:contents">
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset sm:order-1 ${
-                        loan.type === "信貸"
-                          ? "bg-amber-50 text-amber-700 ring-amber-600/20"
-                          : "bg-violet-50 text-violet-700 ring-violet-600/20"
-                      }`}
-                    >
-                      {loan.type}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-gray-950 sm:order-2">
-                      {loan.name}
-                    </span>
+          <CollapsibleSection title="貸款明細">
+            <ul className="mt-3 space-y-2">
+              {sheet.loans.map((loan) => (
+                <li
+                  key={loan.id}
+                  className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                >
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                    {/* 手機第一行：類型＋名稱；桌面攤平成單行 */}
+                    <div className="flex min-w-0 items-center gap-3 sm:contents">
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset sm:order-1 ${
+                          loan.type === "信貸"
+                            ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+                            : "bg-violet-50 text-violet-700 ring-violet-600/20"
+                        }`}
+                      >
+                        {loan.type}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950 sm:order-2">
+                        {loan.name}
+                      </span>
+                    </div>
+                    {/* 手機第二行：餘額＋刪除 */}
+                    <div className="flex items-center gap-3 sm:contents">
+                      <span className="sensitive shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
+                        {ntd(loan.liability)}
+                      </span>
+                      <span className="ml-auto sm:order-4 sm:ml-0">
+                        <DeleteButton
+                          id={loan.id}
+                          action={deleteLoan}
+                          message={`確定刪除「${loan.name}」這筆貸款？`}
+                        />
+                      </span>
+                    </div>
                   </div>
-                  {/* 手機第二行：餘額＋刪除 */}
-                  <div className="flex items-center gap-3 sm:contents">
-                    <span className="sensitive shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
-                      {ntd(loan.liability)}
-                    </span>
-                    <span className="ml-auto sm:order-4 sm:ml-0">
-                      <DeleteButton
-                        id={loan.id}
-                        action={deleteLoan}
-                        message={`確定刪除「${loan.name}」這筆貸款？`}
-                      />
-                    </span>
-                  </div>
-                </div>
-                <p className="sensitive mt-1 text-xs leading-5 text-gray-400">
-                  本金 {ntd(loan.principal)} · 年利率 {loan.annualRate}% ·{" "}
-                  {loan.startDate} 起
-                  {loan.type === "信貸" && loan.installments !== null && (
-                    <>
-                      {" "}
-                      · {loan.paymentsMade}/{loan.installments} 期 · 月付{" "}
-                      {ntd(loan.monthlyPayment ?? 0)} · 已付利息{" "}
-                      {ntd(loan.interest)}
-                    </>
-                  )}
-                  {loan.type === "質押" && (
-                    <>
-                      {" "}
-                      · 累計利息 {ntd(loan.interest)}
-                      {loan.termEnd && ` · 期限至 ${loan.termEnd}`}
-                      {loan.collateralSymbol && loan.collateralShares !== null && (
-                        <>
-                          {" "}
-                          · 擔保 {loan.collateralSymbol} ×
-                          {loan.collateralShares.toLocaleString("zh-TW")}
-                          {loan.collateralValue !== null && (
-                            <> 市值 {ntd(loan.collateralValue)}</>
-                          )}
-                          {loan.maintenanceRatio !== null && (
-                            <>
-                              {" "}
-                              · 維持率{" "}
-                              <span
-                                className={
-                                  loan.maintenanceRatio < 130
-                                    ? "font-semibold text-red-600"
-                                    : loan.maintenanceRatio < 167
-                                      ? "font-semibold text-amber-600"
-                                      : "font-medium text-green-600"
-                                }
-                              >
-                                {Math.round(loan.maintenanceRatio)}%
-                              </span>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-                </p>
-              </li>
-            ))}
-          </ul>
+                  <p className="sensitive mt-1 text-xs leading-5 text-gray-400">
+                    本金 {ntd(loan.principal)} · 年利率 {loan.annualRate}% ·{" "}
+                    {loan.startDate} 起
+                    {loan.type === "信貸" && loan.installments !== null && (
+                      <>
+                        {" "}
+                        · {loan.paymentsMade}/{loan.installments} 期 · 月付{" "}
+                        {ntd(loan.monthlyPayment ?? 0)} · 已付利息{" "}
+                        {ntd(loan.interest)}
+                      </>
+                    )}
+                    {loan.type === "質押" && (
+                      <>
+                        {" "}
+                        · 累計利息 {ntd(loan.interest)}
+                        {loan.termEnd && ` · 期限至 ${loan.termEnd}`}
+                        {loan.collateralSymbol && loan.collateralShares !== null && (
+                          <>
+                            {" "}
+                            · 擔保 {loan.collateralSymbol} ×
+                            {loan.collateralShares.toLocaleString("zh-TW")}
+                            {loan.collateralValue !== null && (
+                              <> 市值 {ntd(loan.collateralValue)}</>
+                            )}
+                            {loan.maintenanceRatio !== null && (
+                              <>
+                                {" "}
+                                · 維持率{" "}
+                                <span
+                                  className={
+                                    loan.maintenanceRatio < 130
+                                      ? "font-semibold text-red-600"
+                                      : loan.maintenanceRatio < 167
+                                        ? "font-semibold text-amber-600"
+                                        : "font-medium text-green-600"
+                                  }
+                                >
+                                  {Math.round(loan.maintenanceRatio)}%
+                                </span>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </CollapsibleSection>
         )}
       </PrivacyShield>
       </main>

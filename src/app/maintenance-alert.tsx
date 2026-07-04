@@ -45,26 +45,28 @@ export function MaintenanceAlert({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/40 p-0 sm:items-center sm:p-4"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="maintenance-alert-title"
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-950/10"
+        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col rounded-t-2xl bg-white shadow-xl ring-1 ring-gray-950/10 sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2
-          id="maintenance-alert-title"
-          className="text-lg font-bold tracking-tight text-amber-600"
-        >
-          機車保養到期提醒
-        </h2>
-        <p className="mt-1 text-sm leading-6 text-gray-600">
-          以下項目依里程／時間已到保養時機：
-        </p>
-        <ul className="mt-4 space-y-2">
+        <div className="border-b border-gray-950/5 px-6 py-4">
+          <h2
+            id="maintenance-alert-title"
+            className="text-lg font-bold tracking-tight text-amber-600"
+          >
+            機車保養到期提醒
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-gray-600">
+            以下項目依里程／時間已到保養時機：
+          </p>
+        </div>
+        <ul className="flex-1 space-y-2 overflow-y-auto px-6 py-4">
           {dueItems.map((item) => (
             <li
               key={item.key}
@@ -80,13 +82,15 @@ export function MaintenanceAlert({
             </li>
           ))}
         </ul>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="mt-5 w-full rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
-        >
-          知道了
-        </button>
+        <div className="border-t border-gray-950/5 px-6 py-4">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="w-full rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+          >
+            知道了
+          </button>
+        </div>
       </div>
     </div>
   );
