@@ -41,7 +41,7 @@ import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
 import { todayTaipei } from "@/lib/dates";
 import { isFamilyCategory } from "@/lib/family-category";
 import { importBankStatement, importCardStatement } from "@/lib/family-import";
-import { parseEInvoiceCsv } from "@/lib/parse-einvoice";
+import { parseInvoiceCsv } from "@/lib/parse-einvoice";
 import {
   detectStatementType,
   parseBankStatement,
@@ -622,7 +622,7 @@ export async function importCsv(
     return { message: "請先選擇 CSV 檔案" };
   }
 
-  const { invoices, voidedCount, errors } = parseEInvoiceCsv(await file.text());
+  const { invoices, voidedCount, errors } = parseInvoiceCsv(await file.text());
   if (invoices.length === 0) {
     return {
       message: "檔案裡沒有可匯入的發票，請確認是電子發票消費明細 CSV",
