@@ -70,7 +70,12 @@ export default async function FamilyPage({
     db
       .select()
       .from(familyCardTransactions)
-      .where(eq(familyCardTransactions.statementMonth, month))
+      .where(
+        and(
+          gte(familyCardTransactions.purchaseDate, `${month}-01`),
+          lt(familyCardTransactions.purchaseDate, `${shiftMonth(month, 1)}-01`),
+        ),
+      )
       .orderBy(
         asc(familyCardTransactions.purchaseDate),
         asc(familyCardTransactions.id),
@@ -279,7 +284,7 @@ export default async function FamilyPage({
           </summary>
         {cardTxs.length === 0 ? (
           <p className="mt-4 text-sm leading-7 text-gray-600">
-            {month} 帳單沒有信用卡明細，上傳該月的信用卡電子帳單即可匯入。
+            {month} 沒有信用卡明細，上傳包含該月消費的信用卡電子帳單即可匯入。
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
