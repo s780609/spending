@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { logout } from "@/app/actions";
 
 const LINKS = [
@@ -18,6 +19,26 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // 常駐 prefetch：預抓資料 30 秒過期後自動重抓，
+  // 確保點擊當下一定有現成的 loading shell 可以立即切頁（先滑過去，內容再串流）
+  useEffect(() => {
+    let cancelled = false;
+    for (const { href } of LINKS) {
+      const poll = () => {
+        // 型別要求 kind，但執行期為選填（未給時預設 auto），官方文件也只傳 onInvalidate
+        if (!cancelled)
+          router.prefetch(href, { onInvalidate: poll } as Parameters<
+            typeof router.prefetch
+          >[1]);
+      };
+      poll();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   return (
     <>
