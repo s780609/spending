@@ -389,7 +389,7 @@ export interface FamilyDetailRow {
 
 /** 圖表點擊用：撈指定來源/分類/月份區間的家庭支出明細（口徑與圖表一致） */
 export async function getFamilySpendingDetail(params: {
-  source: "all" | "bank" | "card";
+  source: "bank" | "card";
   category?: string;
   /** YYYY-MM，空字串＝不限起點 */
   startMonth?: string;
@@ -413,9 +413,6 @@ export async function getFamilySpendingDetail(params: {
     ];
     if (start) {
       conds.push(gte(familyTransactions.date, `${start}-01`));
-    }
-    if (params.source === "all") {
-      conds.push(ne(familyTransactions.category, "卡費"));
     }
     if (params.category) {
       conds.push(eq(familyTransactions.category, params.category));

@@ -19,7 +19,7 @@ interface MonthCategoryEntry {
   total: number;
 }
 
-const SOURCE_LABELS = { all: "合併", bank: "帳戶", card: "信用卡" } as const;
+const SOURCE_LABELS = { bank: "帳戶", card: "信用卡" } as const;
 type Source = keyof typeof SOURCE_LABELS;
 
 export function FamilyChartsPanel({
@@ -36,15 +36,10 @@ export function FamilyChartsPanel({
     rows: FamilyDetailRow[];
   } | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [trendSource, setTrendSource] = useState<Source>("all");
+  const [trendSource, setTrendSource] = useState<Source>("bank");
 
-  // 與圓餅圖同口徑：帳戶含卡費、合併剔除帳戶側卡費（卡費由卡單逐筆計入）
-  const trendEntries =
-    trendSource === "bank"
-      ? bank
-      : trendSource === "card"
-        ? card
-        : [...bank.filter((entry) => entry.category !== "卡費"), ...card];
+  // 與圓餅圖同口徑：帳戶＝帳戶支出（含卡費）、信用卡＝卡單消費
+  const trendEntries = trendSource === "bank" ? bank : card;
   const trendByMonth = new Map<string, number>();
   for (const entry of trendEntries) {
     trendByMonth.set(
@@ -123,7 +118,7 @@ export function FamilyChartsPanel({
         </section>
       </div>
       <p className="mt-2 text-xs text-gray-400">
-        帳戶口徑不含內部轉帳；「合併」與趨勢線剔除帳戶側台新卡費（改以信用卡明細逐筆計入）。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
+        帳戶口徑不含內部轉帳。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
       </p>
 
       {(modal || isPending) && (

@@ -159,12 +159,11 @@ interface MonthCategoryEntry {
 }
 
 const FAMILY_SOURCES = [
-  { label: "合併", value: "all" },
   { label: "帳戶", value: "bank" },
   { label: "信用卡", value: "card" },
 ] as const;
 
-/** 家庭分類佔比：可切換帳戶/信用卡/合併；合併時剔除帳戶側卡費避免與卡單明細重複 */
+/** 家庭分類佔比：可切換帳戶/信用卡 */
 export function FamilySpendingPie({
   bank,
   card,
@@ -178,21 +177,16 @@ export function FamilySpendingPie({
   categories: readonly string[];
   /** 點切片查明細 */
   onDetail?: (params: {
-    source: "all" | "bank" | "card";
+    source: "bank" | "card";
     category: string;
     startMonth: string;
     endMonth: string;
   }) => void;
 }) {
   const [source, setSource] =
-    useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
+    useState<(typeof FAMILY_SOURCES)[number]["value"]>("bank");
 
-  const data =
-    source === "bank"
-      ? bank
-      : source === "card"
-        ? card
-        : [...bank.filter((entry) => entry.category !== "卡費"), ...card];
+  const data = source === "bank" ? bank : card;
 
   return (
     <div>
