@@ -7,6 +7,7 @@ import { BudgetAlert } from "@/app/budget-alert";
 import { CategorySelect } from "@/app/category-select";
 import { DeleteButton } from "@/app/delete-button";
 import { MonthPicker } from "@/app/month-picker";
+import { SubmitButton } from "@/app/submit-button";
 import { getDb } from "@/db";
 import { expenses } from "@/db/schema";
 import { getBudgetStatus } from "@/lib/budget-query";
@@ -220,12 +221,12 @@ export default async function Home({
               </option>
             ))}
           </select>
-          <button
-            type="submit"
+          <SubmitButton
+            pendingLabel="新增中"
             className="order-5 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:order-none sm:py-2 sm:text-sm"
           >
             新增
-          </button>
+          </SubmitButton>
         </form>
         </AddPanel>
 
