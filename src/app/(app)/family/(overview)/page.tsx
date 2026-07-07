@@ -166,8 +166,8 @@ export default async function FamilyPage({
 
         <div className="mt-4 grid grid-cols-3 gap-3">
           {[
-            { label: `${month} 支出`, value: `NT$ ${fmt(bankOut)}` },
-            { label: `${month} 存入`, value: `NT$ ${fmt(bankIn)}` },
+            { label: `${month} 帳戶支出`, value: `NT$ ${fmt(bankOut)}` },
+            { label: `${month} 帳戶收入`, value: `NT$ ${fmt(bankIn)}` },
             {
               label: `${month} 卡費新增`,
               value: cardStatement
