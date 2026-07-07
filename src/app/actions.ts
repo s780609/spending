@@ -9,6 +9,7 @@ import {
   isNotNull,
   lt,
   ne,
+  notInArray,
   notLike,
   sql,
   type SQL,
@@ -36,7 +37,11 @@ import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
 import { DEFAULT_CATEGORY, isCategory } from "@/lib/categories";
 import { todayTaipei } from "@/lib/dates";
-import { isFamilyCategory } from "@/lib/family-category";
+import {
+  isFamilyCategory,
+  MERGED_EXCLUDED_BANK_CATEGORIES,
+  MERGED_EXCLUDED_CARD_CATEGORIES,
+} from "@/lib/family-category";
 import { importBankStatement, importCardStatement } from "@/lib/family-import";
 import { parseInvoiceCsv } from "@/lib/parse-einvoice";
 import {
@@ -373,7 +378,7 @@ export interface FamilyDetailRow {
 
 /** 圖表點擊用：撈指定來源/分類/月份區間的家庭支出明細（口徑與圖表一致） */
 export async function getFamilySpendingDetail(params: {
-  source: "bank" | "card";
+  source: "all" | "bank" | "card";
   category?: string;
   /** YYYY-MM，空字串＝不限起點 */
   startMonth?: string;
@@ -397,6 +402,13 @@ export async function getFamilySpendingDetail(params: {
     ];
     if (start) {
       conds.push(gte(familyTransactions.date, `${start}-01`));
+    }
+    if (params.source === "all") {
+      conds.push(
+        notInArray(familyTransactions.category, [
+          ...MERGED_EXCLUDED_BANK_CATEGORIES,
+        ]),
+      );
     }
     if (params.category) {
       conds.push(eq(familyTransactions.category, params.category));
@@ -425,6 +437,13 @@ export async function getFamilySpendingDetail(params: {
     ];
     if (start) {
       conds.push(sql`${monthExpr} >= ${start}`);
+    }
+    if (params.source === "all") {
+      conds.push(
+        notInArray(familyCardTransactions.category, [
+          ...MERGED_EXCLUDED_CARD_CATEGORIES,
+        ]),
+      );
     }
     if (params.category) {
       conds.push(eq(familyCardTransactions.category, params.category));

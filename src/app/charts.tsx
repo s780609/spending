@@ -16,6 +16,10 @@ import {
 } from "recharts";
 import { CATEGORIES } from "@/lib/categories";
 import { shiftMonth } from "@/lib/dates";
+import {
+  MERGED_EXCLUDED_BANK_CATEGORIES,
+  MERGED_EXCLUDED_CARD_CATEGORIES,
+} from "@/lib/family-category";
 
 /** 與 CATEGORIES 順序對應，固定每個分類的顏色 */
 const PALETTE = [
@@ -159,11 +163,12 @@ interface MonthCategoryEntry {
 }
 
 const FAMILY_SOURCES = [
+  { label: "合併", value: "all" },
   { label: "帳戶", value: "bank" },
   { label: "信用卡", value: "card" },
 ] as const;
 
-/** 家庭分類佔比：可切換帳戶/信用卡 */
+/** 家庭分類佔比：可切換合併/帳戶/信用卡；合併＝帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費 */
 export function FamilySpendingPie({
   bank,
   card,
@@ -177,16 +182,30 @@ export function FamilySpendingPie({
   categories: readonly string[];
   /** 點切片查明細 */
   onDetail?: (params: {
-    source: "bank" | "card";
+    source: "all" | "bank" | "card";
     category: string;
     startMonth: string;
     endMonth: string;
   }) => void;
 }) {
   const [source, setSource] =
-    useState<(typeof FAMILY_SOURCES)[number]["value"]>("bank");
+    useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
 
-  const data = source === "bank" ? bank : card;
+  const data =
+    source === "bank"
+      ? bank
+      : source === "card"
+        ? card
+        : [
+            ...bank.filter(
+              (entry) =>
+                !MERGED_EXCLUDED_BANK_CATEGORIES.includes(entry.category),
+            ),
+            ...card.filter(
+              (entry) =>
+                !MERGED_EXCLUDED_CARD_CATEGORIES.includes(entry.category),
+            ),
+          ];
 
   return (
     <div>

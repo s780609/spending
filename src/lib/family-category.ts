@@ -22,6 +22,18 @@ export const FAMILY_CATEGORIES = [
 
 export type FamilyCategory = (typeof FAMILY_CATEGORIES)[number];
 
+/** 圖表「合併」檢視：帳戶側排除的分類（卡費改由卡單逐筆計入，其餘非實際消費） */
+export const MERGED_EXCLUDED_BANK_CATEGORIES: readonly string[] = [
+  "內部轉帳",
+  "利息",
+  "卡費",
+  "未分類",
+  "其他",
+];
+
+/** 圖表「合併」檢視：信用卡側排除的分類（繳款列不算消費） */
+export const MERGED_EXCLUDED_CARD_CATEGORIES: readonly string[] = ["卡費"];
+
 export function isFamilyCategory(value: string): value is FamilyCategory {
   return (FAMILY_CATEGORIES as readonly string[]).includes(value);
 }

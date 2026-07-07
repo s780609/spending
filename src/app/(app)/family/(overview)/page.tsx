@@ -83,7 +83,8 @@ export default async function FamilyPage({
   ]);
 
   // 圖表用：每月 × 分類支出加總。
-  // 帳戶＝帳戶實際流出（含卡費，僅排除內部轉帳）；信用卡＝卡單消費
+  // 帳戶＝帳戶實際流出（含卡費，僅排除內部轉帳）；信用卡＝卡單消費；
+  // 「合併」由前端再過濾：帳戶排除內部轉帳/利息/卡費/未分類/其他、信用卡排除卡費
   const bankMonthExpr = sql<string>`to_char(${familyTransactions.date}, 'YYYY-MM')`;
   const [bankByMonthCat, cardByMonthCat] = await Promise.all([
     db

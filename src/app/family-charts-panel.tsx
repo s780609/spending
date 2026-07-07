@@ -11,7 +11,11 @@ import {
   IDLE_PILL,
   MonthlyTrend,
 } from "@/app/charts";
-import { FAMILY_CATEGORIES } from "@/lib/family-category";
+import {
+  FAMILY_CATEGORIES,
+  MERGED_EXCLUDED_BANK_CATEGORIES,
+  MERGED_EXCLUDED_CARD_CATEGORIES,
+} from "@/lib/family-category";
 
 interface MonthCategoryEntry {
   month: string;
@@ -19,7 +23,7 @@ interface MonthCategoryEntry {
   total: number;
 }
 
-const SOURCE_LABELS = { bank: "帳戶", card: "信用卡" } as const;
+const SOURCE_LABELS = { all: "合併", bank: "帳戶", card: "信用卡" } as const;
 type Source = keyof typeof SOURCE_LABELS;
 
 export function FamilyChartsPanel({
@@ -36,10 +40,24 @@ export function FamilyChartsPanel({
     rows: FamilyDetailRow[];
   } | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [trendSource, setTrendSource] = useState<Source>("bank");
+  const [trendSource, setTrendSource] = useState<Source>("all");
 
-  // 與圓餅圖同口徑：帳戶＝帳戶支出（含卡費）、信用卡＝卡單消費
-  const trendEntries = trendSource === "bank" ? bank : card;
+  // 與圓餅圖同口徑：合併＝帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費
+  const trendEntries =
+    trendSource === "bank"
+      ? bank
+      : trendSource === "card"
+        ? card
+        : [
+            ...bank.filter(
+              (entry) =>
+                !MERGED_EXCLUDED_BANK_CATEGORIES.includes(entry.category),
+            ),
+            ...card.filter(
+              (entry) =>
+                !MERGED_EXCLUDED_CARD_CATEGORIES.includes(entry.category),
+            ),
+          ];
   const trendByMonth = new Map<string, number>();
   for (const entry of trendEntries) {
     trendByMonth.set(
@@ -118,7 +136,7 @@ export function FamilyChartsPanel({
         </section>
       </div>
       <p className="mt-2 text-xs text-gray-400">
-        帳戶口徑不含內部轉帳。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
+        帳戶口徑不含內部轉帳。「合併」＝帳戶（再排除利息、卡費、未分類、其他）＋信用卡（排除卡費），卡費改以信用卡明細逐筆計入。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
       </p>
 
       {(modal || isPending) && (
