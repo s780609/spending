@@ -14,7 +14,7 @@ export interface MaintenanceItem {
   inspectOnly?: boolean;
 }
 
-/** 換機油的 key；其紀錄筆數 × kmPerOilChange 推算目前里程 */
+/** 換機油的 key（新增保養紀錄的預設選項） */
 export const ENGINE_OIL_KEY = "engine_oil";
 
 /**

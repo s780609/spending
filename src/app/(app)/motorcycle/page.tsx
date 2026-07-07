@@ -94,7 +94,7 @@ function isSoon(s: MaintenanceStatus): boolean {
 
 export default async function MotorcyclePage() {
   const today = todayTaipei();
-  const { status, records, settings, oilCount, estMileage } =
+  const { status, records, settings, estMileage } =
     await getMaintenanceData(today);
 
   const dueItems: DueItem[] = status
@@ -114,7 +114,7 @@ export default async function MotorcyclePage() {
         機車保養
       </h1>
       <p className="mt-1 max-w-[60ch] text-sm leading-7 text-gray-600 text-pretty">
-        以 YAMAHA SMAX 155 原廠保養表為準，每記一次「換機油」估算 +2,000 km，依
+        以 YAMAHA SMAX 155 原廠保養表為準，里程以手動輸入的「目前里程」為準，依
         「里程或時間先到為準」判斷各項目是否到期；切到本頁時若有到期項目會跳出提醒。
       </p>
 
@@ -122,17 +122,13 @@ export default async function MotorcyclePage() {
       <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <div className="text-xs text-gray-500">目前估算里程</div>
+            <div className="text-xs text-gray-500">目前里程</div>
             <div className="text-3xl font-bold tracking-tight text-gray-950 tabular-nums">
               {fmtNum(estMileage)}
               <span className="ml-1 text-base font-medium text-gray-400">km</span>
             </div>
             <div className="mt-0.5 text-xs text-gray-400">
-              換機油 {oilCount} 次 × 2,000
-              {settings.mileageAdjustment !== 0 &&
-                `（校正 ${settings.mileageAdjustment > 0 ? "+" : ""}${fmtNum(
-                  settings.mileageAdjustment,
-                )}）`}
+              以下方輸入的「目前里程」為準
             </div>
           </div>
         </div>
@@ -150,7 +146,7 @@ export default async function MotorcyclePage() {
             />
           </label>
           <label className="col-span-2 flex flex-col gap-1 text-xs text-gray-500 sm:col-span-1">
-            校正目前里程（留空＝不更動）
+            目前里程（留空＝不更動）
             <input
               type="number"
               name="currentMileage"

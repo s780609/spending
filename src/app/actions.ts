@@ -30,10 +30,7 @@ import {
   recurringExpenses,
 } from "@/db/schema";
 import { shiftMonth } from "@/lib/dates";
-import {
-  ENGINE_OIL_KEY,
-  isMaintenanceItem,
-} from "@/lib/maintenance";
+import { isMaintenanceItem } from "@/lib/maintenance";
 import { getBikeSettings } from "@/lib/maintenance-query";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
@@ -208,15 +205,8 @@ export async function addMaintenanceRecord(formData: FormData) {
 
   const db = getDb();
   const settings = await getBikeSettings();
-  const oilRows = await db
-    .select({ id: maintenanceRecords.id })
-    .from(maintenanceRecords)
-    .where(eq(maintenanceRecords.itemKey, ENGINE_OIL_KEY));
-  // 換機油這筆會讓里程 +kmPerOilChange，故以「含本次」的次數估算當下里程
-  const effectiveOilCount =
-    itemKey === ENGINE_OIL_KEY ? oilRows.length + 1 : oilRows.length;
-  const mileage =
-    effectiveOilCount * settings.kmPerOilChange + settings.mileageAdjustment;
+  // 里程不再依換機油次數推算，直接以手動輸入的目前里程為準
+  const mileage = settings.mileageAdjustment;
 
   await db.insert(maintenanceRecords).values({
     itemKey,
@@ -243,7 +233,7 @@ export async function saveBikeSettings(formData: FormData) {
   const db = getDb();
   const settings = await getBikeSettings();
 
-  // 目前里程 → 校正值：使估算里程恰等於使用者輸入的真實里程
+  // 目前里程直接存入校正值，不再依換機油次數換算
   let mileageAdjustment = settings.mileageAdjustment;
   const currentMileageRaw = formData.get("currentMileage");
   const currentMileage = Number(currentMileageRaw);
@@ -253,12 +243,7 @@ export async function saveBikeSettings(formData: FormData) {
     Number.isFinite(currentMileage) &&
     currentMileage >= 0
   ) {
-    const oilRows = await db
-      .select({ id: maintenanceRecords.id })
-      .from(maintenanceRecords)
-      .where(eq(maintenanceRecords.itemKey, ENGINE_OIL_KEY));
-    mileageAdjustment =
-      Math.round(currentMileage) - oilRows.length * settings.kmPerOilChange;
+    mileageAdjustment = Math.round(currentMileage);
   }
 
   await db
@@ -266,7 +251,6 @@ export async function saveBikeSettings(formData: FormData) {
     .values({
       id: 1,
       startDate,
-      kmPerOilChange: settings.kmPerOilChange,
       mileageAdjustment,
     })
     .onConflictDoUpdate({

@@ -3,20 +3,17 @@ import { getDb } from "@/db";
 import { bikeSettings, maintenanceRecords } from "@/db/schema";
 import {
   computeMaintenanceStatus,
-  ENGINE_OIL_KEY,
   MAINTENANCE_ITEMS,
   type MaintenanceStatus,
 } from "@/lib/maintenance";
 
 export interface BikeSettings {
   startDate: string | null;
-  kmPerOilChange: number;
   mileageAdjustment: number;
 }
 
 const DEFAULT_SETTINGS: BikeSettings = {
   startDate: null,
-  kmPerOilChange: 2000,
   mileageAdjustment: 0,
 };
 
@@ -32,9 +29,7 @@ export interface MaintenanceData {
   status: MaintenanceStatus[];
   records: MaintenanceRecordRow[];
   settings: BikeSettings;
-  /** 換機油次數 */
-  oilCount: number;
-  /** 目前估算里程 = oilCount × kmPerOilChange + mileageAdjustment */
+  /** 目前里程（手動輸入的校正值） */
   estMileage: number;
 }
 
@@ -46,7 +41,6 @@ export async function getBikeSettings(): Promise<BikeSettings> {
   }
   return {
     startDate: row.startDate,
-    kmPerOilChange: row.kmPerOilChange,
     mileageAdjustment: row.mileageAdjustment,
   };
 }
@@ -62,9 +56,7 @@ export async function getMaintenanceData(
     .from(maintenanceRecords)
     .orderBy(desc(maintenanceRecords.date), desc(maintenanceRecords.id));
 
-  const oilCount = records.filter((r) => r.itemKey === ENGINE_OIL_KEY).length;
-  const estMileage =
-    oilCount * settings.kmPerOilChange + settings.mileageAdjustment;
+  const estMileage = settings.mileageAdjustment;
 
   // records 已依日期、id 由新到舊排序，故每個 itemKey 第一次出現即為最新一筆
   const lastByKey = new Map<string, { date: string; mileage: number }>();
@@ -92,7 +84,6 @@ export async function getMaintenanceData(
       note: r.note,
     })),
     settings,
-    oilCount,
     estMileage,
   };
 }
