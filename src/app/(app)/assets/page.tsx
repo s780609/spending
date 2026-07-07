@@ -26,6 +26,53 @@ const PILL_ACTIVE =
 const PILL_IDLE =
   "rounded-full px-2.5 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
 
+/** 負債佔總資產的量條（meter）：負債段＋淨資產段組成總資產 */
+function DebtRatioMeter({
+  totalAssets,
+  totalLiabilities,
+  netWorth,
+}: {
+  totalAssets: number;
+  totalLiabilities: number;
+  netWorth: number;
+}) {
+  const ratio =
+    totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : null;
+  // 淨資產為負時比率會超過 100%，條圖填滿即可，數字照實顯示
+  const fillPct = ratio === null ? 0 : Math.min(100, Math.max(0, ratio));
+
+  return (
+    <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm font-medium text-gray-950">負債佔總資產</h2>
+        <p className="sensitive text-lg font-bold tracking-tight text-gray-950">
+          {ratio === null ? "—" : `${ratio.toFixed(1)}%`}
+        </p>
+      </div>
+      <div className="sensitive mt-3 flex h-3 gap-0.5">
+        {fillPct > 0 && (
+          <div
+            className="rounded-full bg-sky-500"
+            style={{ width: `${fillPct}%` }}
+          />
+        )}
+        {fillPct < 100 && <div className="flex-1 rounded-full bg-gray-200" />}
+      </div>
+      <div className="sensitive mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-gray-600">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-sky-500" />
+          負債 {ntd(totalLiabilities)}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-gray-200 ring-1 ring-inset ring-gray-950/10" />
+          淨資產 {ntd(netWorth)}
+          {ratio !== null && `（${(100 - ratio).toFixed(1)}%）`}
+        </span>
+      </div>
+    </section>
+  );
+}
+
 function assetHref(broker?: string, symbol?: string, sort?: string): string {
   const params = new URLSearchParams();
   if (broker) params.set("broker", broker);
@@ -165,6 +212,12 @@ export default async function AssetsPage({
             </div>
           ))}
         </div>
+
+        <DebtRatioMeter
+          totalAssets={sheet.totalAssets}
+          totalLiabilities={sheet.totalLiabilities}
+          netWorth={sheet.netWorth}
+        />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
