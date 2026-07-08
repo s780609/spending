@@ -124,6 +124,7 @@ export default async function FamilyPage({
     (s, t) => (t.category === "內部轉帳" ? s : s + Number(t.deposit ?? 0)),
     0,
   );
+  const bankNet = bankIn - bankOut;
   // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
   const cardSpend = cardTxs.reduce(
     (s, t) =>
@@ -164,15 +165,24 @@ export default async function FamilyPage({
           </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           {[
-            { label: `${month} 帳戶支出`, value: `NT$ ${fmt(bankOut)}` },
-            { label: `${month} 帳戶收入`, value: `NT$ ${fmt(bankIn)}` },
+            {
+              label: `${month} 帳戶收支`,
+              value: `NT$ ${bankNet > 0 ? "+" : ""}${fmt(bankNet)}`,
+              tone:
+                bankNet > 0
+                  ? "text-green-600"
+                  : bankNet < 0
+                    ? "text-red-600"
+                    : "text-gray-950",
+            },
             {
               label: `${month} 卡費新增`,
               value: cardStatement
                 ? `NT$ ${fmt(cardStatement.newCharges)}`
                 : "—",
+              tone: "text-gray-950",
             },
           ].map((card) => (
             <div
@@ -180,7 +190,9 @@ export default async function FamilyPage({
               className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10"
             >
               <p className="text-xs text-gray-600">{card.label}</p>
-              <p className="mt-1 text-base font-bold tracking-tight text-gray-950 sm:text-lg">
+              <p
+                className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${card.tone}`}
+              >
                 {card.value}
               </p>
             </div>
