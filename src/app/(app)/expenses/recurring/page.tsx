@@ -10,7 +10,7 @@ import { CATEGORIES } from "@/lib/categories";
 export const dynamic = "force-dynamic";
 
 const INPUT_CLS =
-  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm";
+  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm";
 
 function formatAmount(value: string | number): string {
   return Math.round(Number(value)).toLocaleString("zh-TW");
@@ -35,22 +35,22 @@ export default async function RecurringPage() {
 
   return (
     <>
-        <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950">
+        <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
           定期支出
         </h1>
-        <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 text-pretty">
+        <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 dark:text-gray-400 text-pretty">
           固定的支出（房租、保險費…）設定後，開啟網站時會自動把到期的款項補進記帳；就算當天沒開網站，下次開啟也會補齊。可選每月或每年；設
           29–31 號遇到較短的月份會落在月底。
         </p>
 
         <form
           action={addRecurring}
-          className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[1fr_8rem]"
+          className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 sm:grid-cols-[1fr_8rem]"
         >
           {/* 排程：頻率 + 月（每年才用）+ 日 */}
           <div className="col-span-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
             <RecurringScheduleFields inputClassName={INPUT_CLS} />
-            <span className="text-xs text-gray-400">「月」僅每年適用</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">「月」僅每年適用</span>
           </div>
           <input
             type="text"
@@ -78,25 +78,25 @@ export default async function RecurringPage() {
               </option>
             ))}
           </select>
-          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600">
+          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             到期
             <input
               type="month"
               name="endMonth"
               className={`${INPUT_CLS} flex-1`}
             />
-            <span className="text-xs text-gray-400">留空＝無期限</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">留空＝無期限</span>
           </label>
           <button
             type="submit"
-            className="col-span-2 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:py-2 sm:text-sm"
+            className="col-span-2 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:py-2 sm:text-sm"
           >
             新增
           </button>
         </form>
 
         {rules.length === 0 ? (
-          <p className="mt-12 text-center text-sm leading-7 text-gray-600">
+          <p className="mt-12 text-center text-sm leading-7 text-gray-600 dark:text-gray-400">
             還沒有定期支出，新增一筆吧。
           </p>
         ) : (
@@ -104,25 +104,25 @@ export default async function RecurringPage() {
             {rules.map((rule) => (
               <li
                 key={rule.id}
-                className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                className="flex items-center gap-3 rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
               >
-                <span className="w-24 shrink-0 text-xs text-gray-600">
+                <span className="w-24 shrink-0 text-xs text-gray-600 dark:text-gray-400">
                   {scheduleLabel(rule)}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-gray-950">
+                  <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
                     {rule.vendor}
                   </span>
                   {rule.endMonth && (
-                    <span className="block text-xs text-gray-400">
+                    <span className="block text-xs text-gray-400 dark:text-gray-500">
                       至 {rule.endMonth}
                     </span>
                   )}
                 </span>
-                <span className="shrink-0 rounded-full bg-gray-950/[0.025] px-2 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5">
+                <span className="shrink-0 rounded-full bg-gray-950/[0.025] dark:bg-white/[0.025] px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5">
                   {rule.category}
                 </span>
-                <span className="shrink-0 text-right text-sm font-medium text-gray-950">
+                <span className="shrink-0 text-right text-sm font-medium text-gray-950 dark:text-gray-50">
                   {formatAmount(rule.amount)}
                 </span>
                 <DeleteButton

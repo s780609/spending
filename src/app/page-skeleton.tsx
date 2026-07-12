@@ -3,26 +3,26 @@ export function ContentSkeleton() {
   return (
     <div className="mt-5">
       <div className="flex items-end justify-between">
-        <div className="h-9 w-44 animate-pulse rounded-lg bg-gray-200" />
-        <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-200" />
+        <div className="h-9 w-44 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
+        <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
       </div>
       <div className="mt-4 flex gap-2">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="h-7 w-20 animate-pulse rounded-full bg-gray-200"
+            className="h-7 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"
           />
         ))}
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="h-72 animate-pulse rounded-2xl bg-gray-200/70" />
-        <div className="h-72 animate-pulse rounded-2xl bg-gray-200/70" />
+        <div className="h-72 animate-pulse rounded-2xl bg-gray-200/70 dark:bg-gray-700/70" />
+        <div className="h-72 animate-pulse rounded-2xl bg-gray-200/70 dark:bg-gray-700/70" />
       </div>
       <div className="mt-6 space-y-2">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-14 animate-pulse rounded-xl bg-gray-200/70"
+            className="h-14 animate-pulse rounded-xl bg-gray-200/70 dark:bg-gray-700/70"
           />
         ))}
       </div>

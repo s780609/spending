@@ -47,9 +47,9 @@ function formatNtd(value: unknown): string {
 }
 
 export const ACTIVE_PILL =
-  "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white";
+  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
 export const IDLE_PILL =
-  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
+  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
 
 function RangeButtons({
   options,
@@ -119,7 +119,7 @@ export function CategoryPie({
     <div>
       <RangeButtons options={PIE_RANGES} value={months} onChange={setMonths} />
       {pieData.length === 0 ? (
-        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400">
+        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
           這個區間沒有資料
         </p>
       ) : (

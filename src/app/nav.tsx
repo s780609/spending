@@ -43,9 +43,9 @@ export function Nav() {
   return (
     <>
       {/* 頂列：手機只留標誌＋登出，桌面含完整連結 */}
-      <header className="bg-white ring-1 ring-gray-950/5">
+      <header className="bg-white dark:bg-gray-900 ring-1 ring-gray-950/5 dark:ring-white/5">
         <nav className="mx-auto flex max-w-3xl items-center gap-6 px-4 py-3">
-          <span className="font-mono text-xs uppercase tracking-wider text-gray-600">
+          <span className="font-mono text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400">
             Spending
           </span>
           <div className="hidden items-center gap-6 sm:flex">
@@ -58,8 +58,8 @@ export function Nav() {
                   href={link.href}
                   className={`flex items-center gap-1.5 text-sm ${
                     active
-                      ? "font-semibold text-gray-950"
-                      : "font-medium text-gray-600 hover:text-gray-950"
+                      ? "font-semibold text-gray-950 dark:text-gray-50"
+                      : "font-medium text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white"
                   }`}
                 >
                   <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 1.8} />
@@ -71,7 +71,7 @@ export function Nav() {
           <form action={logout} className="ml-auto">
             <button
               type="submit"
-              className="text-sm text-gray-600 hover:text-gray-950"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white"
             >
               登出
             </button>
@@ -80,7 +80,7 @@ export function Nav() {
       </header>
 
       {/* 手機底部分頁列 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 bg-white pb-[env(safe-area-inset-bottom)] ring-1 ring-gray-950/10 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-gray-900 pb-[env(safe-area-inset-bottom)] ring-1 ring-gray-950/10 dark:ring-white/10 sm:hidden">
         <div className="flex">
           {LINKS.map((link) => {
             const active = isActive(pathname, link.href);
@@ -90,7 +90,7 @@ export function Nav() {
                 key={link.href}
                 href={link.href}
                 className={`flex flex-1 flex-col items-center gap-0.5 py-2 ${
-                  active ? "text-gray-950" : "text-gray-400"
+                  active ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} />

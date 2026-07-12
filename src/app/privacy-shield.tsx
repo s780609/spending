@@ -38,7 +38,7 @@ export function PrivacyShield({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-950">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
           {title}
         </h1>
         <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export function PrivacyShield({
             type="button"
             onClick={() => setMasked((value) => !value)}
             aria-label={masked ? "顯示金額" : "遮蔽金額"}
-            className="rounded-full p-2 text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
+            className="rounded-full p-2 text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
           >
             {masked ? (
               // eye-off
