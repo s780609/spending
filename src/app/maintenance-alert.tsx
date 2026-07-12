@@ -45,24 +45,24 @@ export function MaintenanceAlert({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/40 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/40 dark:bg-black/60 p-0 sm:items-center sm:p-4"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="maintenance-alert-title"
       onClick={() => setOpen(false)}
     >
       <div
-        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col rounded-t-2xl bg-white shadow-xl ring-1 ring-gray-950/10 sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
+        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col rounded-t-2xl bg-white dark:bg-gray-900 shadow-xl ring-1 ring-gray-950/10 dark:ring-white/10 sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="border-b border-gray-950/5 px-6 py-4">
+        <div className="border-b border-gray-950/5 dark:border-white/5 px-6 py-4">
           <h2
             id="maintenance-alert-title"
             className="text-lg font-bold tracking-tight text-amber-600"
           >
             機車保養到期提醒
           </h2>
-          <p className="mt-1 text-sm leading-6 text-gray-600">
+          <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
             以下項目依里程／時間已到保養時機：
           </p>
         </div>
@@ -70,23 +70,23 @@ export function MaintenanceAlert({
           {dueItems.map((item) => (
             <li
               key={item.key}
-              className="rounded-lg bg-amber-50 px-3 py-2 text-sm ring-1 ring-inset ring-amber-500/20"
+              className="rounded-lg bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-sm ring-1 ring-inset ring-amber-500/20 dark:ring-amber-400/30"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-gray-950">{item.name}</span>
-                <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
+                <span className="font-medium text-gray-950 dark:text-gray-50">{item.name}</span>
+                <span className="shrink-0 rounded-full bg-amber-500/10 dark:bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                   {item.action}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-amber-700">{item.detail}</p>
+              <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">{item.detail}</p>
             </li>
           ))}
         </ul>
-        <div className="border-t border-gray-950/5 px-6 py-4">
+        <div className="border-t border-gray-950/5 dark:border-white/5 px-6 py-4">
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="w-full rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+            className="w-full rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
           >
             知道了
           </button>

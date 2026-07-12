@@ -15,11 +15,11 @@ export function CollapsibleSection({
   return (
     <>
       <div className="mt-4 flex items-center justify-between gap-3">
-        <h3 className="text-sm font-medium text-gray-950">{title}</h3>
+        <h3 className="text-sm font-medium text-gray-950 dark:text-gray-50">{title}</h3>
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="rounded-full px-3 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
+          className="rounded-full px-3 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
         >
           {open ? "收合" : "展開"}
         </button>

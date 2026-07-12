@@ -25,7 +25,7 @@ export function DeleteButton({
           startTransition(() => run(id));
         }
       }}
-      className="rounded-lg px-2 py-1.5 text-sm text-gray-400 hover:text-red-600 disabled:opacity-50 sm:py-1 sm:text-xs"
+      className="rounded-lg px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 hover:text-red-600 disabled:opacity-50 sm:py-1 sm:text-xs"
     >
       刪除
     </button>

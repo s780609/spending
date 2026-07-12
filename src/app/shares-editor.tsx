@@ -19,7 +19,7 @@ export function SharesEditor({ id, shares }: { id: number; shares: number }) {
           startTransition(() => updateHoldingShares(id, next));
         }
       }}
-      className="w-24 rounded-lg bg-gray-950/[0.025] px-2 py-1 text-right text-base text-gray-950 ring-1 ring-inset ring-gray-950/5 focus:outline-none focus:ring-2 focus:ring-gray-950 disabled:opacity-50 sm:text-sm"
+      className="w-24 rounded-lg bg-gray-950/[0.025] dark:bg-white/[0.025] px-2 py-1 text-right text-base text-gray-950 dark:text-gray-50 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white disabled:opacity-50 sm:text-sm"
       aria-label="股數"
     />
   );

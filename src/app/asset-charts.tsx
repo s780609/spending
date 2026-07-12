@@ -16,9 +16,9 @@ import {
 } from "recharts";
 
 const ACTIVE_PILL =
-  "rounded-full bg-gray-950 px-2.5 py-0.5 text-xs font-medium text-white";
+  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
 const IDLE_PILL =
-  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
+  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
 
 const PIE_COLORS = [
   "#0ea5e9", "#f97316", "#22c55e", "#a855f7", "#ec4899", "#ef4444",
@@ -68,7 +68,7 @@ export function AssetPie({
         ))}
       </div>
       {pieData.length === 0 ? (
-        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400">
+        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
           沒有持股資料
         </p>
       ) : (
@@ -105,7 +105,7 @@ export function NetWorthChart({
 }) {
   if (data.length === 0) {
     return (
-      <p className="flex h-[260px] items-center justify-center text-sm text-gray-400">
+      <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
         還沒有快照，每天會自動記錄一筆
       </p>
     );

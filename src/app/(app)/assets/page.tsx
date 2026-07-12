@@ -19,12 +19,12 @@ function ntd(value: number): string {
 }
 
 const INPUT_CLS =
-  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 focus:outline-none focus:ring-2 focus:ring-gray-950 sm:text-sm";
+  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm";
 
 const PILL_ACTIVE =
-  "rounded-full bg-gray-950 px-2.5 py-1 text-xs font-medium text-white";
+  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-1 text-xs font-medium text-white dark:text-gray-950";
 const PILL_IDLE =
-  "rounded-full px-2.5 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5";
+  "rounded-full px-2.5 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
 
 /** 負債佔總資產的量條（meter）：負債段＋淨資產段組成總資產 */
 function DebtRatioMeter({
@@ -42,10 +42,10 @@ function DebtRatioMeter({
   const fillPct = ratio === null ? 0 : Math.min(100, Math.max(0, ratio));
 
   return (
-    <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
+    <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-medium text-gray-950">負債佔總資產</h2>
-        <p className="sensitive text-lg font-bold tracking-tight text-gray-950">
+        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">負債佔總資產</h2>
+        <p className="sensitive text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
           {ratio === null ? "—" : `${ratio.toFixed(1)}%`}
         </p>
       </div>
@@ -56,15 +56,15 @@ function DebtRatioMeter({
             style={{ width: `${fillPct}%` }}
           />
         )}
-        {fillPct < 100 && <div className="flex-1 rounded-full bg-gray-200" />}
+        {fillPct < 100 && <div className="flex-1 rounded-full bg-gray-200 dark:bg-gray-700" />}
       </div>
-      <div className="sensitive mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-gray-600">
+      <div className="sensitive mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-sky-500" />
           負債 {ntd(totalLiabilities)}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-gray-200 ring-1 ring-inset ring-gray-950/10" />
+          <span className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10" />
           淨資產 {ntd(netWorth)}
           {ratio !== null && `（${(100 - ratio).toFixed(1)}%）`}
         </span>
@@ -184,7 +184,7 @@ export default async function AssetsPage({
         <PrivacyShield
           title="資產負債表"
           headerExtra={
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               美金匯率 {sheet.usdTwd ? sheet.usdTwd.toFixed(2) : "—"}
               {sheet.fxStale && "（快取）"}
             </p>
@@ -203,10 +203,10 @@ export default async function AssetsPage({
           ].map((card) => (
             <div
               key={card.label}
-              className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10"
+              className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
             >
-              <p className="text-xs text-gray-600">{card.label}</p>
-              <p className="sensitive mt-1 text-lg font-bold tracking-tight text-gray-950">
+              <p className="text-xs text-gray-600 dark:text-gray-400">{card.label}</p>
+              <p className="sensitive mt-1 text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
                 {card.value}
               </p>
             </div>
@@ -220,8 +220,8 @@ export default async function AssetsPage({
         />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <h2 className="text-sm font-medium text-gray-950">持股佔比</h2>
+          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">持股佔比</h2>
             <div className="sensitive"><AssetPie
               data={sheet.holdings.map((h) => ({
                 symbol: h.symbol,
@@ -232,8 +232,8 @@ export default async function AssetsPage({
             />
               </div>
           </section>
-          <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <h2 className="text-sm font-medium text-gray-950">
+          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
               淨資產與槓桿走勢
             </h2>
             <div className="sensitive"><NetWorthChart data={chartData} /></div>
@@ -244,7 +244,7 @@ export default async function AssetsPage({
         <AddPanel title="持股" buttonLabel="新增持股">
         <form
           action={addHolding}
-          className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-[6rem_1fr_8rem_8rem]"
+          className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 sm:grid-cols-[6rem_1fr_8rem_8rem]"
         >
           <select name="market" className={INPUT_CLS}>
             <option value="TW">台股</option>
@@ -281,7 +281,7 @@ export default async function AssetsPage({
           />
           <button
             type="submit"
-            className="col-span-2 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:col-span-1 sm:py-2 sm:text-sm"
+            className="col-span-2 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:col-span-1 sm:py-2 sm:text-sm"
           >
             新增持股
           </button>
@@ -290,8 +290,8 @@ export default async function AssetsPage({
 
         {symbolSummary.length > 0 && (
           <CollapsibleSection title="依代號彙總">
-            <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-              <p className="text-xs text-gray-400">年配息以近 12 個月估算</p>
+            <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+              <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算</p>
               <ul className="mt-1 divide-y divide-gray-950/5">
                 {symbolSummary.map((s) => (
                   <li key={s.symbol} className="py-2.5">
@@ -299,23 +299,23 @@ export default async function AssetsPage({
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
                           s.market === "TW"
-                            ? "bg-red-50 text-red-700 ring-red-600/20"
+                            ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
                             : "bg-blue-50 text-blue-700 ring-blue-600/20"
                         }`}
                       >
                         {s.market === "TW" ? "台" : "美"}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950">
+                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50">
                         {s.name || s.symbol}
-                        <span className="ml-1 font-mono text-xs text-gray-400">
+                        <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
                           {s.symbol}
                         </span>
                       </span>
-                      <span className="sensitive shrink-0 text-sm font-medium text-gray-950">
+                      <span className="sensitive shrink-0 text-sm font-medium text-gray-950 dark:text-gray-50">
                         {s.totalShares.toLocaleString("zh-TW")} 股
                       </span>
                     </div>
-                    <p className="sensitive mt-1 text-xs text-gray-400">
+                    <p className="sensitive mt-1 text-xs text-gray-400 dark:text-gray-500">
                       市值 {ntd(s.valueTwd)} · 每股配息{" "}
                       {s.dividendPerShare === null
                         ? "—"
@@ -326,7 +326,7 @@ export default async function AssetsPage({
                         <>
                           {" "}
                           · 預估年現金股利{" "}
-                          <span className="font-medium text-gray-950">
+                          <span className="font-medium text-gray-950 dark:text-gray-50">
                             {ntd(s.dividendTwd)}
                           </span>
                         </>
@@ -335,10 +335,10 @@ export default async function AssetsPage({
                   </li>
                 ))}
               </ul>
-              <p className="mt-1 border-t border-gray-950/10 pt-2 text-right text-xs text-gray-600">
+              <p className="mt-1 border-t border-gray-950/10 dark:border-white/10 pt-2 text-right text-xs text-gray-600 dark:text-gray-400">
                 預估年現金股利合計
                 {dividendIncomplete && "（部分代號抓不到配息）"}{" "}
-                <span className="sensitive text-sm font-semibold text-gray-950">
+                <span className="sensitive text-sm font-semibold text-gray-950 dark:text-gray-50">
                   {ntd(totalDividendTwd)}
                 </span>
               </p>
@@ -349,7 +349,7 @@ export default async function AssetsPage({
         {sheet.holdings.length > 0 && (
           <CollapsibleSection title="持股明細">
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400">券商</span>
+              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">券商</span>
               <Link
                 href={assetHref(undefined, symbolFilter, sort)}
                 className={!brokerFilter ? PILL_ACTIVE : PILL_IDLE}
@@ -371,7 +371,7 @@ export default async function AssetsPage({
               ))}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400">代號</span>
+              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">代號</span>
               <Link
                 href={assetHref(brokerFilter, undefined, sort)}
                 className={!symbolFilter ? PILL_ACTIVE : PILL_IDLE}
@@ -395,7 +395,7 @@ export default async function AssetsPage({
               ))}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400">排序</span>
+              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">排序</span>
               <Link
                 href={assetHref(brokerFilter, symbolFilter)}
                 className={!sort ? PILL_ACTIVE : PILL_IDLE}
@@ -410,9 +410,9 @@ export default async function AssetsPage({
               </Link>
             </div>
             {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
-              <p className="mt-3 text-xs text-gray-600">
+              <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
                 篩選結果：{visibleHoldings.length} 筆，市值{" "}
-                <span className="sensitive font-medium text-gray-950">{ntd(visibleValue)}</span>
+                <span className="sensitive font-medium text-gray-950 dark:text-gray-50">{ntd(visibleValue)}</span>
               </p>
             )}
 
@@ -421,7 +421,7 @@ export default async function AssetsPage({
                 {visibleHoldings.map((h) => (
                   <li
                     key={h.id}
-                    className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                    className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
                   >
                     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
                       {/* 手機第一行：市場＋名稱；桌面攤平成單行（sm:contents + order） */}
@@ -429,20 +429,20 @@ export default async function AssetsPage({
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset sm:order-1 ${
                             h.market === "TW"
-                              ? "bg-red-50 text-red-700 ring-red-600/20"
+                              ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
                               : "bg-blue-50 text-blue-700 ring-blue-600/20"
                           }`}
                         >
                           {h.market === "TW" ? "台" : "美"}
                         </span>
                         <span className="min-w-0 flex-1 sm:order-2">
-                          <span className="block truncate text-sm text-gray-950">
+                          <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
                             {h.name || h.symbol}
-                            <span className="ml-1 font-mono text-xs text-gray-400">
+                            <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
                               {h.symbol}
                             </span>
                           </span>
-                          <span className="block text-xs text-gray-400">
+                          <span className="block text-xs text-gray-400 dark:text-gray-500">
                             {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
                             {h.market === "US" && " USD"}
                             {h.priceStale && "（快取）"}
@@ -452,12 +452,12 @@ export default async function AssetsPage({
                       {/* 手機第二行：股數＋市值＋刪除 */}
                       <div className="flex items-center gap-2 sm:contents">
                         <span className="sensitive flex items-center gap-1.5 sm:order-3">
-                          <span className="text-xs text-gray-400 sm:hidden">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 sm:hidden">
                             股數
                           </span>
                           <SharesEditor id={h.id} shares={h.shares} />
                         </span>
-                        <span className="sensitive ml-auto shrink-0 text-right text-base font-semibold text-gray-950 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
+                        <span className="sensitive ml-auto shrink-0 text-right text-base font-semibold text-gray-950 dark:text-gray-50 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
                           {ntd(h.valueTwd)}
                         </span>
                         <span className="sm:order-5">
@@ -482,7 +482,7 @@ export default async function AssetsPage({
         <AddPanel title="負債" buttonLabel="新增貸款">
         <form
           action={addLoan}
-          className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10 sm:grid-cols-3"
+          className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 sm:grid-cols-3"
         >
           <input
             type="text"
@@ -504,7 +504,7 @@ export default async function AssetsPage({
             required
             className={INPUT_CLS}
           />
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             年利率
             <input
               type="number"
@@ -517,7 +517,7 @@ export default async function AssetsPage({
             />
             %
           </label>
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             借貸日
             <input
               type="date"
@@ -526,7 +526,7 @@ export default async function AssetsPage({
               className={`${INPUT_CLS} flex-1`}
             />
           </label>
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             期數
             <input
               type="number"
@@ -537,12 +537,12 @@ export default async function AssetsPage({
             />
             月
           </label>
-          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 sm:col-span-2">
+          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 sm:col-span-2">
             期限
             <input type="date" name="termEnd" className={`${INPUT_CLS} flex-1`} />
-            <span className="text-xs text-gray-400">質押用（選填）</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">質押用（選填）</span>
           </label>
-          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 sm:col-span-3">
+          <label className="col-span-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 sm:col-span-3">
             擔保
             <input
               type="text"
@@ -558,11 +558,11 @@ export default async function AssetsPage({
               min={0}
               className={`${INPUT_CLS} w-28`}
             />
-            <span className="text-xs text-gray-400">質押用，填了會算維持率</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">質押用，填了會算維持率</span>
           </label>
           <button
             type="submit"
-            className="col-span-2 rounded-full bg-gray-950 px-4 py-2.5 text-base font-medium text-white hover:bg-gray-800 sm:col-span-1 sm:py-2 sm:text-sm"
+            className="col-span-2 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:col-span-1 sm:py-2 sm:text-sm"
           >
             新增貸款
           </button>
@@ -575,7 +575,7 @@ export default async function AssetsPage({
               {sheet.loans.map((loan) => (
                 <li
                   key={loan.id}
-                  className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                  className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
                 >
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                     {/* 手機第一行：類型＋名稱；桌面攤平成單行 */}
@@ -583,19 +583,19 @@ export default async function AssetsPage({
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 text-xs ring-1 ring-inset sm:order-1 ${
                           loan.type === "信貸"
-                            ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+                            ? "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 ring-amber-600/20"
                             : "bg-violet-50 text-violet-700 ring-violet-600/20"
                         }`}
                       >
                         {loan.type}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950 sm:order-2">
+                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50 sm:order-2">
                         {loan.name}
                       </span>
                     </div>
                     {/* 手機第二行：餘額＋刪除 */}
                     <div className="flex items-center gap-3 sm:contents">
-                      <span className="sensitive shrink-0 text-base font-semibold text-gray-950 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
+                      <span className="sensitive shrink-0 text-base font-semibold text-gray-950 dark:text-gray-50 sm:order-3 sm:text-right sm:text-sm sm:font-medium">
                         {ntd(loan.liability)}
                       </span>
                       <span className="ml-auto sm:order-4 sm:ml-0">
@@ -607,7 +607,7 @@ export default async function AssetsPage({
                       </span>
                     </div>
                   </div>
-                  <p className="sensitive mt-1 text-xs leading-5 text-gray-400">
+                  <p className="sensitive mt-1 text-xs leading-5 text-gray-400 dark:text-gray-500">
                     本金 {ntd(loan.principal)} · 年利率 {loan.annualRate}% ·{" "}
                     {loan.startDate} 起
                     {loan.type === "信貸" && loan.installments !== null && (

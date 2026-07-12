@@ -22,12 +22,12 @@ function ntd(value: number | string): string {
 function SectionHeader({ title, href }: { title: string; href: string }) {
   return (
     <div className="mt-8 flex items-center justify-between">
-      <h2 className="text-lg font-bold tracking-tight text-gray-950">
+      <h2 className="text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
         {title}
       </h2>
       <Link
         href={href}
-        className="rounded-full px-3 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
+        className="rounded-full px-3 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
       >
         前往 →
       </Link>
@@ -37,9 +37,9 @@ function SectionHeader({ title, href }: { title: string; href: string }) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-      <p className="text-xs text-gray-600">{label}</p>
-      <p className="mt-1 text-base font-bold tracking-tight text-gray-950 sm:text-lg">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+      <p className="text-xs text-gray-600 dark:text-gray-400">{label}</p>
+      <p className="mt-1 text-base font-bold tracking-tight text-gray-950 dark:text-gray-50 sm:text-lg">
         {value}
       </p>
     </div>
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
   return (
     <>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-950">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
           總覽
         </h1>
 
@@ -131,8 +131,8 @@ export default async function DashboardPage() {
           <StatCard label={`${year} 年支出`} value={ntd(expenseThisYear)} />
         </div>
         {expenseTrend.length > 0 && (
-          <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <h3 className="text-sm font-medium text-gray-950">每月支出趨勢</h3>
+          <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+            <h3 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出趨勢</h3>
             <MonthlyTrend data={expenseTrend} />
           </section>
         )}
@@ -151,8 +151,8 @@ export default async function DashboardPage() {
           <StatCard label={`${month} 家庭支出`} value={ntd(familyThisMonth)} />
         </div>
         {familyTrend.length > 0 && (
-          <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <h3 className="text-sm font-medium text-gray-950">每月支出趨勢</h3>
+          <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+            <h3 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出趨勢</h3>
             <MonthlyTrend data={familyTrend} />
           </section>
         )}
@@ -182,14 +182,14 @@ export default async function DashboardPage() {
           />
         </div>
         {snapshotChart.length > 0 && (
-          <section className="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-            <h3 className="text-sm font-medium text-gray-950">
+          <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+            <h3 className="text-sm font-medium text-gray-950 dark:text-gray-50">
               淨資產與槓桿走勢
             </h3>
             <NetWorthChart data={snapshotChart} />
           </section>
         )}
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
           資產數字取自最新每日快照（{latestSnapshot?.date ?? "—"}
           ）；開「資產」頁會以即時股價重算並更新快照。
         </p>

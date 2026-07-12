@@ -23,7 +23,7 @@ function StyledSelect({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
-        className="appearance-none rounded-lg bg-white py-1.5 pl-3 pr-8 text-base font-semibold tracking-tight text-gray-950 shadow-sm ring-1 ring-gray-950/10 hover:bg-gray-950/[0.025] focus:outline-none focus:ring-2 focus:ring-gray-950"
+        className="appearance-none rounded-lg bg-white dark:bg-gray-900 py-1.5 pl-3 pr-8 text-base font-semibold tracking-tight text-gray-950 dark:text-gray-50 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/[0.025] dark:hover:bg-white/[0.025] focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -35,7 +35,7 @@ function StyledSelect({
         viewBox="0 0 16 16"
         fill="none"
         aria-hidden
-        className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400"
+        className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400 dark:text-gray-500"
       >
         <path
           d="M4 6l4 4 4-4"

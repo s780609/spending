@@ -28,7 +28,7 @@ export function CategorySelect({
         startTransition(() => run(id, category));
       }}
       onClick={(event) => event.stopPropagation()}
-      className="rounded-lg bg-gray-950/[0.025] px-2 py-1.5 text-base text-gray-600 ring-1 ring-inset ring-gray-950/5 focus:outline-none focus:ring-2 focus:ring-gray-950 disabled:opacity-50 sm:py-1 sm:text-xs"
+      className="rounded-lg bg-gray-950/[0.025] dark:bg-white/[0.025] px-2 py-1.5 text-base text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white disabled:opacity-50 sm:py-1 sm:text-xs"
     >
       {list.map((category) => (
         <option key={category} value={category}>

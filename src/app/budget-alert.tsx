@@ -41,14 +41,14 @@ export function BudgetAlert({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 dark:bg-black/60 p-4"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="budget-alert-title"
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-950/10"
+        className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl ring-1 ring-gray-950/10 dark:ring-white/10"
         onClick={(event) => event.stopPropagation()}
       >
         <h2
@@ -57,19 +57,19 @@ export function BudgetAlert({
         >
           本月預算超支提醒
         </h2>
-        <p className="mt-1 text-sm leading-6 text-gray-600">
+        <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
           以下分類本月花費已超出預算：
         </p>
         <ul className="mt-4 space-y-2">
           {overBudget.map((s) => (
             <li
               key={s.category}
-              className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm ring-1 ring-inset ring-red-500/20"
+              className="flex items-center justify-between rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-sm ring-1 ring-inset ring-red-500/20 dark:ring-red-400/30"
             >
-              <span className="font-medium text-gray-950">{s.category}</span>
+              <span className="font-medium text-gray-950 dark:text-gray-50">{s.category}</span>
               <span className="tabular-nums text-red-600">
                 {formatAmount(s.spent)}
-                <span className="text-gray-400"> / {formatAmount(s.budget)}</span>
+                <span className="text-gray-400 dark:text-gray-500"> / {formatAmount(s.budget)}</span>
               </span>
             </li>
           ))}
@@ -77,7 +77,7 @@ export function BudgetAlert({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="mt-5 w-full rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+          className="mt-5 w-full rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
         >
           知道了
         </button>

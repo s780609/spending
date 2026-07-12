@@ -138,7 +138,7 @@ export default async function FamilyPage({
           <div className="flex items-center gap-2">
             <Link
               href={`/family?month=${shiftMonth(month, -1)}`}
-              className="rounded-full px-2 py-1 text-sm text-gray-600 hover:bg-gray-950/5"
+              className="rounded-full px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-950/5 dark:hover:bg-white/5"
               aria-label="上個月"
             >
               ←
@@ -146,19 +146,19 @@ export default async function FamilyPage({
             <MonthPicker month={month} basePath="/family" />
             <Link
               href={`/family?month=${shiftMonth(month, 1)}`}
-              className="rounded-full px-2 py-1 text-sm text-gray-600 hover:bg-gray-950/5"
+              className="rounded-full px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-950/5 dark:hover:bg-white/5"
               aria-label="下個月"
             >
               →
             </Link>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             目前存款{" "}
-            <span className="text-2xl font-bold tracking-tight text-gray-950">
+            <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
               NT$ {latest ? fmt(latest.totalBalance) : "—"}
             </span>
             {latest && (
-              <span className="ml-1 text-xs text-gray-400">
+              <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
                 （{latest.month} 對帳單）
               </span>
             )}
@@ -175,21 +175,21 @@ export default async function FamilyPage({
                   ? "text-green-600"
                   : bankNet < 0
                     ? "text-red-600"
-                    : "text-gray-950",
+                    : "text-gray-950 dark:text-gray-50",
             },
             {
               label: `${month} 卡費新增`,
               value: cardStatement
                 ? `NT$ ${fmt(cardStatement.newCharges)}`
                 : "—",
-              tone: "text-gray-950",
+              tone: "text-gray-950 dark:text-gray-50",
             },
           ].map((card) => (
             <div
               key={card.label}
-              className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-950/10"
+              className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
             >
-              <p className="text-xs text-gray-600">{card.label}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{card.label}</p>
               <p
                 className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${card.tone}`}
               >
@@ -209,9 +209,9 @@ export default async function FamilyPage({
 
         {/* ===== 帳戶往來明細 ===== */}
         <details className="group mt-8">
-          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50 [&::-webkit-details-marker]:hidden">
             <svg
-              className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-90"
+              className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-90"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -221,7 +221,7 @@ export default async function FamilyPage({
             帳戶明細
           </summary>
         {bankTxs.length === 0 ? (
-          <p className="mt-4 text-sm leading-7 text-gray-600">
+          <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-400">
             {month} 沒有帳戶明細，上傳該月的綜合對帳單即可匯入。
           </p>
         ) : (
@@ -229,23 +229,23 @@ export default async function FamilyPage({
             {bankTxs.map((tx) => (
               <li
                 key={tx.id}
-                className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
               >
                 <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
                   <div className="flex min-w-0 items-center gap-3 sm:contents">
                     <span className="min-w-0 flex-1 sm:order-2">
-                      <span className="block truncate text-sm text-gray-950">
+                      <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
                         {tx.description}
                       </span>
                       {tx.note && (
-                        <span className="block truncate text-xs text-gray-400">
+                        <span className="block truncate text-xs text-gray-400 dark:text-gray-500">
                           {tx.note}
                         </span>
                       )}
                     </span>
                     <span
                       className={`shrink-0 text-right text-base font-semibold sm:order-4 sm:w-24 sm:text-sm sm:font-medium ${
-                        tx.deposit !== null ? "text-green-600" : "text-gray-950"
+                        tx.deposit !== null ? "text-green-600" : "text-gray-950 dark:text-gray-50"
                       }`}
                     >
                       {tx.deposit !== null
@@ -254,7 +254,7 @@ export default async function FamilyPage({
                     </span>
                   </div>
                   <div className="flex items-center gap-3 sm:contents">
-                    <span className="shrink-0 font-mono text-xs text-gray-600 sm:order-1 sm:w-12">
+                    <span className="shrink-0 font-mono text-xs text-gray-600 dark:text-gray-400 sm:order-1 sm:w-12">
                       {tx.date.slice(5).replace("-", "/")}
                     </span>
                     <span className="sm:order-3">
@@ -265,7 +265,7 @@ export default async function FamilyPage({
                         options={FAMILY_CATEGORIES}
                       />
                     </span>
-                    <span className="ml-auto text-xs text-gray-400 sm:order-5 sm:ml-0 sm:w-20 sm:text-right">
+                    <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 sm:order-5 sm:ml-0 sm:w-20 sm:text-right">
                       餘額 {fmt(tx.balance)}
                     </span>
                   </div>
@@ -278,9 +278,9 @@ export default async function FamilyPage({
 
         {/* ===== 信用卡消費明細 ===== */}
         <details className="group mt-8">
-          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50 [&::-webkit-details-marker]:hidden">
             <svg
-              className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-90"
+              className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 transition-transform group-open:rotate-90"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -289,13 +289,13 @@ export default async function FamilyPage({
             </svg>
             信用卡明細
             {cardTxs.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-600">
+              <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
                 消費合計 NT$ {fmt(cardSpend)}
               </span>
             )}
           </summary>
         {cardTxs.length === 0 ? (
-          <p className="mt-4 text-sm leading-7 text-gray-600">
+          <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-400">
             {month} 沒有信用卡明細，上傳包含該月消費的信用卡電子帳單即可匯入。
           </p>
         ) : (
@@ -303,16 +303,16 @@ export default async function FamilyPage({
             {cardTxs.map((tx) => (
               <li
                 key={tx.id}
-                className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-950/10"
+                className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
               >
                 <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
                   <div className="flex min-w-0 items-center gap-3 sm:contents">
                     <span className="min-w-0 flex-1 sm:order-2">
-                      <span className="block truncate text-sm text-gray-950">
+                      <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
                         {tx.description}
                       </span>
                       {tx.note && (
-                        <span className="block truncate text-xs text-gray-400">
+                        <span className="block truncate text-xs text-gray-400 dark:text-gray-500">
                           {tx.note}
                         </span>
                       )}
@@ -321,14 +321,14 @@ export default async function FamilyPage({
                       className={`shrink-0 text-right text-base font-semibold sm:order-4 sm:w-24 sm:text-sm sm:font-medium ${
                         Number(tx.amount) < 0
                           ? "text-green-600"
-                          : "text-gray-950"
+                          : "text-gray-950 dark:text-gray-50"
                       }`}
                     >
                       {fmt(tx.amount)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 sm:contents">
-                    <span className="shrink-0 font-mono text-xs text-gray-600 sm:order-1 sm:w-12">
+                    <span className="shrink-0 font-mono text-xs text-gray-600 dark:text-gray-400 sm:order-1 sm:w-12">
                       {tx.purchaseDate.slice(5).replace("-", "/")}
                     </span>
                     <span className="sm:order-3">
@@ -340,7 +340,7 @@ export default async function FamilyPage({
                       />
                     </span>
                     {tx.cardLast4 && (
-                      <span className="ml-auto rounded-full bg-gray-950/[0.025] px-2 py-0.5 font-mono text-xs text-gray-600 ring-1 ring-inset ring-gray-950/5 sm:order-5 sm:ml-0">
+                      <span className="ml-auto rounded-full bg-gray-950/[0.025] dark:bg-white/[0.025] px-2 py-0.5 font-mono text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5 sm:order-5 sm:ml-0">
                         {tx.cardLast4}
                       </span>
                     )}

@@ -17,7 +17,7 @@ export function AddPanel({
   return (
     <>
       <div className="mt-8 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold tracking-tight text-gray-950">
+        <h2 className="text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
           {title}
         </h2>
         <button
@@ -25,8 +25,8 @@ export function AddPanel({
           onClick={() => setOpen((value) => !value)}
           className={
             open
-              ? "rounded-full px-3 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-950/10 hover:bg-gray-950/5"
-              : "rounded-full bg-gray-950 px-3 py-1 text-xs font-medium text-white hover:bg-gray-800"
+              ? "rounded-full px-3 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
+              : "rounded-full bg-gray-950 dark:bg-white px-3 py-1 text-xs font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
           }
         >
           {open ? "收合" : `＋ ${buttonLabel}`}

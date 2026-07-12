@@ -30,7 +30,7 @@ export function RecurringScheduleFields({ inputClassName }: { inputClassName: st
           isYearly ? "grid-cols-[5.5rem] opacity-100" : "grid-cols-[0rem] opacity-0"
         }`}
       >
-        <label className="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-gray-600">
+        <label className="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-gray-600 dark:text-gray-400">
           <input
             type="number"
             name="monthOfYear"
@@ -44,7 +44,7 @@ export function RecurringScheduleFields({ inputClassName }: { inputClassName: st
           月
         </label>
       </div>
-      <label className="flex items-center gap-1.5 text-sm text-gray-600">
+      <label className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
         <input
           type="number"
           name="dayOfMonth"
