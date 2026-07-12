@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { CATEGORIES } from "@/lib/categories";
 import { shiftMonth } from "@/lib/dates";
+import { useDarkMode } from "@/lib/use-dark-mode";
 import {
   MERGED_EXCLUDED_BANK_CATEGORIES,
   MERGED_EXCLUDED_CARD_CATEGORIES,
@@ -251,6 +252,7 @@ export function MonthlyTrend({
   /** 點資料點時回呼，label 為 YYYY-MM（月模式）或 YYYY（年模式） */
   onPointClick?: (label: string) => void;
 }) {
+  const isDark = useDarkMode();
   const [mode, setMode] = useState<"month" | "year">("month");
   const [months, setMonths] = useState(12);
 
@@ -312,10 +314,10 @@ export function MonthlyTrend({
             }
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="label" tick={{ fontSize: 12 }} tickMargin={6} />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} />
+          <XAxis dataKey="label" tick={{ fontSize: 12, fill: isDark ? "#9ca3af" : undefined }} tickMargin={6} />
           <YAxis
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: isDark ? "#9ca3af" : undefined }}
             width={56}
             tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
           />
@@ -324,7 +326,7 @@ export function MonthlyTrend({
             type="monotone"
             dataKey="total"
             name="支出"
-            stroke="#0a0a0a"
+            stroke={isDark ? "#f9fafb" : "#0a0a0a"}
             strokeWidth={2}
             dot={{ r: 3 }}
           />
