@@ -14,6 +14,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useDarkMode } from "@/lib/use-dark-mode";
 
 const ACTIVE_PILL =
   "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
@@ -103,6 +104,7 @@ export function NetWorthChart({
 }: {
   data: { date: string; netWorth: number; leverage: number | null }[];
 }) {
+  const isDark = useDarkMode();
   if (data.length === 0) {
     return (
       <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
@@ -114,18 +116,18 @@ export function NetWorthChart({
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-        <XAxis dataKey="date" tick={{ fontSize: 11 }} tickMargin={6} />
+        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} />
+        <XAxis dataKey="date" tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }} tickMargin={6} />
         <YAxis
           yAxisId="networth"
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }}
           width={64}
           tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
         />
         <YAxis
           yAxisId="leverage"
           orientation="right"
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }}
           width={40}
           domain={["auto", "auto"]}
         />
@@ -142,7 +144,7 @@ export function NetWorthChart({
           type="monotone"
           dataKey="netWorth"
           name="淨資產"
-          stroke="#0a0a0a"
+          stroke={isDark ? "#f9fafb" : "#0a0a0a"}
           strokeWidth={2}
           dot={{ r: 2 }}
         />
