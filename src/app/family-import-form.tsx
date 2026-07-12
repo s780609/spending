@@ -23,7 +23,7 @@ export function FamilyImportForm() {
           name="file"
           accept=".pdf,application/pdf"
           required
-          className="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:rounded-full file:border-0 file:bg-gray-950/5 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-950 dark:text-gray-50 hover:file:bg-gray-950/10 sm:flex-1"
+          className="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:rounded-full file:border-0 file:bg-gray-950/5 dark:file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-950 dark:file:text-gray-50 dark:text-gray-50 hover:file:bg-gray-950/10 dark:hover:file:bg-white/20 sm:flex-1"
         />
         <input
           type="password"
