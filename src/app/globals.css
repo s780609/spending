@@ -11,8 +11,37 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
+  :root {
+    /* 讓原生 select / date / number 等控件套用系統 dark 樣式 */
+    color-scheme: dark;
+  }
+
   body {
     background: #030712;
     color: #f9fafb;
+  }
+
+  /*
+   * 未顯式設色的 native form 控件在 dark 卡片上會文字／背景糊在一起。
+   * 個別元件若有 Tailwind 色類（較高 specificity）仍會覆蓋這裡。
+   */
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+      [type="submit"]
+    ):not([type="button"]):not([type="image"]):not([type="file"]),
+  textarea {
+    color: #f9fafb;
+    background-color: #1f2937; /* gray-800 */
+  }
+
+  select option,
+  select optgroup {
+    color: #f9fafb;
+    background-color: #1f2937;
+  }
+
+  ::placeholder {
+    color: #6b7280; /* gray-500 */
+    opacity: 1;
   }
 }
