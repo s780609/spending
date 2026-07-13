@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
+  Area,
   CartesianGrid,
   Cell,
   Legend,
@@ -14,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useDarkMode } from "@/lib/use-dark-mode";
+import { type ChartTheme, useChartTheme } from "@/app/chart-theme";
 
 const ACTIVE_PILL =
   "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
@@ -99,12 +100,96 @@ export function AssetPie({
   );
 }
 
+function NetWorthTooltip({
+  active,
+  payload,
+  label,
+  theme,
+}: {
+  active?: boolean;
+  payload?: { name?: string; value?: number; color?: string }[];
+  label?: string;
+  theme: ChartTheme;
+}) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div
+      className="rounded-xl px-3 py-2 shadow-lg backdrop-blur-sm"
+      style={{
+        backgroundColor: theme.tooltipBg,
+        border: `1px solid ${theme.tooltipBorder}`,
+        color: theme.tooltipText,
+        boxShadow: theme.isDark
+          ? "0 12px 32px rgba(0, 0, 0, 0.45)"
+          : "0 10px 24px rgba(15, 23, 42, 0.12)",
+      }}
+    >
+      <p className="text-xs font-medium" style={{ color: theme.tooltipMuted }}>
+        {label}
+      </p>
+      <ul className="mt-1.5 space-y-1">
+        {payload.map((entry) => (
+          <li key={entry.name} className="flex items-center gap-2 text-sm">
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{
+                backgroundColor: entry.color,
+                boxShadow: theme.isDark
+                  ? `0 0 8px ${entry.color}`
+                  : undefined,
+              }}
+            />
+            <span style={{ color: theme.tooltipMuted }}>{entry.name}</span>
+            <span className="ml-auto font-medium tabular-nums tracking-tight">
+              {entry.name === "槓桿比率"
+                ? Number(entry.value).toFixed(2)
+                : formatNtd(entry.value)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ActiveDot({
+  cx,
+  cy,
+  stroke,
+  ring,
+}: {
+  cx?: number;
+  cy?: number;
+  stroke: string;
+  ring: string;
+}) {
+  if (cx == null || cy == null) return null;
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={7} fill={stroke} opacity={0.22} />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={4}
+        fill={stroke}
+        stroke={ring}
+        strokeWidth={2}
+      />
+    </g>
+  );
+}
+
 export function NetWorthChart({
   data,
 }: {
   data: { date: string; netWorth: number; leverage: number | null }[];
 }) {
-  const isDark = useDarkMode();
+  const theme = useChartTheme();
+  const uid = useId().replace(/:/g, "");
+  const fillId = `nw-fill-${uid}`;
+  const glowId = `nw-glow-${uid}`;
+
   if (data.length === 0) {
     return (
       <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
@@ -113,49 +198,119 @@ export function NetWorthChart({
     );
   }
 
+  const axisTick = { fontSize: 11, fill: theme.axis };
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} />
-        <XAxis dataKey="date" tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }} tickMargin={6} />
+        <defs>
+          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="0%"
+              stopColor={theme.netWorth}
+              stopOpacity={theme.netWorthFillTop}
+            />
+            <stop
+              offset="55%"
+              stopColor={theme.netWorth}
+              stopOpacity={theme.netWorthFillTop * 0.35}
+            />
+            <stop
+              offset="100%"
+              stopColor={theme.netWorth}
+              stopOpacity={theme.netWorthFillBottom}
+            />
+          </linearGradient>
+          {theme.isDark && (
+            <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="2.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          )}
+        </defs>
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke={theme.grid}
+          vertical={false}
+        />
+        <XAxis
+          dataKey="date"
+          tick={axisTick}
+          tickMargin={6}
+          axisLine={false}
+          tickLine={false}
+        />
         <YAxis
           yAxisId="networth"
-          tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }}
+          tick={axisTick}
           width={64}
-          tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(value: number) =>
+            Math.round(value).toLocaleString("zh-TW")
+          }
         />
         <YAxis
           yAxisId="leverage"
           orientation="right"
-          tick={{ fontSize: 11, fill: isDark ? "#9ca3af" : undefined }}
+          tick={axisTick}
           width={40}
           domain={["auto", "auto"]}
+          axisLine={false}
+          tickLine={false}
         />
         <Tooltip
-          formatter={(value: unknown, name: unknown) =>
-            name === "槓桿比率"
-              ? Number(value).toFixed(2)
-              : formatNtd(value)
-          }
+          content={<NetWorthTooltip theme={theme} />}
+          cursor={{
+            stroke: theme.cursor,
+            strokeWidth: 1,
+            strokeDasharray: "4 4",
+          }}
         />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Legend
+          iconType="circle"
+          iconSize={8}
+          wrapperStyle={{ fontSize: 12, color: theme.legend, paddingTop: 4 }}
+        />
+        <Area
+          yAxisId="networth"
+          type="monotone"
+          dataKey="netWorth"
+          fill={`url(#${fillId})`}
+          stroke="none"
+          isAnimationActive={false}
+          legendType="none"
+        />
         <Line
           yAxisId="networth"
           type="monotone"
           dataKey="netWorth"
           name="淨資產"
-          stroke={isDark ? "#f9fafb" : "#0a0a0a"}
-          strokeWidth={2}
-          dot={{ r: 2 }}
+          stroke={theme.netWorth}
+          strokeWidth={theme.isDark ? 2.5 : 2}
+          dot={false}
+          activeDot={
+            <ActiveDot stroke={theme.netWorth} ring={theme.activeDotStroke} />
+          }
+          style={theme.isDark ? { filter: `url(#${glowId})` } : undefined}
         />
         <Line
           yAxisId="leverage"
           type="monotone"
           dataKey="leverage"
           name="槓桿比率"
-          stroke="#0ea5e9"
+          stroke={theme.leverage}
           strokeWidth={2}
-          dot={{ r: 2 }}
+          strokeDasharray="5 4"
+          strokeLinecap="round"
+          dot={false}
+          activeDot={
+            <ActiveDot stroke={theme.leverage} ring={theme.activeDotStroke} />
+          }
+          opacity={theme.isDark ? 0.95 : 1}
         />
       </LineChart>
     </ResponsiveContainer>
