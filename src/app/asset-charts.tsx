@@ -15,7 +15,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { type ChartTheme, useChartTheme } from "@/app/chart-theme";
+import {
+  ChartActiveDot,
+  ChartDot,
+  type ChartTheme,
+  useChartTheme,
+} from "@/app/chart-theme";
 
 const ACTIVE_PILL =
   "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
@@ -153,33 +158,6 @@ function NetWorthTooltip({
   );
 }
 
-function ActiveDot({
-  cx,
-  cy,
-  stroke,
-  ring,
-}: {
-  cx?: number;
-  cy?: number;
-  stroke: string;
-  ring: string;
-}) {
-  if (cx == null || cy == null) return null;
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={7} fill={stroke} opacity={0.22} />
-      <circle
-        cx={cx}
-        cy={cy}
-        r={4}
-        fill={stroke}
-        stroke={ring}
-        strokeWidth={2}
-      />
-    </g>
-  );
-}
-
 export function NetWorthChart({
   data,
 }: {
@@ -199,6 +177,8 @@ export function NetWorthChart({
   }
 
   const axisTick = { fontSize: 11, fill: theme.axis };
+  // 點數多時縮小圓點，避免擠成一條粗線
+  const dotR = data.length > 40 ? 2 : data.length > 20 ? 2.5 : 3;
 
   return (
     <ResponsiveContainer width="100%" height={260}>
@@ -207,18 +187,18 @@ export function NetWorthChart({
           <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
             <stop
               offset="0%"
-              stopColor={theme.netWorth}
-              stopOpacity={theme.netWorthFillTop}
+              stopColor={theme.primary}
+              stopOpacity={theme.primaryFillTop}
             />
             <stop
               offset="55%"
-              stopColor={theme.netWorth}
-              stopOpacity={theme.netWorthFillTop * 0.35}
+              stopColor={theme.primary}
+              stopOpacity={theme.primaryFillTop * 0.35}
             />
             <stop
               offset="100%"
-              stopColor={theme.netWorth}
-              stopOpacity={theme.netWorthFillBottom}
+              stopColor={theme.primary}
+              stopOpacity={theme.primaryFillBottom}
             />
           </linearGradient>
           {theme.isDark && (
@@ -289,12 +269,25 @@ export function NetWorthChart({
           type="monotone"
           dataKey="netWorth"
           name="淨資產"
-          stroke={theme.netWorth}
+          stroke={theme.primary}
           strokeWidth={theme.isDark ? 2.5 : 2}
-          dot={false}
-          activeDot={
-            <ActiveDot stroke={theme.netWorth} ring={theme.activeDotStroke} />
-          }
+          dot={(props) => (
+            <ChartDot
+              cx={props.cx}
+              cy={props.cy}
+              fill={theme.primary}
+              ring={theme.activeDotStroke}
+              r={dotR}
+            />
+          )}
+          activeDot={(props) => (
+            <ChartActiveDot
+              cx={props.cx}
+              cy={props.cy}
+              fill={theme.primary}
+              ring={theme.activeDotStroke}
+            />
+          )}
           style={theme.isDark ? { filter: `url(#${glowId})` } : undefined}
         />
         <Line
@@ -302,14 +295,27 @@ export function NetWorthChart({
           type="monotone"
           dataKey="leverage"
           name="槓桿比率"
-          stroke={theme.leverage}
+          stroke={theme.secondary}
           strokeWidth={2}
           strokeDasharray="5 4"
           strokeLinecap="round"
-          dot={false}
-          activeDot={
-            <ActiveDot stroke={theme.leverage} ring={theme.activeDotStroke} />
-          }
+          dot={(props) => (
+            <ChartDot
+              cx={props.cx}
+              cy={props.cy}
+              fill={theme.secondary}
+              ring={theme.activeDotStroke}
+              r={dotR}
+            />
+          )}
+          activeDot={(props) => (
+            <ChartActiveDot
+              cx={props.cx}
+              cy={props.cy}
+              fill={theme.secondary}
+              ring={theme.activeDotStroke}
+            />
+          )}
           opacity={theme.isDark ? 0.95 : 1}
         />
       </LineChart>

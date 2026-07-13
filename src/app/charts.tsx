@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
+  Area,
   CartesianGrid,
   Cell,
   Legend,
@@ -14,9 +15,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  ChartActiveDot,
+  ChartDot,
+  type ChartTheme,
+  useChartTheme,
+} from "@/app/chart-theme";
 import { CATEGORIES } from "@/lib/categories";
 import { shiftMonth } from "@/lib/dates";
-import { useDarkMode } from "@/lib/use-dark-mode";
 import {
   MERGED_EXCLUDED_BANK_CATEGORIES,
   MERGED_EXCLUDED_CARD_CATEGORIES,
@@ -244,6 +250,56 @@ const TREND_RANGES = [
   { label: "全部", months: Number.POSITIVE_INFINITY },
 ];
 
+function TrendTooltip({
+  active,
+  payload,
+  label,
+  theme,
+}: {
+  active?: boolean;
+  payload?: { name?: string; value?: number; color?: string }[];
+  label?: string;
+  theme: ChartTheme;
+}) {
+  if (!active || !payload?.length) return null;
+  const entry = payload[0];
+
+  return (
+    <div
+      className="rounded-xl px-3 py-2 shadow-lg backdrop-blur-sm"
+      style={{
+        backgroundColor: theme.tooltipBg,
+        border: `1px solid ${theme.tooltipBorder}`,
+        color: theme.tooltipText,
+        boxShadow: theme.isDark
+          ? "0 12px 32px rgba(0, 0, 0, 0.45)"
+          : "0 10px 24px rgba(15, 23, 42, 0.12)",
+      }}
+    >
+      <p className="text-xs font-medium" style={{ color: theme.tooltipMuted }}>
+        {label}
+      </p>
+      <p className="mt-1 flex items-center gap-2 text-sm">
+        <span
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{
+            backgroundColor: entry.color ?? theme.primary,
+            boxShadow: theme.isDark
+              ? `0 0 8px ${entry.color ?? theme.primary}`
+              : undefined,
+          }}
+        />
+        <span style={{ color: theme.tooltipMuted }}>
+          {entry.name ?? "支出"}
+        </span>
+        <span className="ml-auto font-medium tabular-nums tracking-tight">
+          {formatNtd(entry.value)}
+        </span>
+      </p>
+    </div>
+  );
+}
+
 export function MonthlyTrend({
   data,
   onPointClick,
@@ -252,7 +308,10 @@ export function MonthlyTrend({
   /** 點資料點時回呼，label 為 YYYY-MM（月模式）或 YYYY（年模式） */
   onPointClick?: (label: string) => void;
 }) {
-  const isDark = useDarkMode();
+  const theme = useChartTheme();
+  const uid = useId().replace(/:/g, "");
+  const fillId = `trend-fill-${uid}`;
+  const glowId = `trend-glow-${uid}`;
   const [mode, setMode] = useState<"month" | "year">("month");
   const [months, setMonths] = useState(12);
 
@@ -268,6 +327,9 @@ export function MonthlyTrend({
     const sliced = Number.isFinite(months) ? data.slice(-months) : data;
     shown = sliced.map((entry) => ({ label: entry.month, total: entry.total }));
   }
+
+  const axisTick = { fontSize: 12, fill: theme.axis };
+  const dotR = shown.length > 18 ? 2.5 : 3.5;
 
   return (
     <div>
@@ -288,7 +350,10 @@ export function MonthlyTrend({
         </button>
         {mode === "month" && (
           <>
-            <span className="mx-1 h-4 w-px bg-gray-950/10" aria-hidden />
+            <span
+              className="mx-1 h-4 w-px bg-gray-950/10 dark:bg-white/10"
+              aria-hidden
+            />
             {TREND_RANGES.map((range) => (
               <button
                 key={range.label}
@@ -314,21 +379,95 @@ export function MonthlyTrend({
             }
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} />
-          <XAxis dataKey="label" tick={{ fontSize: 12, fill: isDark ? "#9ca3af" : undefined }} tickMargin={6} />
-          <YAxis
-            tick={{ fontSize: 12, fill: isDark ? "#9ca3af" : undefined }}
-            width={56}
-            tickFormatter={(value: number) => Math.round(value).toLocaleString("zh-TW")}
+          <defs>
+            <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="0%"
+                stopColor={theme.primary}
+                stopOpacity={theme.primaryFillTop}
+              />
+              <stop
+                offset="55%"
+                stopColor={theme.primary}
+                stopOpacity={theme.primaryFillTop * 0.35}
+              />
+              <stop
+                offset="100%"
+                stopColor={theme.primary}
+                stopOpacity={theme.primaryFillBottom}
+              />
+            </linearGradient>
+            {theme.isDark && (
+              <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.2" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            )}
+          </defs>
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={theme.grid}
+            vertical={false}
           />
-          <Tooltip formatter={formatNtd} />
+          <XAxis
+            dataKey="label"
+            tick={axisTick}
+            tickMargin={6}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={axisTick}
+            width={56}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(value: number) =>
+              Math.round(value).toLocaleString("zh-TW")
+            }
+          />
+          <Tooltip
+            content={<TrendTooltip theme={theme} />}
+            cursor={{
+              stroke: theme.cursor,
+              strokeWidth: 1,
+              strokeDasharray: "4 4",
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="total"
+            fill={`url(#${fillId})`}
+            stroke="none"
+            isAnimationActive={false}
+            legendType="none"
+          />
           <Line
             type="monotone"
             dataKey="total"
             name="支出"
-            stroke={isDark ? "#f9fafb" : "#0a0a0a"}
-            strokeWidth={2}
-            dot={{ r: 3 }}
+            stroke={theme.primary}
+            strokeWidth={theme.isDark ? 2.5 : 2}
+            dot={(props) => (
+              <ChartDot
+                cx={props.cx}
+                cy={props.cy}
+                fill={theme.primary}
+                ring={theme.activeDotStroke}
+                r={dotR}
+              />
+            )}
+            activeDot={(props) => (
+              <ChartActiveDot
+                cx={props.cx}
+                cy={props.cy}
+                fill={theme.primary}
+                ring={theme.activeDotStroke}
+              />
+            )}
+            style={theme.isDark ? { filter: `url(#${glowId})` } : undefined}
           />
         </LineChart>
       </ResponsiveContainer>
