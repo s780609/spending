@@ -44,7 +44,7 @@ export default async function BudgetPage() {
         <select
           name="category"
           defaultValue="手遊"
-          className="order-1 col-span-2 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:col-span-1 sm:text-sm"
+          className="order-1 col-span-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:col-span-1 sm:text-sm"
         >
           {BUDGET_CATEGORIES.map((category) => (
             <option key={category} value={category}>
@@ -59,7 +59,7 @@ export default async function BudgetPage() {
           min={0}
           step="any"
           required
-          className="order-2 rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:text-sm"
+          className="order-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 placeholder:text-gray-400 dark:placeholder:text-gray-500 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:text-sm"
         />
         <button
           type="submit"
