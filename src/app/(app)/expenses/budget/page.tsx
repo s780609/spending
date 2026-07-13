@@ -4,8 +4,8 @@ import { getDb } from "@/db";
 import { budgets } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import { CATEGORIES } from "@/lib/categories";
-import { BUDGET_LOOKBACK, getBudgetProjection } from "@/lib/budget-query";
-import { shiftMonth, todayTaipei } from "@/lib/dates";
+import { getBudgetStatus } from "@/lib/budget-query";
+import { todayTaipei } from "@/lib/dates";
 
 // 每次請求都讀最新花費與預算，避免建置時打 DB 產生靜態快照
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ const BUDGET_CATEGORIES = CATEGORIES.filter((c) => c !== "未分類");
 
 export default async function BudgetPage() {
   const month = todayTaipei().slice(0, 7);
-  const status = await getBudgetProjection(month);
+  const status = await getBudgetStatus(month);
   // 取 id 供刪除用（getBudgetStatus 只回狀態，不含 id）
   const rows = await getDb()
     .select()
@@ -27,26 +27,14 @@ export default async function BudgetPage() {
     .orderBy(asc(budgets.category), asc(budgets.id));
   const idByCategory = new Map(rows.map((r) => [r.category, r.id]));
 
-  // 前 N 個完整月的月份區間標籤，如「3–5 月」
-  const trailStartMonth = shiftMonth(month, -BUDGET_LOOKBACK);
-  const trailEndMonth = shiftMonth(month, -1);
-  const trailRange = `${Number(trailStartMonth.slice(5, 7))}–${Number(
-    trailEndMonth.slice(5, 7),
-  )} 月`;
-
   return (
     <>
       <h1 className="mt-5 text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
         預算
       </h1>
       <p className="mt-1 max-w-[62ch] text-sm leading-7 text-gray-600 dark:text-gray-400 text-pretty">
-        為各分類設定每月預算（例如手遊）。每張卡同時顯示兩個視角：
-        <span className="font-medium text-gray-700 dark:text-gray-300">當月</span>
-        ＝「{month}」已入帳花費（深色）＋過去 3 個完整月平均推估的月底預估（淺色），
-        因發票/帳單延遲、當月實際偏低，故以平均提早預警（預估超支轉琥珀、實際超支轉紅）；
-        <span className="font-medium text-gray-700 dark:text-gray-300">前 3 個月</span>
-        ＝{trailRange}（不含當月）實際總額對比「月預算 × 3」，用完整資料看這段是否超支。
-        重複設定同一分類即更新金額。
+        為各分類設定每月預算（例如手遊）。以「{month}」當月已入帳花費對比月預算，
+        超支時卡片轉紅並顯示超支金額。重複設定同一分類即更新金額。
       </p>
 
       <form
@@ -90,20 +78,9 @@ export default async function BudgetPage() {
           {status.map((s) => {
             const id = idByCategory.get(s.category);
             const pct = Math.min(100, Math.round(s.ratio * 100));
-            const projectedPct = Math.min(
-              100,
-              Math.round(s.projectedRatio * 100),
-            );
-            const trailingPct = Math.min(
-              100,
-              Math.round(s.trailingRatio * 100),
-            );
-            // 已實際超支（紅）優先於僅預估超支（琥珀）
             const ring = s.over
               ? "ring-red-500/30"
-              : s.projectedOver
-                ? "ring-amber-500/40"
-                : "ring-gray-950/10 dark:ring-white/10";
+              : "ring-gray-950/10 dark:ring-white/10";
             return (
               <li
                 key={s.category}
@@ -115,11 +92,16 @@ export default async function BudgetPage() {
                   </span>
                   <span
                     className={`min-w-0 flex-1 text-right text-sm tabular-nums ${
-                      s.over ? "font-semibold text-red-600" : "text-gray-950 dark:text-gray-50"
+                      s.over
+                        ? "font-semibold text-red-600"
+                        : "text-gray-950 dark:text-gray-50"
                     }`}
                   >
                     {formatAmount(s.spent)}
-                    <span className="text-gray-400 dark:text-gray-500"> / {formatAmount(s.budget)}</span>
+                    <span className="text-gray-400 dark:text-gray-500">
+                      {" "}
+                      / {formatAmount(s.budget)}
+                    </span>
                   </span>
                   {id !== undefined && (
                     <DeleteButton
@@ -129,84 +111,24 @@ export default async function BudgetPage() {
                     />
                   )}
                 </div>
-                <p className="mt-3 text-xs font-medium text-gray-400 dark:text-gray-500">當月</p>
-                {/* 淺色＝月底預估、深色＝當月已入帳，疊在同一條上 */}
-                <div className="relative mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06] dark:bg-white/[0.08]">
                   <div
-                    className={`absolute inset-y-0 left-0 rounded-full ${
-                      s.projectedOver ? "bg-amber-400/60" : "bg-gray-950/20"
-                    }`}
-                    style={{ width: `${projectedPct}%` }}
-                  />
-                  <div
-                    className={`absolute inset-y-0 left-0 rounded-full ${
+                    className={`h-full rounded-full ${
                       s.over ? "bg-red-500" : "bg-gray-950 dark:bg-gray-400"
                     }`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-                  <span className="text-gray-500 dark:text-gray-400 tabular-nums">
-                    月底預估 {formatAmount(s.projected)}
-                    <span className="text-gray-400 dark:text-gray-500">
-                      {" "}
-                      · 前 3 月平均 {formatAmount(s.average)}
-                    </span>
-                  </span>
+                <div className="mt-2 text-right text-xs">
                   {s.over ? (
-                    <span className="shrink-0 font-medium text-red-600 tabular-nums">
+                    <span className="font-medium text-red-600 tabular-nums">
                       已超支 {formatAmount(s.spent - s.budget)}
                     </span>
-                  ) : s.projectedOver ? (
-                    <span className="shrink-0 font-medium text-amber-600 tabular-nums">
-                      預估超支 {formatAmount(s.projected - s.budget)}
-                    </span>
                   ) : (
-                    <span className="shrink-0 text-gray-400 dark:text-gray-500 tabular-nums">
-                      預估結餘 {formatAmount(s.budget - s.projected)}
+                    <span className="text-gray-400 dark:text-gray-500 tabular-nums">
+                      結餘 {formatAmount(s.budget - s.spent)}
                     </span>
                   )}
-                </div>
-
-                {/* 前 N 個完整月（不含當月）：實際總額 vs 月預算 × N */}
-                <div className="mt-3 border-t border-gray-950/5 dark:border-white/5 pt-3">
-                  <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="font-medium text-gray-400 dark:text-gray-500">
-                      前 {s.lookback} 個月（{trailRange}）
-                    </span>
-                    <span
-                      className={`tabular-nums ${
-                        s.trailingOver
-                          ? "font-semibold text-red-600"
-                          : "text-gray-950 dark:text-gray-50"
-                      }`}
-                    >
-                      {formatAmount(s.trailingSpent)}
-                      <span className="text-gray-400 dark:text-gray-500">
-                        {" "}
-                        / {formatAmount(s.trailingBudget)}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06]">
-                    <div
-                      className={`h-full rounded-full ${
-                        s.trailingOver ? "bg-red-500" : "bg-gray-950 dark:bg-gray-400"
-                      }`}
-                      style={{ width: `${trailingPct}%` }}
-                    />
-                  </div>
-                  <div className="mt-1.5 text-right text-xs">
-                    {s.trailingOver ? (
-                      <span className="font-medium text-red-600 tabular-nums">
-                        超支 {formatAmount(s.trailingSpent - s.trailingBudget)}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 tabular-nums">
-                        結餘 {formatAmount(s.trailingBudget - s.trailingSpent)}
-                      </span>
-                    )}
-                  </div>
                 </div>
               </li>
             );
