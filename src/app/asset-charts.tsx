@@ -118,6 +118,9 @@ function NetWorthTooltip({
 }) {
   if (!active || !payload?.length) return null;
 
+  const rows = payload.filter((entry) => entry.name !== "netWorth");
+  if (!rows.length) return null;
+
   return (
     <div
       className="rounded-xl px-3 py-2 shadow-lg backdrop-blur-sm"
@@ -134,7 +137,7 @@ function NetWorthTooltip({
         {label}
       </p>
       <ul className="mt-1.5 space-y-1">
-        {payload.map((entry) => (
+        {rows.map((entry) => (
           <li key={entry.name} className="flex items-center gap-2 text-sm">
             <span
               className="h-2 w-2 shrink-0 rounded-full"
