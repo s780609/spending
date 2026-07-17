@@ -260,6 +260,7 @@ export function NetWorthChart({
           yAxisId="networth"
           type="monotone"
           dataKey="netWorth"
+          tooltipType="none"
           fill={`url(#${fillId})`}
           stroke="none"
           isAnimationActive={false}
