@@ -222,6 +222,7 @@ export function NetWorthChart({
           tickMargin={6}
           axisLine={false}
           tickLine={false}
+          tickFormatter={(value: string) => value.slice(5)}
         />
         <YAxis
           yAxisId="networth"

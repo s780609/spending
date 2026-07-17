@@ -173,7 +173,7 @@ export default async function AssetsPage({
     .orderBy(asc(networthSnapshots.date));
 
   const chartData = snapshots.map((row) => ({
-    date: row.date.slice(5),
+    date: row.date,
     netWorth: Number(row.netWorth),
     leverage: row.leverage === null ? null : Number(row.leverage),
   }));
