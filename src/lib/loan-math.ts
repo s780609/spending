@@ -36,22 +36,31 @@ export interface PledgeExtension {
 /**
  * 質押展期：借貸日起每 6 個月須申請展期一次，
  * 展期期限 = 借貸日 + 期次 × 6 個月 − 1 天。
- * 回傳「下一個尚未過期的展期期限」，已過期的期次會自動往後推，
+ * 回傳「目前應申請展期的期限」，已過期的期次會自動往後推，
  * 因此已展延過的借款不需額外紀錄次數即可算出當前應申請的期限。
+ *
+ * graceDays：期限過後仍視為「當期（尚未展延）」的寬限天數，
+ * 讓已超期但還沒展延的借款持續顯示為逾期提醒；超過寬限天數才推進到下一期。
+ * daysRemaining 為負值代表已超期。
  */
 export function pledgeExtensionDeadline(
   startDate: string,
   today: string,
+  graceDays = 0,
 ): PledgeExtension {
   const [year, month, day] = startDate.split("-").map(Number);
+  // 期限在「今天 − 寬限天數」之後都還算當期，尚未推進到下一期
+  const cutoff = new Date(Date.parse(today) - graceDays * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   let period = 1;
   let deadline = "";
-  // 逐期往後推 6 個月，找出第一個 >= 今天的期限（上限保護避免無窮迴圈）
+  // 逐期往後推 6 個月，找出第一個 >= cutoff 的期限（上限保護避免無窮迴圈）
   for (; period <= 1000; period++) {
     const dt = new Date(Date.UTC(year, month - 1 + 6 * period, day));
     dt.setUTCDate(dt.getUTCDate() - 1);
     deadline = dt.toISOString().slice(0, 10);
-    if (deadline >= today) break;
+    if (deadline >= cutoff) break;
   }
   const daysRemaining = Math.floor(
     (Date.parse(deadline) - Date.parse(today)) / 86_400_000,

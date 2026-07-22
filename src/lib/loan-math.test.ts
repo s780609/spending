@@ -44,6 +44,22 @@ describe("pledgeExtensionDeadline 質押展期期限", () => {
     expect(ext.daysRemaining).toBe(0);
     expect(ext.period).toBe(1);
   });
+
+  it("寬限天數內已超期仍停留在當期並回報負的剩餘天數", () => {
+    // 首期限 2026-02-24，今天已過 10 天，寬限 30 天內 → 仍顯示逾期不推進
+    const ext = pledgeExtensionDeadline("2025-08-25", "2026-03-06", 30);
+    expect(ext.deadline).toBe("2026-02-24");
+    expect(ext.daysRemaining).toBe(-10);
+    expect(ext.period).toBe(1);
+  });
+
+  it("超過寬限天數後才推進到下一期", () => {
+    // 首期限 2026-02-24，今天已過 31 天，超過寬限 30 天 → 推進到下一期 2026-08-24
+    const ext = pledgeExtensionDeadline("2025-08-25", "2026-03-27", 30);
+    expect(ext.deadline).toBe("2026-08-24");
+    expect(ext.period).toBe(2);
+    expect(ext.daysRemaining).toBeGreaterThan(0);
+  });
 });
 
 describe("creditLoanStatus 信貸本息平均攤還", () => {

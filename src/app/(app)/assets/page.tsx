@@ -17,8 +17,10 @@ import { fetchAnnualDividend } from "@/lib/prices";
 
 export const dynamic = "force-dynamic";
 
-/** 展期期限在幾天內（或已超期）就跳提醒 */
-const PLEDGE_ALERT_DAYS = 60;
+/** 展期期限在幾天內就跳提醒 */
+const PLEDGE_ALERT_DAYS = 30;
+/** 期限過後仍持續提醒（視為尚未展延）的寬限天數 */
+const PLEDGE_OVERDUE_GRACE_DAYS = 30;
 
 function ntd(value: number): string {
   return `NT$ ${Math.round(value).toLocaleString("zh-TW")}`;
@@ -191,10 +193,14 @@ export default async function AssetsPage({
       .filter((loan) => loan.type === "質押")
       .map((loan) => [
         loan.id,
-        pledgeExtensionDeadline(loan.startDate, today),
+        pledgeExtensionDeadline(
+          loan.startDate,
+          today,
+          PLEDGE_OVERDUE_GRACE_DAYS,
+        ),
       ]),
   );
-  // 期限在 PLEDGE_ALERT_DAYS 天內（或已超期）才跳提醒，最快到期者排前面
+  // 期限在 PLEDGE_ALERT_DAYS 天內或已超期才跳提醒，最快到期／逾期最久者排前面
   const pledgeAlertItems: PledgeExtensionItem[] = sheet.loans
     .filter((loan) => {
       const ext = pledgeExtensions.get(loan.id);
