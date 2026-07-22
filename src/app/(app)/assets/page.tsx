@@ -6,13 +6,19 @@ import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
 import { PrivacyShield } from "@/app/privacy-shield";
+import { PledgeExtensionAlert, type PledgeExtensionItem } from "@/app/pledge-extension-alert";
 import { SharesEditor } from "@/app/shares-editor";
 import { getDb } from "@/db";
 import { networthSnapshots } from "@/db/schema";
 import { recordDailySnapshot } from "@/lib/balance-sheet";
+import { todayTaipei } from "@/lib/dates";
+import { pledgeExtensionDeadline } from "@/lib/loan-math";
 import { fetchAnnualDividend } from "@/lib/prices";
 
 export const dynamic = "force-dynamic";
+
+/** 展期期限在幾天內（或已超期）就跳提醒 */
+const PLEDGE_ALERT_DAYS = 60;
 
 function ntd(value: number): string {
   return `NT$ ${Math.round(value).toLocaleString("zh-TW")}`;
@@ -178,9 +184,37 @@ export default async function AssetsPage({
     leverage: row.leverage === null ? null : Number(row.leverage),
   }));
 
+  // 質押展延期限：借貸日起每 6 個月須申請展期一次
+  const today = todayTaipei();
+  const pledgeExtensions = new Map(
+    sheet.loans
+      .filter((loan) => loan.type === "質押")
+      .map((loan) => [
+        loan.id,
+        pledgeExtensionDeadline(loan.startDate, today),
+      ]),
+  );
+  // 期限在 PLEDGE_ALERT_DAYS 天內（或已超期）才跳提醒，最快到期者排前面
+  const pledgeAlertItems: PledgeExtensionItem[] = sheet.loans
+    .filter((loan) => {
+      const ext = pledgeExtensions.get(loan.id);
+      return ext !== undefined && ext.daysRemaining <= PLEDGE_ALERT_DAYS;
+    })
+    .map((loan) => {
+      const ext = pledgeExtensions.get(loan.id)!;
+      return {
+        key: String(loan.id),
+        name: loan.name,
+        deadline: ext.deadline,
+        daysRemaining: ext.daysRemaining,
+      };
+    })
+    .sort((a, b) => a.daysRemaining - b.daysRemaining);
+
   return (
     <>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+        <PledgeExtensionAlert items={pledgeAlertItems} today={today} />
         <PrivacyShield
           title="資產負債表"
           headerExtra={
@@ -623,6 +657,9 @@ export default async function AssetsPage({
                         {" "}
                         · 累計利息 {ntd(loan.interest)}
                         {loan.termEnd && ` · 期限至 ${loan.termEnd}`}
+                        {pledgeExtensions.has(loan.id) && (
+                          <> · 展期期限 {pledgeExtensions.get(loan.id)!.deadline}</>
+                        )}
                         {loan.collateralSymbol && loan.collateralShares !== null && (
                           <>
                             {" "}

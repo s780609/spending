@@ -24,6 +24,41 @@ export function pledgeStatus(
   return { days, interest, total: principal + interest };
 }
 
+export interface PledgeExtension {
+  /** 下一個展期期限 YYYY-MM-DD */
+  deadline: string;
+  /** 距離期限的天數（負值代表已超期） */
+  daysRemaining: number;
+  /** 第幾期展期（1 = 首次，2 = 已展延一次…） */
+  period: number;
+}
+
+/**
+ * 質押展期：借貸日起每 6 個月須申請展期一次，
+ * 展期期限 = 借貸日 + 期次 × 6 個月 − 1 天。
+ * 回傳「下一個尚未過期的展期期限」，已過期的期次會自動往後推，
+ * 因此已展延過的借款不需額外紀錄次數即可算出當前應申請的期限。
+ */
+export function pledgeExtensionDeadline(
+  startDate: string,
+  today: string,
+): PledgeExtension {
+  const [year, month, day] = startDate.split("-").map(Number);
+  let period = 1;
+  let deadline = "";
+  // 逐期往後推 6 個月，找出第一個 >= 今天的期限（上限保護避免無窮迴圈）
+  for (; period <= 1000; period++) {
+    const dt = new Date(Date.UTC(year, month - 1 + 6 * period, day));
+    dt.setUTCDate(dt.getUTCDate() - 1);
+    deadline = dt.toISOString().slice(0, 10);
+    if (deadline >= today) break;
+  }
+  const daysRemaining = Math.floor(
+    (Date.parse(deadline) - Date.parse(today)) / 86_400_000,
+  );
+  return { deadline, daysRemaining, period };
+}
+
 export interface CreditLoanStatus {
   /** 每月固定還款額 */
   monthlyPayment: number;

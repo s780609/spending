@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { creditLoanStatus, pledgeStatus } from "./loan-math";
+import {
+  creditLoanStatus,
+  pledgeExtensionDeadline,
+  pledgeStatus,
+} from "./loan-math";
 
 describe("pledgeStatus 質押逐日計息", () => {
   it("利息 = 本金 × 年利率 × 經過天數 / 365", () => {
@@ -14,6 +18,31 @@ describe("pledgeStatus 質押逐日計息", () => {
     expect(status.days).toBe(0);
     expect(status.interest).toBe(0);
     expect(status.total).toBe(500_000);
+  });
+});
+
+describe("pledgeExtensionDeadline 質押展期期限", () => {
+  it("展期期限 = 借貸日 + 6 個月 − 1 天（首期）", () => {
+    const ext = pledgeExtensionDeadline("2026-03-31", "2026-04-01");
+    // 2026-03-31 + 6 個月 = 2026-09-30（月底進位後 −1 天），故期限落在 9 月底
+    expect(ext.deadline).toBe("2026-09-30");
+    expect(ext.period).toBe(1);
+    expect(ext.daysRemaining).toBeGreaterThan(0);
+  });
+
+  it("已過首期時自動推到下一期（等同已展延一次）", () => {
+    // 2025-08-25 借款，首期限 2026-02-24 已過，今天 2026-07-22 → 下期限 2026-08-24
+    const ext = pledgeExtensionDeadline("2025-08-25", "2026-07-22");
+    expect(ext.deadline).toBe("2026-08-24");
+    expect(ext.period).toBe(2);
+    expect(ext.daysRemaining).toBe(33);
+  });
+
+  it("期限當天 daysRemaining 為 0 且視為當期", () => {
+    const ext = pledgeExtensionDeadline("2025-08-25", "2026-02-24");
+    expect(ext.deadline).toBe("2026-02-24");
+    expect(ext.daysRemaining).toBe(0);
+    expect(ext.period).toBe(1);
   });
 });
 
