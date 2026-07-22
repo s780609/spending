@@ -368,6 +368,24 @@ export async function deleteLoan(id: number) {
   revalidatePath("/assets");
 }
 
+/** 質押已申請展期：展期次數 +1，期限即往後一期 */
+export async function extendPledge(id: number) {
+  await getDb()
+    .update(loans)
+    .set({ extensionCount: sql`${loans.extensionCount} + 1` })
+    .where(and(eq(loans.id, id), eq(loans.type, "質押")));
+  revalidatePath("/assets");
+}
+
+/** 質押展期次數 −1（誤按時回復，不會小於 0） */
+export async function undoExtendPledge(id: number) {
+  await getDb()
+    .update(loans)
+    .set({ extensionCount: sql`GREATEST(${loans.extensionCount} - 1, 0)` })
+    .where(and(eq(loans.id, id), eq(loans.type, "質押")));
+  revalidatePath("/assets");
+}
+
 export interface FamilyDetailRow {
   date: string;
   description: string;

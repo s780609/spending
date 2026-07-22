@@ -97,6 +97,8 @@ export const loans = pgTable("loans", {
   collateralSymbol: text("collateral_symbol"),
   /** 質押擔保股數 */
   collateralShares: numeric("collateral_shares", { precision: 16, scale: 4 }),
+  /** 質押展期已申請次數（每 6 個月一期，0 = 尚未展延） */
+  extensionCount: integer("extension_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

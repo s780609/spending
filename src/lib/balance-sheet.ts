@@ -28,6 +28,8 @@ export interface LoanView {
   startDate: string;
   installments: number | null;
   termEnd: string | null;
+  /** 質押已申請展期次數（0 = 尚未展延） */
+  extensionCount: number;
   /** 質押＝累計利息；信貸＝累計已付利息 */
   interest: number;
   /** 計入資產負債表的負債金額：質押＝本金+利息；信貸＝剩餘本金 */
@@ -160,6 +162,7 @@ export async function computeBalanceSheet(): Promise<BalanceSheet> {
       startDate: row.startDate,
       installments: row.installments,
       termEnd: row.termEnd,
+      extensionCount: row.extensionCount,
       collateralSymbol: row.collateralSymbol,
       collateralShares,
       collateralValue,

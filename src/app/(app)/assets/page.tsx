@@ -6,6 +6,7 @@ import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
 import { PrivacyShield } from "@/app/privacy-shield";
+import { PledgeExtendButton } from "@/app/pledge-extend-button";
 import { PledgeExtensionAlert, type PledgeExtensionItem } from "@/app/pledge-extension-alert";
 import { SharesEditor } from "@/app/shares-editor";
 import { getDb } from "@/db";
@@ -19,8 +20,6 @@ export const dynamic = "force-dynamic";
 
 /** 展期期限在幾天內就跳提醒 */
 const PLEDGE_ALERT_DAYS = 30;
-/** 期限過後仍持續提醒（視為尚未展延）的寬限天數 */
-const PLEDGE_OVERDUE_GRACE_DAYS = 30;
 
 function ntd(value: number): string {
   return `NT$ ${Math.round(value).toLocaleString("zh-TW")}`;
@@ -193,11 +192,7 @@ export default async function AssetsPage({
       .filter((loan) => loan.type === "質押")
       .map((loan) => [
         loan.id,
-        pledgeExtensionDeadline(
-          loan.startDate,
-          today,
-          PLEDGE_OVERDUE_GRACE_DAYS,
-        ),
+        pledgeExtensionDeadline(loan.startDate, today, loan.extensionCount),
       ]),
   );
   // 期限在 PLEDGE_ALERT_DAYS 天內或已超期才跳提醒，最快到期／逾期最久者排前面
@@ -663,9 +658,31 @@ export default async function AssetsPage({
                         {" "}
                         · 累計利息 {ntd(loan.interest)}
                         {loan.termEnd && ` · 期限至 ${loan.termEnd}`}
-                        {pledgeExtensions.has(loan.id) && (
-                          <> · 展期期限 {pledgeExtensions.get(loan.id)!.deadline}</>
-                        )}
+                        {pledgeExtensions.has(loan.id) &&
+                          (() => {
+                            const ext = pledgeExtensions.get(loan.id)!;
+                            return (
+                              <>
+                                {" "}
+                                · 展期期限{" "}
+                                <span
+                                  className={
+                                    ext.daysRemaining < 0
+                                      ? "font-semibold text-red-600"
+                                      : ext.daysRemaining <= 30
+                                        ? "font-semibold text-amber-600"
+                                        : ""
+                                  }
+                                >
+                                  {ext.deadline}（
+                                  {ext.daysRemaining < 0
+                                    ? `已超期 ${-ext.daysRemaining} 天`
+                                    : `剩 ${ext.daysRemaining} 天`}
+                                  ）
+                                </span>
+                              </>
+                            );
+                          })()}
                         {loan.collateralSymbol && loan.collateralShares !== null && (
                           <>
                             {" "}
@@ -696,6 +713,19 @@ export default async function AssetsPage({
                       </>
                     )}
                   </p>
+                  {loan.type === "質押" && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <PledgeExtendButton
+                        id={loan.id}
+                        extensionCount={loan.extensionCount}
+                      />
+                      {loan.extensionCount > 0 && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          已展延 {loan.extensionCount} 次
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
