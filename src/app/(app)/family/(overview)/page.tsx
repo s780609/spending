@@ -26,7 +26,11 @@ import {
   familyTransactions,
 } from "@/db/schema";
 import { shiftMonth, todayTaipei } from "@/lib/dates";
-import { FAMILY_CATEGORIES } from "@/lib/family-category";
+import {
+  FAMILY_CATEGORIES,
+  MERGED_EXCLUDED_BANK_CATEGORIES,
+  MERGED_EXCLUDED_CARD_CATEGORIES,
+} from "@/lib/family-category";
 
 export const dynamic = "force-dynamic";
 
@@ -115,16 +119,23 @@ export default async function FamilyPage({
         familyCardTransactions.category,
       ),
   ]);
-  // 內部轉帳（主/子帳戶互轉）不是真實收支，從支出/存入總額排除；帳戶明細仍照常顯示
-  const bankOut = bankTxs.reduce(
-    (s, t) => (t.category === "內部轉帳" ? s : s + Number(t.withdrawal ?? 0)),
-    0,
-  );
-  const bankIn = bankTxs.reduce(
-    (s, t) => (t.category === "內部轉帳" ? s : s + Number(t.deposit ?? 0)),
-    0,
-  );
-  const bankNet = bankIn - bankOut;
+  // 當月支出合計：與圖表「合併」同口徑
+  // 帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費
+  const monthSpend =
+    bankByMonthCat
+      .filter(
+        (e) =>
+          e.month === month &&
+          !MERGED_EXCLUDED_BANK_CATEGORIES.includes(e.category),
+      )
+      .reduce((s, e) => s + e.total, 0) +
+    cardByMonthCat
+      .filter(
+        (e) =>
+          e.month === month &&
+          !MERGED_EXCLUDED_CARD_CATEGORIES.includes(e.category),
+      )
+      .reduce((s, e) => s + e.total, 0);
   // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
   const cardSpend = cardTxs.reduce(
     (s, t) =>
@@ -168,14 +179,9 @@ export default async function FamilyPage({
         <div className="mt-4 grid grid-cols-2 gap-3">
           {[
             {
-              label: `${month} 帳戶收支`,
-              value: `NT$ ${bankNet > 0 ? "+" : ""}${fmt(bankNet)}`,
-              tone:
-                bankNet > 0
-                  ? "text-green-600"
-                  : bankNet < 0
-                    ? "text-red-600"
-                    : "text-gray-950 dark:text-gray-50",
+              label: `${month} 支出合計`,
+              value: `NT$ ${fmt(monthSpend)}`,
+              tone: "text-gray-950 dark:text-gray-50",
             },
             {
               label: `${month} 卡費新增`,
