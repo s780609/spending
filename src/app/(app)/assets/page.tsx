@@ -5,6 +5,7 @@ import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
+import { HoldingsView } from "@/app/holdings-view";
 import { PrivacyShield } from "@/app/privacy-shield";
 import { PledgeExtendButton } from "@/app/pledge-extend-button";
 import { PledgeExtensionAlert, type PledgeExtensionItem } from "@/app/pledge-extension-alert";
@@ -323,194 +324,197 @@ export default async function AssetsPage({
         </form>
         </AddPanel>
 
-        {symbolSummary.length > 0 && (
-          <CollapsibleSection title="依代號彙總">
-            <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-              <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算</p>
-              <ul className="mt-1 divide-y divide-gray-950/5">
-                {symbolSummary.map((s) => (
-                  <li key={s.symbol} className="py-2.5">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
-                          s.market === "TW"
-                            ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
-                            : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                        }`}
-                      >
-                        {s.market === "TW" ? "台" : "美"}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50">
-                        {s.name || s.symbol}
-                        <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
-                          {s.symbol}
-                        </span>
-                      </span>
-                      <span className="sensitive shrink-0 text-sm font-medium text-gray-950 dark:text-gray-50">
-                        {s.totalShares.toLocaleString("zh-TW")} 股
-                      </span>
-                    </div>
-                    <p className="sensitive mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      市值 {ntd(s.valueTwd)} · 每股配息{" "}
-                      {s.dividendPerShare === null
-                        ? "—"
-                        : `${s.dividendPerShare.toFixed(2)}${
-                            s.market === "US" ? " USD" : " 元"
-                          }`}
-                      {s.dividendTwd !== null && (
-                        <>
-                          {" "}
-                          · 預估年現金股利{" "}
-                          <span className="font-medium text-gray-950 dark:text-gray-50">
-                            {ntd(s.dividendTwd)}
-                          </span>
-                        </>
-                      )}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1 border-t border-gray-950/10 dark:border-white/10 pt-2 text-right text-xs text-gray-600 dark:text-gray-400">
-                預估年現金股利合計
-                {dividendIncomplete && "（部分代號抓不到配息）"}{" "}
-                <span className="sensitive text-sm font-semibold text-gray-950 dark:text-gray-50">
-                  {ntd(totalDividendTwd)}
-                </span>
-              </p>
-            </section>
-          </CollapsibleSection>
-        )}
-
         {sheet.holdings.length > 0 && (
-          <CollapsibleSection title="持股明細">
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">券商</span>
-              <Link
-                href={assetHref(undefined, symbolFilter, sort)}
-                className={!brokerFilter ? PILL_ACTIVE : PILL_IDLE}
-              >
-                全部
-              </Link>
-              {brokers.map((broker) => (
-                <Link
-                  key={broker}
-                  href={assetHref(
-                    brokerFilter === broker ? undefined : broker,
-                    symbolFilter,
-                    sort,
-                  )}
-                  className={brokerFilter === broker ? PILL_ACTIVE : PILL_IDLE}
-                >
-                  {broker}
-                </Link>
-              ))}
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">代號</span>
-              <Link
-                href={assetHref(brokerFilter, undefined, sort)}
-                className={!symbolFilter ? PILL_ACTIVE : PILL_IDLE}
-              >
-                全部
-              </Link>
-              {symbols.map((symbol) => (
-                <Link
-                  key={symbol}
-                  href={assetHref(
-                    brokerFilter,
-                    symbolFilter === symbol ? undefined : symbol,
-                    sort,
-                  )}
-                  className={`font-mono ${
-                    symbolFilter === symbol ? PILL_ACTIVE : PILL_IDLE
-                  }`}
-                >
-                  {symbol}
-                </Link>
-              ))}
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-8 text-xs text-gray-400 dark:text-gray-500">排序</span>
-              <Link
-                href={assetHref(brokerFilter, symbolFilter)}
-                className={!sort ? PILL_ACTIVE : PILL_IDLE}
-              >
-                市場
-              </Link>
-              <Link
-                href={assetHref(brokerFilter, symbolFilter, "value")}
-                className={sort === "value" ? PILL_ACTIVE : PILL_IDLE}
-              >
-                市值
-              </Link>
-            </div>
-            {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
-              <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-                篩選結果：{visibleHoldings.length} 筆，市值{" "}
-                <span className="sensitive font-medium text-gray-950 dark:text-gray-50">{ntd(visibleValue)}</span>
-              </p>
-            )}
-
-            {visibleHoldings.length > 0 && (
-              <ul className="mt-3 space-y-2">
-                {visibleHoldings.map((h) => (
-                  <li
-                    key={h.id}
-                    className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
-                  >
-                    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                      {/* 手機第一行：市場＋名稱；桌面攤平成單行（sm:contents + order） */}
-                      <div className="flex min-w-0 items-center gap-3 sm:contents">
+          <HoldingsView
+            // 有篩選／排序參數時只對明細有意義，預設落在明細
+            defaultView={brokerFilter || symbolFilter || sort ? "detail" : "summary"}
+            summary={
+              <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+                <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算</p>
+                <ul className="mt-1 divide-y divide-gray-950/5">
+                  {symbolSummary.map((s) => (
+                    <li key={s.symbol} className="py-2.5">
+                      <div className="flex items-center gap-3">
                         <span
-                          className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset sm:order-1 ${
-                            h.market === "TW"
+                          className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
+                            s.market === "TW"
                               ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
                               : "bg-blue-50 text-blue-700 ring-blue-600/20"
                           }`}
                         >
-                          {h.market === "TW" ? "台" : "美"}
+                          {s.market === "TW" ? "台" : "美"}
                         </span>
-                        <span className="min-w-0 flex-1 sm:order-2">
-                          <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
-                            {h.name || h.symbol}
-                            <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
-                              {h.symbol}
+                        <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50">
+                          {s.name || s.symbol}
+                          <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
+                            {s.symbol}
+                          </span>
+                        </span>
+                        <span className="sensitive shrink-0 text-sm font-medium text-gray-950 dark:text-gray-50">
+                          {s.totalShares.toLocaleString("zh-TW")} 股
+                        </span>
+                      </div>
+                      <p className="sensitive mt-1 text-xs text-gray-400 dark:text-gray-500">
+                        市值 {ntd(s.valueTwd)} · 每股配息{" "}
+                        {s.dividendPerShare === null
+                          ? "—"
+                          : `${s.dividendPerShare.toFixed(2)}${
+                              s.market === "US" ? " USD" : " 元"
+                            }`}
+                        {s.dividendTwd !== null && (
+                          <>
+                            {" "}
+                            · 預估年現金股利{" "}
+                            <span className="font-medium text-gray-950 dark:text-gray-50">
+                              {ntd(s.dividendTwd)}
                             </span>
-                          </span>
-                          <span className="block text-xs text-gray-400 dark:text-gray-500">
-                            {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
-                            {h.market === "US" && " USD"}
-                            {h.priceStale && "（快取）"}
-                          </span>
-                        </span>
-                      </div>
-                      {/* 手機第二行：股數＋市值＋刪除 */}
-                      <div className="flex items-center gap-2 sm:contents">
-                        <span className="sensitive flex items-center gap-1.5 sm:order-3">
-                          <span className="text-xs text-gray-400 dark:text-gray-500 sm:hidden">
-                            股數
-                          </span>
-                          <SharesEditor id={h.id} shares={h.shares} />
-                        </span>
-                        <span className="sensitive ml-auto shrink-0 text-right text-base font-semibold text-gray-950 dark:text-gray-50 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
-                          {ntd(h.valueTwd)}
-                        </span>
-                        <span className="sm:order-5">
-                          <DeleteButton
-                            id={h.id}
-                            action={deleteHolding}
-                            message={`確定刪除「${h.broker} ${
-                              h.name ? `${h.name}（${h.symbol}）` : h.symbol
-                            }」這筆持股？`}
-                          />
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CollapsibleSection>
+                          </>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1 border-t border-gray-950/10 dark:border-white/10 pt-2 text-right text-xs text-gray-600 dark:text-gray-400">
+                  預估年現金股利合計
+                  {dividendIncomplete && "（部分代號抓不到配息）"}{" "}
+                  <span className="sensitive text-sm font-semibold text-gray-950 dark:text-gray-50">
+                    {ntd(totalDividendTwd)}
+                  </span>
+                </p>
+              </section>
+            }
+            detail={
+              <>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="w-8 text-xs text-gray-400 dark:text-gray-500">券商</span>
+                  <Link
+                    href={assetHref(undefined, symbolFilter, sort)}
+                    className={!brokerFilter ? PILL_ACTIVE : PILL_IDLE}
+                  >
+                    全部
+                  </Link>
+                  {brokers.map((broker) => (
+                    <Link
+                      key={broker}
+                      href={assetHref(
+                        brokerFilter === broker ? undefined : broker,
+                        symbolFilter,
+                        sort,
+                      )}
+                      className={brokerFilter === broker ? PILL_ACTIVE : PILL_IDLE}
+                    >
+                      {broker}
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="w-8 text-xs text-gray-400 dark:text-gray-500">代號</span>
+                  <Link
+                    href={assetHref(brokerFilter, undefined, sort)}
+                    className={!symbolFilter ? PILL_ACTIVE : PILL_IDLE}
+                  >
+                    全部
+                  </Link>
+                  {symbols.map((symbol) => (
+                    <Link
+                      key={symbol}
+                      href={assetHref(
+                        brokerFilter,
+                        symbolFilter === symbol ? undefined : symbol,
+                        sort,
+                      )}
+                      className={`font-mono ${
+                        symbolFilter === symbol ? PILL_ACTIVE : PILL_IDLE
+                      }`}
+                    >
+                      {symbol}
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="w-8 text-xs text-gray-400 dark:text-gray-500">排序</span>
+                  <Link
+                    href={assetHref(brokerFilter, symbolFilter)}
+                    className={!sort ? PILL_ACTIVE : PILL_IDLE}
+                  >
+                    市場
+                  </Link>
+                  <Link
+                    href={assetHref(brokerFilter, symbolFilter, "value")}
+                    className={sort === "value" ? PILL_ACTIVE : PILL_IDLE}
+                  >
+                    市值
+                  </Link>
+                </div>
+                {(brokerFilter || symbolFilter) && visibleHoldings.length > 0 && (
+                  <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+                    篩選結果：{visibleHoldings.length} 筆，市值{" "}
+                    <span className="sensitive font-medium text-gray-950 dark:text-gray-50">{ntd(visibleValue)}</span>
+                  </p>
+                )}
+
+                {visibleHoldings.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {visibleHoldings.map((h) => (
+                      <li
+                        key={h.id}
+                        className="rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
+                      >
+                        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+                          {/* 手機第一行：市場＋名稱；桌面攤平成單行（sm:contents + order） */}
+                          <div className="flex min-w-0 items-center gap-3 sm:contents">
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset sm:order-1 ${
+                                h.market === "TW"
+                                  ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
+                                  : "bg-blue-50 text-blue-700 ring-blue-600/20"
+                              }`}
+                            >
+                              {h.market === "TW" ? "台" : "美"}
+                            </span>
+                            <span className="min-w-0 flex-1 sm:order-2">
+                              <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
+                                {h.name || h.symbol}
+                                <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
+                                  {h.symbol}
+                                </span>
+                              </span>
+                              <span className="block text-xs text-gray-400 dark:text-gray-500">
+                                {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
+                                {h.market === "US" && " USD"}
+                                {h.priceStale && "（快取）"}
+                              </span>
+                            </span>
+                          </div>
+                          {/* 手機第二行：股數＋市值＋刪除 */}
+                          <div className="flex items-center gap-2 sm:contents">
+                            <span className="sensitive flex items-center gap-1.5 sm:order-3">
+                              <span className="text-xs text-gray-400 dark:text-gray-500 sm:hidden">
+                                股數
+                              </span>
+                              <SharesEditor id={h.id} shares={h.shares} />
+                            </span>
+                            <span className="sensitive ml-auto shrink-0 text-right text-base font-semibold text-gray-950 dark:text-gray-50 sm:order-4 sm:ml-0 sm:w-28 sm:text-sm sm:font-medium">
+                              {ntd(h.valueTwd)}
+                            </span>
+                            <span className="sm:order-5">
+                              <DeleteButton
+                                id={h.id}
+                                action={deleteHolding}
+                                message={`確定刪除「${h.broker} ${
+                                  h.name ? `${h.name}（${h.symbol}）` : h.symbol
+                                }」這筆持股？`}
+                              />
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            }
+          />
         )}
 
         {/* ===== 負債：貸款 ===== */}
