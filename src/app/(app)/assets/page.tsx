@@ -5,6 +5,7 @@ import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
+import { HoldingLabel } from "@/app/holding-label";
 import { HoldingsView } from "@/app/holdings-view";
 import { PrivacyShield } from "@/app/privacy-shield";
 import { PledgeExtendButton } from "@/app/pledge-extend-button";
@@ -331,45 +332,62 @@ export default async function AssetsPage({
             summary={
               <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
                 <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算</p>
+                {/* 桌面表頭；手機每列自帶標籤 */}
+                <div className="mt-2 hidden text-xs text-gray-400 dark:text-gray-500 sm:grid sm:grid-cols-[1fr_5rem_7rem_6rem_7rem] sm:items-center sm:gap-3">
+                  <span>名稱</span>
+                  <span className="text-right">股數</span>
+                  <span className="text-right">市值</span>
+                  <span className="text-right">每股配息</span>
+                  <span className="text-right">預估年股利</span>
+                </div>
                 <ul className="mt-1 divide-y divide-gray-950/5">
                   {symbolSummary.map((s) => (
-                    <li key={s.symbol} className="py-2.5">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
-                            s.market === "TW"
-                              ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
-                              : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                          }`}
-                        >
-                          {s.market === "TW" ? "台" : "美"}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50">
-                          {s.name || s.symbol}
-                          <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
-                            {s.symbol}
+                    <li key={s.symbol} className="py-2.5 sm:grid sm:grid-cols-[1fr_5rem_7rem_6rem_7rem] sm:items-center sm:gap-3">
+                      {/* 手機第一行：市場＋名稱＋股數；桌面拆成兩個欄位（sm:contents） */}
+                      <div className="flex items-center gap-3 sm:contents">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          <span
+                            className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-xs ring-1 ring-inset ${
+                              s.market === "TW"
+                                ? "bg-red-50 dark:bg-red-950/20 text-red-700 ring-red-600/20"
+                                : "bg-blue-50 text-blue-700 ring-blue-600/20"
+                            }`}
+                          >
+                            {s.market === "TW" ? "台" : "美"}
                           </span>
-                        </span>
-                        <span className="sensitive shrink-0 text-sm font-medium text-gray-950 dark:text-gray-50">
+                          <span className="min-w-0 flex-1 truncate text-sm text-gray-950 dark:text-gray-50">
+                            {s.name || s.symbol}
+                            <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
+                              {s.symbol}
+                            </span>
+                          </span>
+                        </div>
+                        <span className="sensitive shrink-0 text-sm font-medium text-gray-950 dark:text-gray-50 sm:text-right">
                           {s.totalShares.toLocaleString("zh-TW")} 股
                         </span>
                       </div>
-                      <p className="sensitive mt-1 text-xs text-gray-400 dark:text-gray-500">
-                        市值 {ntd(s.valueTwd)} · 每股配息{" "}
-                        {s.dividendPerShare === null
-                          ? "—"
-                          : `${s.dividendPerShare.toFixed(2)}${
-                              s.market === "US" ? " USD" : " 元"
-                            }`}
-                        {s.dividendTwd !== null && (
-                          <>
-                            {" "}
-                            · 預估年現金股利{" "}
-                            <span className="font-medium text-gray-950 dark:text-gray-50">
-                              {ntd(s.dividendTwd)}
-                            </span>
-                          </>
-                        )}
+                      {/* 手機第二行：市值／配息／年股利串成一行；桌面各自成欄 */}
+                      <p className="sensitive mt-1 text-xs text-gray-400 dark:text-gray-500 sm:contents">
+                        <span className="sm:text-right sm:text-sm sm:text-gray-950 sm:dark:text-gray-50">
+                          <span className="sm:hidden">市值 </span>
+                          {ntd(s.valueTwd)}
+                        </span>
+                        <span className="sm:hidden"> · </span>
+                        <span className="sm:text-right">
+                          <span className="sm:hidden">每股配息 </span>
+                          {s.dividendPerShare === null
+                            ? "—"
+                            : `${s.dividendPerShare.toFixed(2)}${
+                                s.market === "US" ? " USD" : " 元"
+                              }`}
+                        </span>
+                        <span className="sm:hidden"> · </span>
+                        <span className="sm:text-right">
+                          <span className="sm:hidden">預估年現金股利 </span>
+                          <span className="font-medium text-gray-950 dark:text-gray-50">
+                            {s.dividendTwd === null ? "—" : ntd(s.dividendTwd)}
+                          </span>
+                        </span>
                       </p>
                     </li>
                   ))}
@@ -472,19 +490,14 @@ export default async function AssetsPage({
                             >
                               {h.market === "TW" ? "台" : "美"}
                             </span>
-                            <span className="min-w-0 flex-1 sm:order-2">
-                              <span className="block truncate text-sm text-gray-950 dark:text-gray-50">
-                                {h.name || h.symbol}
-                                <span className="ml-1 font-mono text-xs text-gray-400 dark:text-gray-500">
-                                  {h.symbol}
-                                </span>
-                              </span>
-                              <span className="block text-xs text-gray-400 dark:text-gray-500">
-                                {h.broker} · 現價 {h.price.toLocaleString("zh-TW")}
-                                {h.market === "US" && " USD"}
-                                {h.priceStale && "（快取）"}
-                              </span>
-                            </span>
+                            <HoldingLabel
+                              name={h.name}
+                              symbol={h.symbol}
+                              broker={h.broker}
+                              priceText={`${h.price.toLocaleString("zh-TW")}${
+                                h.market === "US" ? " USD" : ""
+                              }${h.priceStale ? "（快取）" : ""}`}
+                            />
                           </div>
                           {/* 手機第二行：股數＋市值＋刪除 */}
                           <div className="flex items-center gap-2 sm:contents">
