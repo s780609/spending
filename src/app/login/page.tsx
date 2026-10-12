@@ -1,4 +1,5 @@
 import { login } from "@/app/actions";
+import { SubmitButton } from "@/app/submit-button";
 
 export default async function LoginPage({
   searchParams,
@@ -30,12 +31,12 @@ export default async function LoginPage({
         {error && (
           <p className="mt-2 text-sm text-red-600">密碼錯誤，請再試一次</p>
         )}
-        <button
-          type="submit"
+        <SubmitButton
+          pendingLabel="登入中…"
           className="mt-6 w-full rounded-full bg-gray-950 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
         >
           登入
-        </button>
+        </SubmitButton>
       </form>
     </main>
   );
