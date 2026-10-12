@@ -2,6 +2,7 @@ import { desc, isNotNull, ne, notLike, sql } from "drizzle-orm";
 import Link from "next/link";
 import { NetWorthChart } from "@/app/asset-charts";
 import { MonthlyTrend } from "@/app/charts";
+import { NavPendingSkeleton } from "@/app/nav-pending-skeleton";
 import { getDb } from "@/db";
 import {
   expenses,
@@ -30,6 +31,7 @@ function SectionHeader({ title, href }: { title: string; href: string }) {
         className="rounded-full px-3 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
       >
         前往 →
+        <NavPendingSkeleton topSelector="header" className="py-8" />
       </Link>
     </div>
   );
