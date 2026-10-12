@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { logout } from "@/app/actions";
+import { NavPendingSkeleton } from "@/app/nav-pending-skeleton";
 
 const LINKS = [
   { href: "/", label: "總覽", icon: DashboardIcon },
@@ -64,6 +65,7 @@ export function Nav() {
                 >
                   <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 1.8} />
                   {link.label}
+                  <NavPendingSkeleton topSelector="header" className="py-8" />
                 </Link>
               );
             })}
@@ -99,6 +101,7 @@ export function Nav() {
                 >
                   {link.label}
                 </span>
+                <NavPendingSkeleton topSelector="header" className="py-8" />
               </Link>
             );
           })}

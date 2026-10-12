@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavPendingSkeleton } from "@/app/nav-pending-skeleton";
 
 /** 子功能分段式頁籤：依目前路徑判斷作用中項目，手機滿版等寬、桌面合身寬度 */
 export function SubTabs({
@@ -17,7 +18,7 @@ export function SubTabs({
     )?.key;
 
   return (
-    <div className="flex w-full rounded-full bg-gray-950/[0.04] dark:bg-white/[0.04] p-1 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5 sm:w-fit">
+    <div data-subtabs className="flex w-full rounded-full bg-gray-950/[0.04] dark:bg-white/[0.04] p-1 ring-1 ring-inset ring-gray-950/5 dark:ring-white/5 sm:w-fit">
       {tabs.map((tab) => (
         <Link
           key={tab.key}
@@ -29,6 +30,7 @@ export function SubTabs({
           }`}
         >
           {tab.label}
+          <NavPendingSkeleton topSelector="[data-subtabs]" />
         </Link>
       ))}
     </div>
