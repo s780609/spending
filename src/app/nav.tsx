@@ -82,7 +82,7 @@ export function Nav() {
       </header>
 
       {/* 手機底部分頁列 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-gray-900 pb-[env(safe-area-inset-bottom)] ring-1 ring-gray-950/10 dark:ring-white/10 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-gray-900 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] ring-1 ring-gray-950/10 dark:ring-white/10 sm:hidden">
         <div className="flex">
           {LINKS.map((link) => {
             const active = isActive(pathname, link.href);
