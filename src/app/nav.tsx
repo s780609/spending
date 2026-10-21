@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { logout } from "@/app/actions";
 import { NavPendingSkeleton } from "@/app/nav-pending-skeleton";
 
@@ -70,14 +70,17 @@ export function Nav() {
               );
             })}
           </div>
-          <form action={logout} className="ml-auto">
-            <button
-              type="submit"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white"
-            >
-              登出
-            </button>
-          </form>
+          <div className="ml-auto flex items-center gap-3">
+            <RefreshButton />
+            <form action={logout}>
+              <button
+                type="submit"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white"
+              >
+                登出
+              </button>
+            </form>
+          </div>
         </nav>
       </header>
 
@@ -108,6 +111,25 @@ export function Nav() {
         </div>
       </nav>
     </>
+  );
+}
+
+/** 重新抓取目前頁面的伺服器資料，免得要切到別頁再切回來才看到最新內容 */
+function RefreshButton() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      type="button"
+      onClick={() => startTransition(() => router.refresh())}
+      disabled={isPending}
+      aria-label="重新整理"
+      title="重新整理"
+      className="-my-1 rounded-full p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-950/5 dark:hover:bg-white/5 hover:text-gray-950 dark:hover:text-white disabled:opacity-60"
+    >
+      <RefreshIcon className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
+    </button>
   );
 }
 
@@ -173,6 +195,15 @@ function ScooterIcon(props: IconProps) {
       <circle cx="18" cy="17" r="3" />
       <path d="M9 17h6l1.5-7H19" />
       <path d="M16.5 10 14 5h-3" />
+    </svg>
+  );
+}
+
+function RefreshIcon(props: IconProps) {
+  return (
+    <svg {...iconProps(props)} aria-hidden>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
     </svg>
   );
 }
