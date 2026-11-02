@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { expenses, recurringExpenses } from "@/db/schema";
+import { backfillRent2026 } from "./backfill-rent-2026";
 import { todayTaipei } from "./dates";
 import { dueDates, type RecurringFrequency } from "./recurring";
 
@@ -47,4 +48,6 @@ export async function generateRecurringExpenses(): Promise<void> {
       })),
     );
   }
+
+  await backfillRent2026();
 }
