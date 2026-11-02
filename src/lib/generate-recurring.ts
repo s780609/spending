@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { expenses, recurringExpenses } from "@/db/schema";
+import { cleanupRentBackfill2026 } from "./cleanup-rent-backfill-2026";
 import { todayTaipei } from "./dates";
 import { dueDates, type RecurringFrequency } from "./recurring";
 
@@ -47,4 +48,7 @@ export async function generateRecurringExpenses(): Promise<void> {
       })),
     );
   }
+
+  // 一次性清除：上一版誤補進個人記帳的 2026 年 1、2 月房租（跑過一次後可移除）
+  await cleanupRentBackfill2026();
 }
