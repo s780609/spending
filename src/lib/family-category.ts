@@ -34,6 +34,30 @@ export const MERGED_EXCLUDED_BANK_CATEGORIES: readonly string[] = [
 /** 圖表「合併」檢視：信用卡側排除的分類（繳款列不算消費） */
 export const MERGED_EXCLUDED_CARD_CATEGORIES: readonly string[] = ["卡費"];
 
+export type FamilySource = "all" | "bank" | "card";
+
+/** 依來源挑出圖表用的「月 × 分類」加總；合併＝帳戶排除 MERGED_EXCLUDED_BANK_CATEGORIES＋信用卡排除 MERGED_EXCLUDED_CARD_CATEGORIES */
+export function familyEntriesBySource<T extends { category: string }>(
+  bank: readonly T[],
+  card: readonly T[],
+  source: FamilySource,
+): T[] {
+  if (source === "bank") {
+    return [...bank];
+  }
+  if (source === "card") {
+    return [...card];
+  }
+  return [
+    ...bank.filter(
+      (entry) => !MERGED_EXCLUDED_BANK_CATEGORIES.includes(entry.category),
+    ),
+    ...card.filter(
+      (entry) => !MERGED_EXCLUDED_CARD_CATEGORIES.includes(entry.category),
+    ),
+  ];
+}
+
 export function isFamilyCategory(value: string): value is FamilyCategory {
   return (FAMILY_CATEGORIES as readonly string[]).includes(value);
 }
