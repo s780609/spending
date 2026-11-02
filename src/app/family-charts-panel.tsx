@@ -11,10 +11,10 @@ import {
   IDLE_PILL,
   MonthlyTrend,
 } from "@/app/charts";
+import { FamilyYearSummary } from "@/app/family-year-summary";
 import {
   FAMILY_CATEGORIES,
-  MERGED_EXCLUDED_BANK_CATEGORIES,
-  MERGED_EXCLUDED_CARD_CATEGORIES,
+  familyEntriesBySource,
 } from "@/lib/family-category";
 
 interface MonthCategoryEntry {
@@ -43,21 +43,7 @@ export function FamilyChartsPanel({
   const [trendSource, setTrendSource] = useState<Source>("all");
 
   // 與圓餅圖同口徑：合併＝帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費
-  const trendEntries =
-    trendSource === "bank"
-      ? bank
-      : trendSource === "card"
-        ? card
-        : [
-            ...bank.filter(
-              (entry) =>
-                !MERGED_EXCLUDED_BANK_CATEGORIES.includes(entry.category),
-            ),
-            ...card.filter(
-              (entry) =>
-                !MERGED_EXCLUDED_CARD_CATEGORIES.includes(entry.category),
-            ),
-          ];
+  const trendEntries = familyEntriesBySource(bank, card, trendSource);
   const trendByMonth = new Map<string, number>();
   for (const entry of trendEntries) {
     trendByMonth.set(
@@ -83,7 +69,14 @@ export function FamilyChartsPanel({
 
   return (
     <>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <FamilyYearSummary
+        key={month.slice(0, 4)}
+        bank={bank}
+        card={card}
+        initialYear={month.slice(0, 4)}
+        onDetail={({ title, ...params }) => openDetail(title, params)}
+      />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
           <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">分類佔比</h2>
           <FamilySpendingPie

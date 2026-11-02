@@ -23,10 +23,7 @@ import {
 } from "@/app/chart-theme";
 import { CATEGORIES } from "@/lib/categories";
 import { shiftMonth } from "@/lib/dates";
-import {
-  MERGED_EXCLUDED_BANK_CATEGORIES,
-  MERGED_EXCLUDED_CARD_CATEGORIES,
-} from "@/lib/family-category";
+import { familyEntriesBySource } from "@/lib/family-category";
 
 /** 與 CATEGORIES 順序對應，固定每個分類的顏色 */
 const PALETTE = [
@@ -44,7 +41,7 @@ const PALETTE = [
   "#9ca3af", // 未分類
 ];
 
-function colorOf(category: string, categories: readonly string[]): string {
+export function colorOf(category: string, categories: readonly string[]): string {
   const index = categories.indexOf(category);
   return PALETTE[index >= 0 ? index % PALETTE.length : PALETTE.length - 1];
 }
@@ -91,6 +88,56 @@ const PIE_RANGES = [
   { label: "全部", months: Number.POSITIVE_INFINITY },
 ];
 
+/** 分類甜甜圈圖（只畫正值）；空資料顯示提示文字 */
+export function CategoryDonut({
+  data,
+  categories,
+  onSliceClick,
+  showLegend = true,
+}: {
+  data: { name: string; value: number }[];
+  categories: readonly string[];
+  onSliceClick?: (category: string) => void;
+  showLegend?: boolean;
+}) {
+  const shown = data.filter((entry) => entry.value > 0);
+  if (shown.length === 0) {
+    return (
+      <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
+        這個區間沒有資料
+      </p>
+    );
+  }
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <PieChart>
+        <Pie
+          data={shown}
+          dataKey="value"
+          nameKey="name"
+          innerRadius={50}
+          outerRadius={85}
+          paddingAngle={2}
+          cursor={onSliceClick ? "pointer" : undefined}
+          onClick={(entry: { name?: string }) => {
+            if (onSliceClick && entry?.name) {
+              onSliceClick(entry.name);
+            }
+          }}
+        >
+          {shown.map((entry) => (
+            <Cell key={entry.name} fill={colorOf(entry.name, categories)} />
+          ))}
+        </Pie>
+        <Tooltip formatter={formatNtd} />
+        {showLegend && (
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+        )}
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function CategoryPie({
   data,
   month,
@@ -125,40 +172,15 @@ export function CategoryPie({
   return (
     <div>
       <RangeButtons options={PIE_RANGES} value={months} onChange={setMonths} />
-      {pieData.length === 0 ? (
-        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
-          這個區間沒有資料
-        </p>
-      ) : (
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={50}
-              outerRadius={85}
-              paddingAngle={2}
-              cursor={onSliceClick ? "pointer" : undefined}
-              onClick={(entry: { name?: string }) => {
-                if (onSliceClick && entry?.name) {
-                  onSliceClick(entry.name, start, month);
-                }
-              }}
-            >
-              {pieData.map((entry) => (
-                <Cell key={entry.name} fill={colorOf(entry.name, categories)} />
-              ))}
-            </Pie>
-            <Tooltip formatter={formatNtd} />
-            <Legend
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: 12 }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      )}
+      <CategoryDonut
+        data={pieData}
+        categories={categories}
+        onSliceClick={
+          onSliceClick
+            ? (category) => onSliceClick(category, start, month)
+            : undefined
+        }
+      />
     </div>
   );
 }
@@ -198,21 +220,7 @@ export function FamilySpendingPie({
   const [source, setSource] =
     useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
 
-  const data =
-    source === "bank"
-      ? bank
-      : source === "card"
-        ? card
-        : [
-            ...bank.filter(
-              (entry) =>
-                !MERGED_EXCLUDED_BANK_CATEGORIES.includes(entry.category),
-            ),
-            ...card.filter(
-              (entry) =>
-                !MERGED_EXCLUDED_CARD_CATEGORIES.includes(entry.category),
-            ),
-          ];
+  const data = familyEntriesBySource(bank, card, source);
 
   return (
     <div>
