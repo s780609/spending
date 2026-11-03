@@ -25,7 +25,6 @@ import {
   familyStatements,
   familyTransactions,
 } from "@/db/schema";
-import { backfillFamilyRent2026 } from "@/lib/backfill-family-rent-2026";
 import { shiftMonth, todayTaipei } from "@/lib/dates";
 import {
   FAMILY_CATEGORIES,
@@ -46,8 +45,6 @@ export default async function FamilyPage({
 }) {
   const { month: monthParam } = await searchParams;
   const db = getDb();
-  // 一次性補帳：2026 年 1、2 月房租（確認補上後可移除）
-  await backfillFamilyRent2026();
 
   const [latest] = await db
     .select()
