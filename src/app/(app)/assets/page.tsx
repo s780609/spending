@@ -17,7 +17,7 @@ import { networthSnapshots } from "@/db/schema";
 import { recordDailySnapshot } from "@/lib/balance-sheet";
 import { todayTaipei } from "@/lib/dates";
 import { pledgeExtensionDeadline } from "@/lib/loan-math";
-import { projectMonthlyDividends } from "@/lib/dividend-schedule";
+import { dividendTwd, projectMonthlyDividends } from "@/lib/dividend-schedule";
 import { fetchDividendHistory } from "@/lib/prices";
 
 export const dynamic = "force-dynamic";
@@ -168,12 +168,11 @@ export default async function AssetsPage({
     return {
       ...g,
       dividendPerShare: dps,
+      // 美股扣 30% 預扣稅後的實際入帳金額
       dividendTwd:
         dps === null
           ? null
-          : Math.round(
-              g.totalShares * dps * (g.market === "US" ? sheet.usdTwd : 1),
-            ),
+          : dividendTwd(g.totalShares, dps, g.market, sheet.usdTwd),
     };
   });
   const totalDividendTwd = symbolSummary.reduce(
@@ -357,7 +356,7 @@ export default async function AssetsPage({
             defaultView={brokerFilter || symbolFilter || sort ? "detail" : "summary"}
             summary={
               <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-                <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算；美股預估年股利已扣 30% 預扣稅</p>
                 {/* 桌面表頭；手機每列自帶標籤 */}
                 <div className="mt-2 hidden text-xs text-gray-400 dark:text-gray-500 sm:grid sm:grid-cols-[1fr_5rem_7rem_6rem_7rem] sm:items-center sm:gap-3">
                   <span>名稱</span>

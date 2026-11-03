@@ -11,6 +11,22 @@ const PAY_LAG_DAYS = { TW: 24, US_ETF: 4, US_STOCK: 21 } as const;
 /** 推估的除息日與實際除息日相差在此天數內，視為同一期配息（避免重複計入） */
 const SAME_PAYOUT_DAYS = 20;
 
+/** 美股股利預扣稅率（台灣居民適用 30%） */
+export const US_WITHHOLDING_RATE = 0.3;
+
+/** 股利換算台幣入帳金額：美股以匯率換算並扣除 30% 預扣稅，台股照原額 */
+export function dividendTwd(
+  shares: number,
+  perShare: number,
+  market: string,
+  usdTwd: number,
+): number {
+  if (market === "US") {
+    return Math.round(shares * perShare * usdTwd * (1 - US_WITHHOLDING_RATE));
+  }
+  return Math.round(shares * perShare);
+}
+
 /** 一年配息達此次數（季配以上）時，推估金額用最近一期；否則用去年同期 */
 const FREQUENT_PAYOUTS = 4;
 
@@ -32,8 +48,9 @@ export interface MonthlyDividendItem {
   exDate: string;
   /** 推估發放日 YYYY-MM-DD */
   payDate: string;
-  /** 每股金額（原幣別） */
+  /** 每股金額（原幣別、稅前） */
   perShare: number;
+  /** 入帳台幣金額（美股為扣 30% 預扣稅後） */
   amountTwd: number;
   /** true＝依去年同期推估的除息；false＝已除息（實際紀錄），僅發放日為估計 */
   projected: boolean;
@@ -81,7 +98,7 @@ export function estimatePayDate(
 }
 
 /**
- * 推估未來 months 個月（含 today 當月）每月的股利入帳（以台幣計、稅前）。
+ * 推估未來 months 個月（含 today 當月）每月的股利入帳（以台幣計，美股為扣 30% 預扣稅後）。
  * - 已除息、推估發放日落在當月或之後的配息：照實際金額列入
  * - 近 12 個月每一期配息往後推一年，作為下一次同期配息；
  *   金額季配以上用最近一期（反映調升），半年／年配用去年同期（上下半年金額常不同）
@@ -106,7 +123,6 @@ export function projectMonthlyDividends(
     if (holding.shares <= 0 || holding.events.length === 0) {
       continue;
     }
-    const fx = holding.market === "US" ? usdTwd : 1;
     const latestAmount = holding.events[holding.events.length - 1].amount;
     const frequent = holding.events.length >= FREQUENT_PAYOUTS;
 
@@ -123,7 +139,7 @@ export function projectMonthlyDividends(
         exDate,
         payDate,
         perShare,
-        amountTwd: Math.round(holding.shares * perShare * fx),
+        amountTwd: dividendTwd(holding.shares, perShare, holding.market, usdTwd),
         projected,
       });
     };

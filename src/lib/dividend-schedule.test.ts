@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dividendTwd,
   estimatePayDate,
   projectMonthlyDividends,
   type DividendHolding,
@@ -28,6 +29,18 @@ describe("estimatePayDate", () => {
   it("美股 ETF 約 4 天、個股約 3 週", () => {
     expect(estimatePayDate("2026-12-21", "US", true)).toBe("2026-12-25");
     expect(estimatePayDate("2026-11-19", "US", false)).toBe("2026-12-10");
+  });
+});
+
+describe("dividendTwd", () => {
+  it("台股照原額", () => {
+    expect(dividendTwd(5081, 3.88, "TW", 32)).toBe(19714);
+  });
+
+  it("美股換匯並扣 30% 預扣稅", () => {
+    expect(dividendTwd(11, 0.98, "US", 32.66)).toBe(
+      Math.round(11 * 0.98 * 32.66 * 0.7),
+    );
   });
 });
 
@@ -157,7 +170,10 @@ describe("projectMonthlyDividends", () => {
     );
     const dec = result.find((m) => m.month === "2026-12");
     expect(dec?.items.map((i) => i.symbol)).toEqual(["MSFT", "VOO"]);
-    expect(dec?.totalTwd).toBe(Math.round(10 * 0.98 * 30) + Math.round(100 * 1.9 * 30));
+    // 美股扣 30% 預扣稅
+    expect(dec?.totalTwd).toBe(
+      Math.round(10 * 0.98 * 30 * 0.7) + Math.round(100 * 1.9 * 30 * 0.7),
+    );
   });
 
   it("推估日與既有紀錄相近時視為同一期，不重複計入", () => {

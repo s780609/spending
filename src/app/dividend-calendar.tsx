@@ -42,7 +42,7 @@ export function DividendCalendar({
         </p>
       </div>
       <p className="mt-1 text-xs leading-5 text-gray-400 dark:text-gray-500 text-pretty">
-        依近 12 個月除息紀錄往後推一年；發放日為估計（台股除息後約 24 天、美股 ETF 約 4 天、美股個股約 3 週），以現有股數計算，美股為稅前金額（未扣 30% 預扣稅）
+        依近 12 個月除息紀錄往後推一年；發放日為估計（台股除息後約 24 天、美股 ETF 約 4 天、美股個股約 3 週），以現有股數計算，美股金額已扣 30% 預扣稅
         {incomplete && "；部分代號抓不到配息"}。
       </p>
 
