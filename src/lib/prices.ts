@@ -43,7 +43,25 @@ export async function fetchUsdTwd(): Promise<number | null> {
   return fetchYahooPrice("TWD=X");
 }
 
-async function fetchYahooDividendSum(symbol: string): Promise<number | null> {
+/** 單次配息事件：除息日（YYYY-MM-DD，台北時區）與每股金額（原幣別） */
+export interface DividendEvent {
+  exDate: string;
+  amount: number;
+}
+
+/** 近 12 個月配息紀錄；isEtf 用於推估發放日（美股 ETF 與個股發放間隔不同） */
+export interface DividendHistory {
+  events: DividendEvent[];
+  isEtf: boolean;
+}
+
+const EX_DATE_FORMAT = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Taipei",
+});
+
+async function fetchYahooDividends(
+  symbol: string,
+): Promise<DividendHistory | null> {
   try {
     const res = await fetch(
       `${YAHOO_CHART}${encodeURIComponent(symbol)}?range=1y&interval=1mo&events=div`,
@@ -60,36 +78,48 @@ async function fetchYahooDividendSum(symbol: string): Promise<number | null> {
     if (!result) {
       return null;
     }
-    // 近一年無配息時 events 不存在，視為 0（與「抓失敗 null」區分）
+    // 近一年無配息時 events 不存在，視為空陣列（與「抓失敗 null」區分）
     const dividends = result.events?.dividends;
-    let sum = 0;
+    const events: DividendEvent[] = [];
     if (dividends && typeof dividends === "object") {
       for (const event of Object.values(dividends)) {
-        const amount = (event as { amount?: unknown })?.amount;
-        if (typeof amount === "number" && Number.isFinite(amount)) {
-          sum += amount;
+        const { amount, date } = (event ?? {}) as {
+          amount?: unknown;
+          date?: unknown;
+        };
+        if (
+          typeof amount === "number" &&
+          Number.isFinite(amount) &&
+          typeof date === "number" &&
+          Number.isFinite(date)
+        ) {
+          events.push({
+            exDate: EX_DATE_FORMAT.format(new Date(date * 1000)),
+            amount,
+          });
         }
       }
     }
-    return sum;
+    events.sort((a, b) => a.exDate.localeCompare(b.exDate));
+    return { events, isEtf: result.meta?.instrumentType === "ETF" };
   } catch {
     return null;
   }
 }
 
 /**
- * 近 12 個月每股現金股利合計（原幣別），作為年度配息估算。
- * 台股代號補後綴邏輯同 fetchQuote；抓不到回 null，無配息回 0。
+ * 近 12 個月配息紀錄（每股、原幣別），作為年度與各月配息估算。
+ * 台股代號補後綴邏輯同 fetchQuote；抓不到回 null，無配息回空陣列。
  */
-export async function fetchAnnualDividend(
+export async function fetchDividendHistory(
   market: string,
   symbol: string,
-): Promise<number | null> {
+): Promise<DividendHistory | null> {
   if (market === "TW" && !symbol.includes(".")) {
     return (
-      (await fetchYahooDividendSum(`${symbol}.TW`)) ??
-      fetchYahooDividendSum(`${symbol}.TWO`)
+      (await fetchYahooDividends(`${symbol}.TW`)) ??
+      fetchYahooDividends(`${symbol}.TWO`)
     );
   }
-  return fetchYahooDividendSum(symbol);
+  return fetchYahooDividends(symbol);
 }

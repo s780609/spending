@@ -5,6 +5,7 @@ import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
+import { DividendCalendar } from "@/app/dividend-calendar";
 import { HoldingLabel } from "@/app/holding-label";
 import { HoldingsView } from "@/app/holdings-view";
 import { PrivacyShield } from "@/app/privacy-shield";
@@ -16,7 +17,8 @@ import { networthSnapshots } from "@/db/schema";
 import { recordDailySnapshot } from "@/lib/balance-sheet";
 import { todayTaipei } from "@/lib/dates";
 import { pledgeExtensionDeadline } from "@/lib/loan-math";
-import { fetchAnnualDividend } from "@/lib/prices";
+import { projectMonthlyDividends } from "@/lib/dividend-schedule";
+import { fetchDividendHistory } from "@/lib/prices";
 
 export const dynamic = "force-dynamic";
 
@@ -154,11 +156,15 @@ export default async function AssetsPage({
     }
   }
   const groups = [...symbolGroups.values()];
-  const dividendRates = await Promise.all(
-    groups.map((g) => fetchAnnualDividend(g.market, g.symbol)),
+  const dividendHistories = await Promise.all(
+    groups.map((g) => fetchDividendHistory(g.market, g.symbol)),
   );
   const symbolSummary = groups.map((g, i) => {
-    const dps = dividendRates[i];
+    const history = dividendHistories[i];
+    const dps =
+      history === null
+        ? null
+        : history.events.reduce((sum, event) => sum + event.amount, 0);
     return {
       ...g,
       dividendPerShare: dps,
@@ -175,6 +181,26 @@ export default async function AssetsPage({
     0,
   );
   const dividendIncomplete = symbolSummary.some((s) => s.dividendTwd === null);
+  // 預估各月股利入帳：近 12 個月除息紀錄往後推一年
+  const monthlyDividends = projectMonthlyDividends(
+    groups.flatMap((g, i) => {
+      const history = dividendHistories[i];
+      return history
+        ? [
+            {
+              symbol: g.symbol,
+              name: g.name,
+              market: g.market,
+              shares: g.totalShares,
+              isEtf: history.isEtf,
+              events: history.events,
+            },
+          ]
+        : [];
+    }),
+    todayTaipei(),
+    sheet.usdTwd,
+  );
 
   const snapshots = await getDb()
     .select()
@@ -527,6 +553,13 @@ export default async function AssetsPage({
                 )}
               </>
             }
+          />
+        )}
+
+        {sheet.holdings.length > 0 && (
+          <DividendCalendar
+            months={monthlyDividends}
+            incomplete={dividendIncomplete}
           />
         )}
 
