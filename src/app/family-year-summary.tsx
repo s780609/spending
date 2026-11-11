@@ -3,8 +3,7 @@
 import { useState } from "react";
 import {
   ACTIVE_PILL,
-  CategoryDonut,
-  colorOf,
+  CategoryBreakdown,
   IDLE_PILL,
   MonthlyTrend,
   YearPicker,
@@ -81,7 +80,6 @@ export function FamilyYearSummary({
     .map(([name, value]) => ({ name, value }))
     .filter((row) => Math.round(row.value) !== 0)
     .sort((a, b) => b.value - a.value);
-  const positiveTotal = rows.reduce((s, r) => s + Math.max(r.value, 0), 0);
   const sortedMonths = [...months].sort();
   const coverage =
     sortedMonths.length === 0
@@ -140,54 +138,11 @@ export function FamilyYearSummary({
         </div>
       </div>
 
-      <div className="mt-2 grid items-center gap-3 sm:grid-cols-2">
-        <CategoryDonut
-          data={rows}
-          categories={FAMILY_CATEGORIES}
-          onSliceClick={openCategory}
-          showLegend={false}
-        />
-        {rows.length > 0 && (
-          <ul className="space-y-0.5">
-            {rows.map((row) => {
-              const share =
-                positiveTotal > 0 ? Math.max(row.value, 0) / positiveTotal : 0;
-              return (
-                <li key={row.name}>
-                  <button
-                    type="button"
-                    onClick={() => openCategory(row.name)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-gray-950/5 dark:hover:bg-white/5"
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{
-                        backgroundColor: colorOf(row.name, FAMILY_CATEGORIES),
-                      }}
-                      aria-hidden
-                    />
-                    <span className="min-w-0 flex-1 truncate text-gray-950 dark:text-gray-50">
-                      {row.name}
-                    </span>
-                    <span className="w-12 shrink-0 text-right text-xs tabular-nums text-gray-400 dark:text-gray-500">
-                      {(share * 100).toFixed(1)}%
-                    </span>
-                    <span
-                      className={`w-24 shrink-0 text-right tabular-nums font-medium ${
-                        row.value < 0
-                          ? "text-green-600"
-                          : "text-gray-950 dark:text-gray-50"
-                      }`}
-                    >
-                      {fmt(row.value)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      <CategoryBreakdown
+        rows={rows}
+        categories={FAMILY_CATEGORIES}
+        onSelect={openCategory}
+      />
 
       {yearTrend.length > 0 && (
         <div className="mt-3">

@@ -21,9 +21,6 @@ import {
   type ChartTheme,
   useChartTheme,
 } from "@/app/chart-theme";
-import { CATEGORIES } from "@/lib/categories";
-import { shiftMonth } from "@/lib/dates";
-import { familyEntriesBySource } from "@/lib/family-category";
 
 /** 與 CATEGORIES 順序對應，固定每個分類的顏色 */
 const PALETTE = [
@@ -54,31 +51,6 @@ export const ACTIVE_PILL =
   "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
 export const IDLE_PILL =
   "rounded-full px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
-
-function RangeButtons({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; months: number }[];
-  value: number;
-  onChange: (months: number) => void;
-}) {
-  return (
-    <div className="mt-1 flex flex-wrap gap-1.5">
-      {options.map((option) => (
-        <button
-          key={option.label}
-          type="button"
-          onClick={() => onChange(option.months)}
-          className={value === option.months ? ACTIVE_PILL : IDLE_PILL}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 /** 年份切換按鈕（由新到舊） */
 export function YearPicker({
@@ -122,14 +94,6 @@ export function yearMonthlyTotals(
     return { month: key, total: byMonth.get(key) ?? 0 };
   });
 }
-
-const PIE_RANGES = [
-  { label: "本月", months: 1 },
-  { label: "近 3 個月", months: 3 },
-  { label: "近 6 個月", months: 6 },
-  { label: "近 12 個月", months: 12 },
-  { label: "全部", months: Number.POSITIVE_INFINITY },
-];
 
 /** 分類甜甜圈圖（只畫正值）；空資料顯示提示文字 */
 export function CategoryDonut({
@@ -181,125 +145,80 @@ export function CategoryDonut({
   );
 }
 
-export function CategoryPie({
-  data,
-  month,
-  categories = CATEGORIES,
-  fixedMonths,
-  onSliceClick,
-}: {
-  /** 每月 × 分類加總 */
-  data: { month: string; category: string; total: number }[];
-  /** 目前檢視的月份 YYYY-MM，區間以此為終點 */
-  month: string;
-  /** 分類清單（決定顏色對應），預設個人記帳分類 */
-  categories?: readonly string[];
-  /** 固定區間月數（隱藏區間切換按鈕），未設定則可切換 */
-  fixedMonths?: number;
-  /** 點切片時回呼（分類、區間起點 YYYY-MM 或空字串、區間終點） */
-  onSliceClick?: (category: string, startMonth: string, endMonth: string) => void;
-}) {
-  const [selectedMonths, setMonths] = useState(1);
-  const months = fixedMonths ?? selectedMonths;
-
-  const start = Number.isFinite(months) ? shiftMonth(month, -(months - 1)) : "";
+/** 依月份條件加總「月 × 分類」，去掉四捨五入為 0 的分類，由大到小排序 */
+export function categoryRows(
+  entries: readonly { month: string; category: string; total: number }[],
+  matchMonth: (month: string) => boolean,
+): { name: string; value: number }[] {
   const sums = new Map<string, number>();
-  for (const entry of data) {
-    if (entry.month <= month && entry.month >= start) {
-      sums.set(
-        entry.category,
-        (sums.get(entry.category) ?? 0) + entry.total,
-      );
+  for (const entry of entries) {
+    if (matchMonth(entry.month)) {
+      sums.set(entry.category, (sums.get(entry.category) ?? 0) + entry.total);
     }
   }
-  const pieData = [...sums.entries()]
+  return [...sums.entries()]
     .map(([name, value]) => ({ name, value }))
+    .filter((row) => Math.round(row.value) !== 0)
     .sort((a, b) => b.value - a.value);
-
-  return (
-    <div>
-      {fixedMonths === undefined && (
-        <RangeButtons options={PIE_RANGES} value={months} onChange={setMonths} />
-      )}
-      <CategoryDonut
-        data={pieData}
-        categories={categories}
-        onSliceClick={
-          onSliceClick
-            ? (category) => onSliceClick(category, start, month)
-            : undefined
-        }
-      />
-    </div>
-  );
 }
 
-interface MonthCategoryEntry {
-  month: string;
-  category: string;
-  total: number;
-}
-
-const FAMILY_SOURCES = [
-  { label: "合併", value: "all" },
-  { label: "帳戶", value: "bank" },
-  { label: "信用卡", value: "card" },
-] as const;
-
-/** 家庭分類佔比：可切換合併/帳戶/信用卡；合併＝帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費 */
-export function FamilySpendingPie({
-  bank,
-  card,
-  month,
+/** 分類甜甜圈圖＋分類明細清單（金額、占比），點切片或清單列都會回呼該分類 */
+export function CategoryBreakdown({
+  rows,
   categories,
-  fixedMonths,
-  onDetail,
+  onSelect,
 }: {
-  bank: MonthCategoryEntry[];
-  card: MonthCategoryEntry[];
-  month: string;
+  rows: { name: string; value: number }[];
   categories: readonly string[];
-  /** 固定區間月數（隱藏區間切換按鈕） */
-  fixedMonths?: number;
-  /** 點切片查明細 */
-  onDetail?: (params: {
-    source: "all" | "bank" | "card";
-    category: string;
-    startMonth: string;
-    endMonth: string;
-  }) => void;
+  onSelect: (category: string) => void;
 }) {
-  const [source, setSource] =
-    useState<(typeof FAMILY_SOURCES)[number]["value"]>("all");
-
-  const data = familyEntriesBySource(bank, card, source);
-
+  const positiveTotal = rows.reduce((s, r) => s + Math.max(r.value, 0), 0);
   return (
-    <div>
-      <div className="mt-1 flex flex-wrap gap-1.5">
-        {FAMILY_SOURCES.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setSource(option.value)}
-            className={source === option.value ? ACTIVE_PILL : IDLE_PILL}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-      <CategoryPie
-        data={data}
-        month={month}
+    <div className="mt-2 grid items-center gap-3 sm:grid-cols-2">
+      <CategoryDonut
+        data={rows}
         categories={categories}
-        fixedMonths={fixedMonths}
-        onSliceClick={
-          onDetail
-            ? (category, startMonth, endMonth) =>
-                onDetail({ source, category, startMonth, endMonth })
-            : undefined
-        }
+        onSliceClick={onSelect}
+        showLegend={false}
       />
+      {rows.length > 0 && (
+        <ul className="space-y-0.5">
+          {rows.map((row) => {
+            const share =
+              positiveTotal > 0 ? Math.max(row.value, 0) / positiveTotal : 0;
+            return (
+              <li key={row.name}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(row.name)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-gray-950/5 dark:hover:bg-white/5"
+                >
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: colorOf(row.name, categories) }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 truncate text-gray-950 dark:text-gray-50">
+                    {row.name}
+                  </span>
+                  <span className="w-12 shrink-0 text-right text-xs tabular-nums text-gray-400 dark:text-gray-500">
+                    {(share * 100).toFixed(1)}%
+                  </span>
+                  <span
+                    className={`w-24 shrink-0 text-right tabular-nums font-medium ${
+                      row.value < 0
+                        ? "text-green-600"
+                        : "text-gray-950 dark:text-gray-50"
+                    }`}
+                  >
+                    {Math.round(row.value).toLocaleString("zh-TW")}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

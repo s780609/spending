@@ -6,9 +6,8 @@ import {
   type ExpenseDetailRow,
 } from "@/app/actions";
 import {
-  CategoryDonut,
-  CategoryPie,
-  colorOf,
+  CategoryBreakdown,
+  categoryRows,
   MonthlyTrend,
   YearPicker,
   yearMonthlyTotals,
@@ -57,17 +56,10 @@ export function BookkeepingChartsPanel({
   const [year, setYear] = useState(month.slice(0, 4));
   const yearTrend = yearMonthlyTotals(trend, year);
   const yearTotal = yearTrend.reduce((s, entry) => s + entry.total, 0);
-  const yearSums = new Map<string, number>();
-  for (const entry of categoryByMonth) {
-    if (entry.month.startsWith(`${year}-`)) {
-      yearSums.set(entry.category, (yearSums.get(entry.category) ?? 0) + entry.total);
-    }
-  }
-  const yearRows = [...yearSums.entries()]
-    .map(([name, value]) => ({ name, value }))
-    .filter((row) => Math.round(row.value) !== 0)
-    .sort((a, b) => b.value - a.value);
-  const positiveTotal = yearRows.reduce((s, r) => s + Math.max(r.value, 0), 0);
+  const monthRows = categoryRows(categoryByMonth, (m) => m === month);
+  const yearRows = categoryRows(categoryByMonth, (m) =>
+    m.startsWith(`${year}-`),
+  );
   const openYearCategory = (category: string) =>
     openDetail(`${year} 年 · ${category}`, {
       category,
@@ -81,11 +73,10 @@ export function BookkeepingChartsPanel({
         <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
           {month} 分類佔比
         </h2>
-        <CategoryPie
-          data={categoryByMonth}
-          month={month}
-          fixedMonths={1}
-          onSliceClick={(category) =>
+        <CategoryBreakdown
+          rows={monthRows}
+          categories={CATEGORIES}
+          onSelect={(category) =>
             openDetail(`${month} · ${category}`, {
               category,
               startMonth: month,
@@ -102,46 +93,11 @@ export function BookkeepingChartsPanel({
           </h2>
           <YearPicker years={years} value={year} onChange={setYear} />
         </div>
-        <div className="mt-2 grid items-center gap-3 sm:grid-cols-2">
-          <CategoryDonut
-            data={yearRows}
-            categories={CATEGORIES}
-            onSliceClick={openYearCategory}
-            showLegend={false}
-          />
-          {yearRows.length > 0 && (
-            <ul className="space-y-0.5">
-              {yearRows.map((row) => {
-                const share =
-                  positiveTotal > 0 ? Math.max(row.value, 0) / positiveTotal : 0;
-                return (
-                  <li key={row.name}>
-                    <button
-                      type="button"
-                      onClick={() => openYearCategory(row.name)}
-                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-gray-950/5 dark:hover:bg-white/5"
-                    >
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: colorOf(row.name, CATEGORIES) }}
-                        aria-hidden
-                      />
-                      <span className="min-w-0 flex-1 truncate text-gray-950 dark:text-gray-50">
-                        {row.name}
-                      </span>
-                      <span className="w-12 shrink-0 text-right text-xs tabular-nums text-gray-400 dark:text-gray-500">
-                        {(share * 100).toFixed(1)}%
-                      </span>
-                      <span className="w-24 shrink-0 text-right tabular-nums font-medium text-gray-950 dark:text-gray-50">
-                        {Math.round(row.value).toLocaleString("zh-TW")}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+        <CategoryBreakdown
+          rows={yearRows}
+          categories={CATEGORIES}
+          onSelect={openYearCategory}
+        />
         {yearTrend.length > 0 && (
           <div className="mt-3">
             <h3 className="text-xs text-gray-500 dark:text-gray-400">每月支出</h3>

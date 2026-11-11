@@ -5,9 +5,18 @@ import {
   getFamilySpendingDetail,
   type FamilyDetailRow,
 } from "@/app/actions";
-import { FamilySpendingPie } from "@/app/charts";
+import {
+  ACTIVE_PILL,
+  CategoryBreakdown,
+  categoryRows,
+  IDLE_PILL,
+} from "@/app/charts";
 import { FamilyYearSummary } from "@/app/family-year-summary";
-import { FAMILY_CATEGORIES } from "@/lib/family-category";
+import {
+  FAMILY_CATEGORIES,
+  familyEntriesBySource,
+  type FamilySource,
+} from "@/lib/family-category";
 
 const CARD =
   "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
@@ -47,22 +56,42 @@ export function FamilyChartsPanel({
 
   const total = modal?.rows.reduce((s, r) => s + r.amount, 0) ?? 0;
 
+  const [monthSource, setMonthSource] = useState<FamilySource>("all");
+  const monthRows = categoryRows(
+    familyEntriesBySource(bank, card, monthSource),
+    (m) => m === month,
+  );
+
   return (
     <>
       <section className={`mt-6 ${CARD}`}>
         <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
           {month} 分類佔比
         </h2>
-        <FamilySpendingPie
-          bank={bank}
-          card={card}
-          month={month}
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {(Object.keys(SOURCE_LABELS) as FamilySource[]).map((source) => (
+            <button
+              key={source}
+              type="button"
+              onClick={() => setMonthSource(source)}
+              className={monthSource === source ? ACTIVE_PILL : IDLE_PILL}
+            >
+              {SOURCE_LABELS[source]}
+            </button>
+          ))}
+        </div>
+        <CategoryBreakdown
+          rows={monthRows}
           categories={FAMILY_CATEGORIES}
-          fixedMonths={1}
-          onDetail={(p) =>
+          onSelect={(category) =>
             openDetail(
-              `${month} · ${p.category} · ${SOURCE_LABELS[p.source]}`,
-              p,
+              `${month} · ${category} · ${SOURCE_LABELS[monthSource]}`,
+              {
+                source: monthSource,
+                category,
+                startMonth: month,
+                endMonth: month,
+              },
             )
           }
         />
