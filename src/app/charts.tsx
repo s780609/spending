@@ -80,6 +80,49 @@ function RangeButtons({
   );
 }
 
+/** 年份切換按鈕（由新到舊） */
+export function YearPicker({
+  years,
+  value,
+  onChange,
+}: {
+  years: string[];
+  value: string;
+  onChange: (year: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {years.map((year) => (
+        <button
+          key={year}
+          type="button"
+          onClick={() => onChange(year)}
+          className={value === year ? ACTIVE_PILL : IDLE_PILL}
+        >
+          {year}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** 取出某年 1 月到該年最後有資料月份的每月加總，中間缺的月份補 0 */
+export function yearMonthlyTotals(
+  trend: { month: string; total: number }[],
+  year: string,
+): { month: string; total: number }[] {
+  const byMonth = new Map(
+    trend
+      .filter((entry) => entry.month.startsWith(`${year}-`))
+      .map((entry) => [entry.month, entry.total]),
+  );
+  const lastMonth = Math.max(0, ...[...byMonth.keys()].map((m) => Number(m.slice(5))));
+  return Array.from({ length: lastMonth }, (_, i) => {
+    const key = `${year}-${String(i + 1).padStart(2, "0")}`;
+    return { month: key, total: byMonth.get(key) ?? 0 };
+  });
+}
+
 const PIE_RANGES = [
   { label: "本月", months: 1 },
   { label: "近 3 個月", months: 3 },
@@ -142,18 +185,22 @@ export function CategoryPie({
   data,
   month,
   categories = CATEGORIES,
+  fixedMonths,
   onSliceClick,
 }: {
-  /** 每月 × 分類加總（只含檢視月份以前） */
+  /** 每月 × 分類加總 */
   data: { month: string; category: string; total: number }[];
   /** 目前檢視的月份 YYYY-MM，區間以此為終點 */
   month: string;
   /** 分類清單（決定顏色對應），預設個人記帳分類 */
   categories?: readonly string[];
+  /** 固定區間月數（隱藏區間切換按鈕），未設定則可切換 */
+  fixedMonths?: number;
   /** 點切片時回呼（分類、區間起點 YYYY-MM 或空字串、區間終點） */
   onSliceClick?: (category: string, startMonth: string, endMonth: string) => void;
 }) {
-  const [months, setMonths] = useState(1);
+  const [selectedMonths, setMonths] = useState(1);
+  const months = fixedMonths ?? selectedMonths;
 
   const start = Number.isFinite(months) ? shiftMonth(month, -(months - 1)) : "";
   const sums = new Map<string, number>();
@@ -171,7 +218,9 @@ export function CategoryPie({
 
   return (
     <div>
-      <RangeButtons options={PIE_RANGES} value={months} onChange={setMonths} />
+      {fixedMonths === undefined && (
+        <RangeButtons options={PIE_RANGES} value={months} onChange={setMonths} />
+      )}
       <CategoryDonut
         data={pieData}
         categories={categories}
@@ -203,12 +252,15 @@ export function FamilySpendingPie({
   card,
   month,
   categories,
+  fixedMonths,
   onDetail,
 }: {
   bank: MonthCategoryEntry[];
   card: MonthCategoryEntry[];
   month: string;
   categories: readonly string[];
+  /** 固定區間月數（隱藏區間切換按鈕） */
+  fixedMonths?: number;
   /** 點切片查明細 */
   onDetail?: (params: {
     source: "all" | "bank" | "card";
@@ -240,6 +292,7 @@ export function FamilySpendingPie({
         data={data}
         month={month}
         categories={categories}
+        fixedMonths={fixedMonths}
         onSliceClick={
           onDetail
             ? (category, startMonth, endMonth) =>
@@ -310,9 +363,12 @@ function TrendTooltip({
 
 export function MonthlyTrend({
   data,
+  yearView = false,
   onPointClick,
 }: {
   data: { month: string; total: number }[];
+  /** 單一年度檢視：隱藏月/年與區間切換、全部顯示，X 軸只標月份 */
+  yearView?: boolean;
   /** 點資料點時回呼，label 為 YYYY-MM（月模式）或 YYYY（年模式） */
   onPointClick?: (label: string) => void;
 }) {
@@ -332,7 +388,8 @@ export function MonthlyTrend({
     }
     shown = [...byYear.entries()].map(([label, total]) => ({ label, total }));
   } else {
-    const sliced = Number.isFinite(months) ? data.slice(-months) : data;
+    const sliced =
+      !yearView && Number.isFinite(months) ? data.slice(-months) : data;
     shown = sliced.map((entry) => ({ label: entry.month, total: entry.total }));
   }
 
@@ -341,6 +398,7 @@ export function MonthlyTrend({
 
   return (
     <div>
+      {!yearView && (
       <div className="mt-1 flex flex-wrap items-center gap-1.5">
         <button
           type="button"
@@ -375,6 +433,7 @@ export function MonthlyTrend({
           </>
         )}
       </div>
+      )}
       <ResponsiveContainer width="100%" height={260}>
         <LineChart
           data={shown}
@@ -426,6 +485,11 @@ export function MonthlyTrend({
             tickMargin={6}
             axisLine={false}
             tickLine={false}
+            tickFormatter={
+              yearView
+                ? (label: string) => `${Number(label.slice(5))}月`
+                : undefined
+            }
           />
           <YAxis
             tick={axisTick}

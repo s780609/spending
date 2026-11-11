@@ -5,17 +5,12 @@ import {
   getFamilySpendingDetail,
   type FamilyDetailRow,
 } from "@/app/actions";
-import {
-  ACTIVE_PILL,
-  FamilySpendingPie,
-  IDLE_PILL,
-  MonthlyTrend,
-} from "@/app/charts";
+import { FamilySpendingPie } from "@/app/charts";
 import { FamilyYearSummary } from "@/app/family-year-summary";
-import {
-  FAMILY_CATEGORIES,
-  familyEntriesBySource,
-} from "@/lib/family-category";
+import { FAMILY_CATEGORIES } from "@/lib/family-category";
+
+const CARD =
+  "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
 
 interface MonthCategoryEntry {
   month: string;
@@ -24,7 +19,6 @@ interface MonthCategoryEntry {
 }
 
 const SOURCE_LABELS = { all: "合併", bank: "帳戶", card: "信用卡" } as const;
-type Source = keyof typeof SOURCE_LABELS;
 
 export function FamilyChartsPanel({
   bank,
@@ -40,20 +34,6 @@ export function FamilyChartsPanel({
     rows: FamilyDetailRow[];
   } | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [trendSource, setTrendSource] = useState<Source>("all");
-
-  // 與圓餅圖同口徑：合併＝帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費
-  const trendEntries = familyEntriesBySource(bank, card, trendSource);
-  const trendByMonth = new Map<string, number>();
-  for (const entry of trendEntries) {
-    trendByMonth.set(
-      entry.month,
-      (trendByMonth.get(entry.month) ?? 0) + entry.total,
-    );
-  }
-  const trend = [...trendByMonth.entries()]
-    .map(([m, total]) => ({ month: m, total }))
-    .sort((a, b) => a.month.localeCompare(b.month));
 
   const openDetail = (
     title: string,
@@ -69,6 +49,24 @@ export function FamilyChartsPanel({
 
   return (
     <>
+      <section className={`mt-6 ${CARD}`}>
+        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+          {month} 分類佔比
+        </h2>
+        <FamilySpendingPie
+          bank={bank}
+          card={card}
+          month={month}
+          categories={FAMILY_CATEGORIES}
+          fixedMonths={1}
+          onDetail={(p) =>
+            openDetail(
+              `${month} · ${p.category} · ${SOURCE_LABELS[p.source]}`,
+              p,
+            )
+          }
+        />
+      </section>
       <FamilyYearSummary
         key={month.slice(0, 4)}
         bank={bank}
@@ -76,58 +74,6 @@ export function FamilyChartsPanel({
         initialYear={month.slice(0, 4)}
         onDetail={({ title, ...params }) => openDetail(title, params)}
       />
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">分類佔比</h2>
-          <FamilySpendingPie
-            bank={bank}
-            card={card}
-            month={month}
-            categories={FAMILY_CATEGORIES}
-            onDetail={(p) => {
-              const range =
-                p.startMonth && p.startMonth !== p.endMonth
-                  ? `${p.startMonth} ～ ${p.endMonth}`
-                  : p.startMonth
-                    ? p.endMonth
-                    : `～ ${p.endMonth}（全部）`;
-              openDetail(
-                `${range} · ${p.category} · ${SOURCE_LABELS[p.source]}`,
-                p,
-              );
-            }}
-          />
-        </section>
-        <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出趨勢</h2>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {(Object.keys(SOURCE_LABELS) as Source[]).map((source) => (
-              <button
-                key={source}
-                type="button"
-                onClick={() => setTrendSource(source)}
-                className={trendSource === source ? ACTIVE_PILL : IDLE_PILL}
-              >
-                {SOURCE_LABELS[source]}
-              </button>
-            ))}
-          </div>
-          <MonthlyTrend
-            data={trend}
-            onPointClick={(label) => {
-              const isYear = /^\d{4}$/.test(label);
-              openDetail(
-                `${label} 支出 · ${SOURCE_LABELS[trendSource]}`,
-                {
-                  source: trendSource,
-                  startMonth: isYear ? `${label}-01` : label,
-                  endMonth: isYear ? `${label}-12` : label,
-                },
-              );
-            }}
-          />
-        </section>
-      </div>
       <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
         帳戶口徑不含內部轉帳。「合併」＝帳戶（再排除利息、卡費、未分類、其他）＋信用卡（排除卡費），卡費改以信用卡明細逐筆計入。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
       </p>

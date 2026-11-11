@@ -61,7 +61,7 @@ export default async function Home({
     .groupBy(monthExpr)
     .orderBy(monthExpr);
 
-  // 每月 × 分類加總（圓餅圖區間用），只取檢視月份（含）以前
+  // 每月 × 分類加總（當月與年度圓餅圖用，年度可選任一年故取全部）
   const categoryByMonth = await db
     .select({
       month: monthExpr,
@@ -69,7 +69,6 @@ export default async function Home({
       total: sql<number>`sum(${expenses.amount})::float`,
     })
     .from(expenses)
-    .where(lt(expenses.date, `${shiftMonth(month, 1)}-01`))
     .groupBy(monthExpr, expenses.category);
 
   const year = month.slice(0, 4);

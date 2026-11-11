@@ -6,6 +6,8 @@ import {
   CategoryDonut,
   colorOf,
   IDLE_PILL,
+  MonthlyTrend,
+  yearMonthlyTotals,
 } from "@/app/charts";
 import {
   FAMILY_CATEGORIES,
@@ -65,10 +67,16 @@ export function FamilyYearSummary({
   );
   const sums = new Map<string, number>();
   const months = new Set<string>();
+  const byMonth = new Map<string, number>();
   for (const entry of entries) {
     sums.set(entry.category, (sums.get(entry.category) ?? 0) + entry.total);
     months.add(entry.month);
+    byMonth.set(entry.month, (byMonth.get(entry.month) ?? 0) + entry.total);
   }
+  const yearTrend = yearMonthlyTotals(
+    [...byMonth.entries()].map(([month, total]) => ({ month, total })),
+    year,
+  );
   const total = [...sums.values()].reduce((s, v) => s + v, 0);
   const rows = [...sums.entries()]
     .map(([name, value]) => ({ name, value }))
@@ -96,7 +104,7 @@ export function FamilyYearSummary({
     "rounded-full px-2 py-0.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-950/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent";
 
   return (
-    <section className="mt-6 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+    <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1">
@@ -198,6 +206,24 @@ export function FamilyYearSummary({
           </ul>
         )}
       </div>
+
+      {yearTrend.length > 0 && (
+        <div className="mt-3">
+          <h3 className="text-xs text-gray-500 dark:text-gray-400">每月支出</h3>
+          <MonthlyTrend
+            data={yearTrend}
+            yearView
+            onPointClick={(label) =>
+              onDetail({
+                source,
+                startMonth: label,
+                endMonth: label,
+                title: `${label} 支出 · ${SOURCE_LABELS[source]}`,
+              })
+            }
+          />
+        </div>
+      )}
     </section>
   );
 }

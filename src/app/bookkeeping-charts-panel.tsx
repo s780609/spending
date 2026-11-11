@@ -5,7 +5,15 @@ import {
   getExpenseDetail,
   type ExpenseDetailRow,
 } from "@/app/actions";
-import { CategoryPie, MonthlyTrend } from "@/app/charts";
+import {
+  CategoryPie,
+  MonthlyTrend,
+  YearPicker,
+  yearMonthlyTotals,
+} from "@/app/charts";
+
+const CARD =
+  "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
 
 interface MonthCategoryEntry {
   month: string;
@@ -40,47 +48,71 @@ export function BookkeepingChartsPanel({
 
   const total = modal?.rows.reduce((s, r) => s + r.amount, 0) ?? 0;
 
+  const years = [...new Set(trend.map((entry) => entry.month.slice(0, 4)))]
+    .sort()
+    .reverse();
+  const [year, setYear] = useState(month.slice(0, 4));
+  const yearTrend = yearMonthlyTotals(trend, year);
+  const yearTotal = yearTrend.reduce((s, entry) => s + entry.total, 0);
+
   return (
     <>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {categoryByMonth.length > 0 && (
-          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">分類佔比</h2>
+      <section className={`mt-6 ${CARD}`}>
+        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+          {month} 分類佔比
+        </h2>
+        <CategoryPie
+          data={categoryByMonth}
+          month={month}
+          fixedMonths={1}
+          onSliceClick={(category) =>
+            openDetail(`${month} · ${category}`, {
+              category,
+              startMonth: month,
+              endMonth: month,
+            })
+          }
+        />
+      </section>
+
+      <section className={`mt-3 ${CARD}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+            年度 · NT$ {Math.round(yearTotal).toLocaleString("zh-TW")}
+          </h2>
+          <YearPicker years={years} value={year} onChange={setYear} />
+        </div>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <div>
+            <h3 className="text-xs text-gray-500 dark:text-gray-400">分類佔比</h3>
             <CategoryPie
               data={categoryByMonth}
-              month={month}
-              onSliceClick={(category, startMonth, endMonth) => {
-                const range =
-                  startMonth && startMonth !== endMonth
-                    ? `${startMonth} ～ ${endMonth}`
-                    : startMonth
-                      ? endMonth
-                      : `～ ${endMonth}（全部）`;
-                openDetail(`${range} · ${category}`, {
+              month={`${year}-12`}
+              fixedMonths={12}
+              onSliceClick={(category) =>
+                openDetail(`${year} 年 · ${category}`, {
                   category,
-                  startMonth: startMonth || undefined,
-                  endMonth,
-                });
-              }}
+                  startMonth: `${year}-01`,
+                  endMonth: `${year}-12`,
+                })
+              }
             />
-          </section>
-        )}
-        {trend.length > 0 && (
-          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出趨勢</h2>
+          </div>
+          <div>
+            <h3 className="text-xs text-gray-500 dark:text-gray-400">每月支出</h3>
             <MonthlyTrend
-              data={trend}
-              onPointClick={(label) => {
-                const isYear = /^\d{4}$/.test(label);
+              data={yearTrend}
+              yearView
+              onPointClick={(label) =>
                 openDetail(`${label} 全部支出`, {
-                  startMonth: isYear ? `${label}-01` : label,
-                  endMonth: isYear ? `${label}-12` : label,
-                });
-              }}
+                  startMonth: label,
+                  endMonth: label,
+                })
+              }
             />
-          </section>
-        )}
-      </div>
+          </div>
+        </div>
+      </section>
 
       {(modal || isPending) && (
         <div
