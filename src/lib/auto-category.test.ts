@@ -106,6 +106,9 @@ describe("autoCategory", () => {
     expect(autoCategory("Home Box Office (Singapore) Pte Ltd.", ["HBO Max 標準"])).toBe("訂閱");
     expect(autoCategory("誠品生活股份有限公司", ["失控的焦慮世代"])).toBe("娛樂");
     expect(autoCategory("客遊天下玩樂股份有限公司", ["綜合服務"])).toBe("娛樂");
+    expect(
+      autoCategory("Valve Corporation", ["DAVE THE DIVER: IN THE JUNGLE"]),
+    ).toBe("娛樂");
   });
 
   it("信用卡帳單店名（含全形英文）按常理分類", () => {
