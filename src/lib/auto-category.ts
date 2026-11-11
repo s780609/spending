@@ -10,7 +10,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
     category: "訂閱",
     keywords: [
       "youtube", "netflix", "spotify", "icloud", "google one", "chatgpt", "訂閱",
-      "github", "hbo", "prime video", "disney", "無廣告",
+      "github", "hbo", "prime video", "disney", "無廣告", "anthropic",
     ],
   },
   {
@@ -31,7 +31,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
       "影城", "電影", "門票", "博物館", "遊戲", "玩具", "博客來", "密斯特喬",
       "電玩", "ps5", "ps4", "switch", "xbox", "任天堂", "sony",
       "誠品", "城邦", "學思行",
-      "klook", "客路", "booking", "百樂園", "傳藝", "藝術中心", "溫泉",
+      "klook", "客路", "客遊天下", "booking", "百樂園", "傳藝", "藝術中心", "溫泉",
       "peach avia", "樂桃", "宜睿",
     ],
   },

@@ -17,6 +17,8 @@ describe("autoCategory", () => {
     expect(autoCategory("Google Asia Pacific Pte Ltd", ["YouTube"])).toBe(
       "訂閱",
     );
+    expect(autoCategory("Anthropic PBC", ["Max plan - 5x"])).toBe("訂閱");
+    expect(autoCategory("Anthropic PBC", ["Claude Pro"])).toBe("訂閱");
   });
 
   it("速食、超商食品、含『餐飲』店名歸飲食", () => {
@@ -103,6 +105,7 @@ describe("autoCategory", () => {
     expect(autoCategory("宜家家居股份有限公司觀音營業所", ["RODALM frame 50x70 walnut effect AP"])).toBe("日用");
     expect(autoCategory("Home Box Office (Singapore) Pte Ltd.", ["HBO Max 標準"])).toBe("訂閱");
     expect(autoCategory("誠品生活股份有限公司", ["失控的焦慮世代"])).toBe("娛樂");
+    expect(autoCategory("客遊天下玩樂股份有限公司", ["綜合服務"])).toBe("娛樂");
   });
 
   it("信用卡帳單店名（含全形英文）按常理分類", () => {
