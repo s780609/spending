@@ -119,23 +119,26 @@ export default async function FamilyPage({
         familyCardTransactions.category,
       ),
   ]);
-  // 當月支出合計：與圖表「合併」同口徑
+  // 當月／當年支出合計：與圖表「合併」同口徑
   // 帳戶排除內部轉帳/利息/卡費/未分類/其他＋信用卡排除卡費
-  const monthSpend =
+  const mergedSpend = (matchMonth: (m: string) => boolean) =>
     bankByMonthCat
       .filter(
         (e) =>
-          e.month === month &&
+          matchMonth(e.month) &&
           !MERGED_EXCLUDED_BANK_CATEGORIES.includes(e.category),
       )
       .reduce((s, e) => s + e.total, 0) +
     cardByMonthCat
       .filter(
         (e) =>
-          e.month === month &&
+          matchMonth(e.month) &&
           !MERGED_EXCLUDED_CARD_CATEGORIES.includes(e.category),
       )
       .reduce((s, e) => s + e.total, 0);
+  const year = month.slice(0, 4);
+  const monthSpend = mergedSpend((m) => m === month);
+  const yearSpend = mergedSpend((m) => m.startsWith(`${year}-`));
   // 消費合計＝淨額（含退款負數），只排除「自動轉帳扣繳」繳款列
   const cardSpend = cardTxs.reduce(
     (s, t) =>
@@ -163,24 +166,27 @@ export default async function FamilyPage({
               →
             </Link>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            目前存款{" "}
-            <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
-              NT$ {latest ? fmt(latest.totalBalance) : "—"}
-            </span>
-            {latest && (
-              <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
-                （{latest.month} 對帳單）
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              本月支出{" "}
+              <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
+                NT$ {fmt(monthSpend)}
               </span>
-            )}
-          </p>
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {year} 年支出{" "}
+              <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
+                NT$ {fmt(yearSpend)}
+              </span>
+            </p>
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           {[
             {
-              label: `${month} 支出合計`,
-              value: `NT$ ${fmt(monthSpend)}`,
+              label: latest ? `目前存款（${latest.month} 對帳單）` : "目前存款",
+              value: latest ? `NT$ ${fmt(latest.totalBalance)}` : "—",
               tone: "text-gray-950 dark:text-gray-50",
             },
             {
