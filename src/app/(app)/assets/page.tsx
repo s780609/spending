@@ -168,11 +168,17 @@ export default async function AssetsPage({
     return {
       ...g,
       dividendPerShare: dps,
-      // 美股扣 30% 預扣稅後的實際入帳金額
+      // 逐期換算實際入帳金額再加總：美股扣 30% 預扣稅；
+      // 台股二代健保以「單筆」滿 2 萬判斷，不能用年配息總額算
       dividendTwd:
-        dps === null
+        history === null
           ? null
-          : dividendTwd(g.totalShares, dps, g.market, sheet.usdTwd),
+          : history.events.reduce(
+              (sum, event) =>
+                sum +
+                dividendTwd(g.totalShares, event.amount, g.market, sheet.usdTwd),
+              0,
+            ),
     };
   });
   const totalDividendTwd = symbolSummary.reduce(
@@ -356,7 +362,7 @@ export default async function AssetsPage({
             defaultView={brokerFilter || symbolFilter || sort ? "detail" : "summary"}
             summary={
               <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-                <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算；美股預估年股利已扣 30% 預扣稅</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">年配息以近 12 個月估算；美股預估年股利已扣 30% 預扣稅；台股單筆滿 2 萬已扣 2.11% 二代健保</p>
                 {/* 桌面表頭；手機每列自帶標籤 */}
                 <div className="mt-2 hidden text-xs text-gray-400 dark:text-gray-500 sm:grid sm:grid-cols-[1fr_5rem_7rem_6rem_7rem] sm:items-center sm:gap-3">
                   <span>名稱</span>

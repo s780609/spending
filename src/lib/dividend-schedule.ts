@@ -14,7 +14,14 @@ const SAME_PAYOUT_DAYS = 20;
 /** 美股股利預扣稅率（台灣居民適用 30%） */
 export const US_WITHHOLDING_RATE = 0.3;
 
-/** 股利換算台幣入帳金額：美股以匯率換算並扣除 30% 預扣稅，台股照原額 */
+/** 二代健保補充保費：國內股利單筆滿 2 萬元，全額扣 2.11% */
+export const NHI_SUPPLEMENT_RATE = 0.0211;
+export const NHI_SUPPLEMENT_THRESHOLD = 20_000;
+
+/**
+ * 單筆股利換算台幣入帳金額：美股以匯率換算並扣除 30% 預扣稅；
+ * 台股單筆滿 2 萬元扣 2.11% 二代健保補充保費（保費四捨五入至元）。
+ */
 export function dividendTwd(
   shares: number,
   perShare: number,
@@ -24,7 +31,10 @@ export function dividendTwd(
   if (market === "US") {
     return Math.round(shares * perShare * usdTwd * (1 - US_WITHHOLDING_RATE));
   }
-  return Math.round(shares * perShare);
+  const gross = Math.round(shares * perShare);
+  return gross >= NHI_SUPPLEMENT_THRESHOLD
+    ? gross - Math.round(gross * NHI_SUPPLEMENT_RATE)
+    : gross;
 }
 
 /** 一年配息達此次數（季配以上）時，推估金額用最近一期；否則用去年同期 */
@@ -50,7 +60,7 @@ export interface MonthlyDividendItem {
   payDate: string;
   /** 每股金額（原幣別、稅前） */
   perShare: number;
-  /** 入帳台幣金額（美股為扣 30% 預扣稅後） */
+  /** 入帳台幣金額（美股為扣 30% 預扣稅後；台股單筆滿 2 萬扣二代健保） */
   amountTwd: number;
   /** true＝依去年同期推估的除息；false＝已除息（實際紀錄），僅發放日為估計 */
   projected: boolean;

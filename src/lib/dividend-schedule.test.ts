@@ -33,8 +33,21 @@ describe("estimatePayDate", () => {
 });
 
 describe("dividendTwd", () => {
-  it("台股照原額", () => {
+  it("台股單筆未滿 2 萬照原額", () => {
     expect(dividendTwd(5081, 3.88, "TW", 32)).toBe(19714);
+  });
+
+  it("台股單筆滿 2 萬扣 2.11% 二代健保補充保費（四捨五入至元）", () => {
+    // 6300 × 7 = 44,100；保費 930.51 → 931
+    expect(dividendTwd(6300, 7, "TW", 32)).toBe(44100 - 931);
+  });
+
+  it("台股單筆剛好 2 萬也要扣", () => {
+    expect(dividendTwd(10000, 2, "TW", 32)).toBe(20000 - 422);
+  });
+
+  it("美股不扣二代健保", () => {
+    expect(dividendTwd(1000, 1, "US", 30)).toBe(Math.round(1000 * 30 * 0.7));
   });
 
   it("美股換匯並扣 30% 預扣稅", () => {
@@ -114,7 +127,8 @@ describe("projectMonthlyDividends", () => {
     expect(jan?.items[0]).toMatchObject({
       exDate: "2026-12-11",
       perShare: 7,
-      amountTwd: 44100,
+      // 單筆滿 2 萬扣二代健保 2.11%
+      amountTwd: 44100 - 931,
     });
   });
 
