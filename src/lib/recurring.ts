@@ -1,7 +1,26 @@
 import { shiftMonth } from "./dates";
 
-/** 定期支出頻率：monthly＝每月、yearly＝每年 */
-export type RecurringFrequency = "monthly" | "yearly";
+/** 定期支出頻率：monthly＝每月、yearly＝每年、interval＝每 N 個月 */
+export type RecurringFrequency = "monthly" | "yearly" | "interval";
+
+/** 每 N 個月可選的間隔（整除 12，起始月份只需記月份不需年份） */
+export const INTERVAL_MONTHS = [2, 3, 4, 6] as const;
+
+/** 該月份（YYYY-MM）是否為規則的到期月 */
+function isDueMonth(
+  month: string,
+  frequency: RecurringFrequency,
+  monthOfYear?: number | null,
+  intervalMonths?: number | null,
+): boolean {
+  const step =
+    frequency === "yearly" ? 12 : frequency === "interval" ? intervalMonths : 1;
+  if (!step || step === 1) {
+    return true;
+  }
+  const diff = Number(month.slice(5, 7)) - (monthOfYear ?? 1);
+  return ((diff % step) + step) % step === 0;
+}
 
 /** 規則在某月的到期日，日數超過該月天數時取月底（如 31 號遇 2 月 → 2/28） */
 function dueDateInMonth(month: string, dayOfMonth: number): string {
@@ -15,7 +34,8 @@ function dueDateInMonth(month: string, dayOfMonth: number): string {
  * 回傳 lastGenerated（YYYY-MM）之後、截至 today（YYYY-MM-DD）
  * 所有已到期而尚未產生的日期，由舊到新。
  * endMonth（YYYY-MM，含當月）之後的月份不產生；null 表示無期限。
- * frequency＝yearly 時只在月份等於 monthOfYear（1-12）時產生，達成一年一次。
+ * frequency＝yearly 時只在月份等於 monthOfYear（1-12）時產生，達成一年一次；
+ * frequency＝interval 時每 intervalMonths 個月產生一次，monthOfYear 為任一到期月份。
  */
 export function dueDates(
   dayOfMonth: number,
@@ -24,6 +44,7 @@ export function dueDates(
   endMonth?: string | null,
   frequency: RecurringFrequency = "monthly",
   monthOfYear?: number | null,
+  intervalMonths?: number | null,
 ): string[] {
   const currentMonth = today.slice(0, 7);
   const result: string[] = [];
@@ -35,7 +56,7 @@ export function dueDates(
     if (endMonth && month > endMonth) {
       break;
     }
-    if (frequency === "yearly" && Number(month.slice(5, 7)) !== monthOfYear) {
+    if (!isDueMonth(month, frequency, monthOfYear, intervalMonths)) {
       continue;
     }
     const due = dueDateInMonth(month, dayOfMonth);
@@ -50,18 +71,25 @@ export function dueDates(
  * 建立規則時的 lastGenerated 初始值（以「下次到期月份」為基準）：
  * 該月到期日已過 → 該月（從下個月開始產生）；
  * 尚未到或就是今天 → 上一個月（到期當天立即產生）。
- * 每月＝以本月為基準；每年＝以今年的 monthOfYear 月為基準。
+ * 每月＝以本月為基準；每年＝以今年的 monthOfYear 月為基準；
+ * 每 N 個月＝以本月起第一個到期月為基準。
  */
 export function initialLastGenerated(
   dayOfMonth: number,
   today: string,
   frequency: RecurringFrequency = "monthly",
   monthOfYear?: number | null,
+  intervalMonths?: number | null,
 ): string {
-  const anchorMonth =
+  let anchorMonth =
     frequency === "yearly" && monthOfYear
       ? `${today.slice(0, 4)}-${String(monthOfYear).padStart(2, "0")}`
       : today.slice(0, 7);
+  if (frequency === "interval") {
+    while (!isDueMonth(anchorMonth, frequency, monthOfYear, intervalMonths)) {
+      anchorMonth = shiftMonth(anchorMonth, 1);
+    }
+  }
   const due = dueDateInMonth(anchorMonth, dayOfMonth);
   return due < today ? anchorMonth : shiftMonth(anchorMonth, -1);
 }

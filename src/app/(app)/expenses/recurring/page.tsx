@@ -16,15 +16,26 @@ function formatAmount(value: string | number): string {
   return Math.round(Number(value)).toLocaleString("zh-TW");
 }
 
-/** 規則的排程文字，如「每月 1 號」「每年 3 月 15 號」 */
+/** 規則的排程文字，如「每月 1 號」「每年 3 月 15 號」「每 2 個月 3 號（1、3、5…月）」 */
 function scheduleLabel(rule: {
   frequency: string;
   dayOfMonth: number;
   monthOfYear: number | null;
+  intervalMonths: number | null;
 }): string {
-  return rule.frequency === "yearly" && rule.monthOfYear
-    ? `每年 ${rule.monthOfYear} 月 ${rule.dayOfMonth} 號`
-    : `每月 ${rule.dayOfMonth} 號`;
+  if (rule.frequency === "yearly" && rule.monthOfYear) {
+    return `每年 ${rule.monthOfYear} 月 ${rule.dayOfMonth} 號`;
+  }
+  if (rule.frequency === "interval" && rule.monthOfYear && rule.intervalMonths) {
+    const step = rule.intervalMonths;
+    const start = rule.monthOfYear;
+    const months = Array.from(
+      { length: 12 / step },
+      (_, i) => ((start - 1 + i * step) % 12) + 1,
+    ).sort((a, b) => a - b);
+    return `每 ${step} 個月 ${rule.dayOfMonth} 號（${months.join("、")} 月）`;
+  }
+  return `每月 ${rule.dayOfMonth} 號`;
 }
 
 export default async function RecurringPage() {
@@ -39,7 +50,7 @@ export default async function RecurringPage() {
           定期支出
         </h1>
         <p className="mt-1 max-w-[55ch] text-sm leading-7 text-gray-600 dark:text-gray-400 text-pretty">
-          固定的支出（房租、保險費…）設定後，開啟網站時會自動把到期的款項補進記帳；就算當天沒開網站，下次開啟也會補齊。可選每月或每年；設
+          固定的支出（房租、保險費…）設定後，開啟網站時會自動把到期的款項補進記帳；就算當天沒開網站，下次開啟也會補齊。可選每月、每 N 個月或每年；設
           29–31 號遇到較短的月份會落在月底。
         </p>
 
@@ -47,10 +58,10 @@ export default async function RecurringPage() {
           action={addRecurring}
           className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 sm:grid-cols-[1fr_8rem]"
         >
-          {/* 排程：頻率 + 月（每年才用）+ 日 */}
+          {/* 排程：頻率 + 間隔（每 N 個月才用）+ 月（每年／每 N 個月才用）+ 日 */}
           <div className="col-span-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
             <RecurringScheduleFields inputClassName={INPUT_CLS} />
-            <span className="text-xs text-gray-400 dark:text-gray-500">「月」僅每年適用</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">每 N 個月的「月」填任一扣款月</span>
           </div>
           <input
             type="text"
@@ -106,7 +117,7 @@ export default async function RecurringPage() {
                 key={rule.id}
                 className="flex items-center gap-3 rounded-xl bg-white dark:bg-gray-900 px-4 py-3 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
               >
-                <span className="w-24 shrink-0 text-xs text-gray-600 dark:text-gray-400">
+                <span className="w-24 shrink-0 text-xs leading-5 text-gray-600 dark:text-gray-400">
                   {scheduleLabel(rule)}
                 </span>
                 <span className="min-w-0 flex-1">

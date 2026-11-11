@@ -21,6 +21,7 @@ export async function generateRecurringExpenses(): Promise<void> {
       rule.endMonth,
       rule.frequency as RecurringFrequency,
       rule.monthOfYear,
+      rule.intervalMonths,
     );
     if (dates.length === 0) {
       continue;

@@ -50,7 +50,11 @@ import {
   parseCardStatement,
 } from "@/lib/parse-taishin";
 import { extractPdfItems } from "@/lib/pdf-text";
-import { initialLastGenerated } from "@/lib/recurring";
+import {
+  INTERVAL_MONTHS,
+  initialLastGenerated,
+  type RecurringFrequency,
+} from "@/lib/recurring";
 
 export async function login(formData: FormData) {
   const password = formData.get("password");
@@ -114,10 +118,17 @@ export async function updateExpenseCategory(id: number, category: string) {
 }
 
 export async function addRecurring(formData: FormData) {
-  const frequency =
-    String(formData.get("frequency") ?? "monthly") === "yearly"
-      ? "yearly"
+  const frequencyRaw = String(formData.get("frequency") ?? "monthly");
+  const frequency: RecurringFrequency =
+    frequencyRaw === "yearly" || frequencyRaw === "interval"
+      ? frequencyRaw
       : "monthly";
+  const intervalRaw = Number(formData.get("intervalMonths"));
+  const intervalMonths =
+    frequency === "interval" &&
+    (INTERVAL_MONTHS as readonly number[]).includes(intervalRaw)
+      ? intervalRaw
+      : null;
   const dayOfMonth = Number(formData.get("dayOfMonth"));
   const monthOfYearRaw = Number(formData.get("monthOfYear"));
   const vendor = String(formData.get("vendor") ?? "").trim();
@@ -126,9 +137,9 @@ export async function addRecurring(formData: FormData) {
   const endMonthRaw = String(formData.get("endMonth") ?? "");
   const endMonth = /^\d{4}-\d{2}$/.test(endMonthRaw) ? endMonthRaw : null;
 
-  // 每年才需要月份；每月時固定存 null
+  // 每年／每 N 個月才需要月份；每月時固定存 null
   const monthOfYear =
-    frequency === "yearly" &&
+    frequency !== "monthly" &&
     Number.isInteger(monthOfYearRaw) &&
     monthOfYearRaw >= 1 &&
     monthOfYearRaw <= 12
@@ -139,7 +150,8 @@ export async function addRecurring(formData: FormData) {
     !Number.isInteger(dayOfMonth) ||
     dayOfMonth < 1 ||
     dayOfMonth > 31 ||
-    (frequency === "yearly" && monthOfYear === null) ||
+    (frequency !== "monthly" && monthOfYear === null) ||
+    (frequency === "interval" && intervalMonths === null) ||
     !vendor ||
     !Number.isFinite(amount)
   ) {
@@ -152,6 +164,7 @@ export async function addRecurring(formData: FormData) {
       frequency,
       dayOfMonth,
       monthOfYear,
+      intervalMonths,
       vendor,
       amount: String(amount),
       category: isCategory(categoryRaw) ? categoryRaw : DEFAULT_CATEGORY,
@@ -160,6 +173,7 @@ export async function addRecurring(formData: FormData) {
         todayTaipei(),
         frequency,
         monthOfYear,
+        intervalMonths,
       ),
       endMonth,
     });

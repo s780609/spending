@@ -119,3 +119,50 @@ describe("initialLastGenerated 每年", () => {
     expect(initialLastGenerated(30, "2026-06-30", "yearly", 6)).toBe("2026-05");
   });
 });
+
+describe("dueDates 每 N 個月", () => {
+  it("每兩個月（奇數月）只在奇數月產生", () => {
+    expect(
+      dueDates(3, "2026-06", "2026-11-11", null, "interval", 1, 2),
+    ).toEqual(["2026-07-03", "2026-09-03", "2026-11-03"]);
+  });
+
+  it("起始月份可為任一到期月（設 11 月與設 1 月等價）", () => {
+    expect(
+      dueDates(3, "2026-06", "2026-11-11", null, "interval", 11, 2),
+    ).toEqual(["2026-07-03", "2026-09-03", "2026-11-03"]);
+  });
+
+  it("每季跨年補齊", () => {
+    expect(
+      dueDates(10, "2025-10", "2026-07-31", null, "interval", 2, 3),
+    ).toEqual(["2025-11-10", "2026-02-10", "2026-05-10"]);
+  });
+
+  it("到期月份當月到期日未到時不產生", () => {
+    expect(
+      dueDates(3, "2026-10", "2026-11-02", null, "interval", 1, 2),
+    ).toEqual([]);
+  });
+});
+
+describe("initialLastGenerated 每 N 個月", () => {
+  it("本月是到期月且到期日已過，標記本月（下次到期月才補）", () => {
+    expect(initialLastGenerated(3, "2026-11-11", "interval", 1, 2)).toBe(
+      "2026-11",
+    );
+  });
+
+  it("本月不是到期月，標記下次到期月的前一月", () => {
+    // 12 月不是奇數月 → 下次到期 2027-01，種子設 2026-12
+    expect(initialLastGenerated(3, "2026-12-01", "interval", 1, 2)).toBe(
+      "2026-12",
+    );
+  });
+
+  it("本月是到期月且到期日未到，當月仍會補", () => {
+    expect(initialLastGenerated(3, "2026-11-01", "interval", 1, 2)).toBe(
+      "2026-10",
+    );
+  });
+});

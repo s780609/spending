@@ -36,12 +36,14 @@ export const expenseItems = pgTable("expense_items", {
 
 export const recurringExpenses = pgTable("recurring_expenses", {
   id: serial("id").primaryKey(),
-  /** 頻率：monthly＝每月、yearly＝每年 */
+  /** 頻率：monthly＝每月、yearly＝每年、interval＝每 N 個月 */
   frequency: text("frequency").notNull().default("monthly"),
   /** 每月幾號（1-31，超過該月天數時取月底）；每年時為當月幾號 */
   dayOfMonth: integer("day_of_month").notNull(),
-  /** 每年的月份（1-12），每月時為 null */
+  /** 每年的月份（1-12）；每 N 個月時為任一到期月份；每月時為 null */
   monthOfYear: integer("month_of_year"),
+  /** 每 N 個月的 N（2/3/4/6），其他頻率為 null */
+  intervalMonths: integer("interval_months"),
   /** 名目，如「房租」 */
   vendor: text("vendor").notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
