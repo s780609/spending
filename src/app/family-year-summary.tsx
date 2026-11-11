@@ -7,6 +7,7 @@ import {
   colorOf,
   IDLE_PILL,
   MonthlyTrend,
+  YearPicker,
   yearMonthlyTotals,
 } from "@/app/charts";
 import {
@@ -31,7 +32,7 @@ function fmt(value: number): string {
   return Math.round(value).toLocaleString("zh-TW");
 }
 
-/** 家庭年度總支出＋分類圓餅圖；年份預設為目前檢視月份所屬年度，可前後切換 */
+/** 家庭年度總支出＋分類圓餅圖＋每月線圖；年份預設為目前檢視月份所屬年度，可點選切換 */
 export function FamilyYearSummary({
   bank,
   card,
@@ -57,10 +58,8 @@ export function FamilyYearSummary({
   const years = [
     ...new Set([...bank, ...card].map((entry) => entry.month.slice(0, 4))),
     initialYear,
-  ].sort();
-  const yearIndex = years.indexOf(year);
-  const prevYear = yearIndex > 0 ? years[yearIndex - 1] : null;
-  const nextYear = yearIndex < years.length - 1 ? years[yearIndex + 1] : null;
+  ];
+  const yearOptions = [...new Set(years)].sort().reverse();
 
   const entries = familyEntriesBySource(bank, card, source).filter((entry) =>
     entry.month.startsWith(`${year}-`),
@@ -100,36 +99,19 @@ export function FamilyYearSummary({
       title: `${year} 年 · ${category ?? "全部分類"} · ${SOURCE_LABELS[source]}`,
     });
 
-  const navButton =
-    "rounded-full px-2 py-0.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-950/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent";
-
   return (
     <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+          年度
+        </h2>
+        <YearPicker years={yearOptions} value={year} onChange={setYear} />
+      </div>
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className={navButton}
-              disabled={!prevYear}
-              onClick={() => prevYear && setYear(prevYear)}
-              aria-label="上一年"
-            >
-              ←
-            </button>
-            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
-              {year} 年總支出
-            </h2>
-            <button
-              type="button"
-              className={navButton}
-              disabled={!nextYear}
-              onClick={() => nextYear && setYear(nextYear)}
-              aria-label="下一年"
-            >
-              →
-            </button>
-          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {year} 年總支出
+          </p>
           <button
             type="button"
             onClick={() => openCategory()}
