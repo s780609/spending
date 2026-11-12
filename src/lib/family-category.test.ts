@@ -11,6 +11,12 @@ describe("autoFamilyCategory 家庭帳戶明細", () => {
       "內部轉帳",
     );
     expect(autoFamilyCategory("存款息", "")).toBe("利息");
+    expect(autoFamilyCategory("CD轉入", "ATM 803-00008885****1 148")).toBe(
+      "內部轉帳",
+    );
+    expect(autoFamilyCategory("CD存款", "ATM 812-00288810****6 516")).toBe(
+      "內部轉帳",
+    );
     expect(autoFamilyCategory("CD轉出", "**8604 廷煥昱臻房租")).toBe("房租");
     expect(autoFamilyCategory("CD轉入", "148 生活費")).toBe("生活費");
     expect(autoFamilyCategory("CD轉出", "**8722 許欣予７６５１")).toBe("教育");
@@ -31,6 +37,8 @@ describe("familyCardCategory 信用卡明細", () => {
     expect(familyCardCategory("連加＊連加＊萊爾富TAIPEI", 59)).toBe("飲食");
     expect(familyCardCategory("連加＊８５˚Ｃ五股成泰Taipei", 120)).toBe("飲食");
     expect(familyCardCategory("連加＊連加＊八方雲集TAIPEI", 90)).toBe("飲食");
+    expect(familyCardCategory("連加＊秀泰生活樹林店Taipei", 1183)).toBe("飲食");
+    expect(familyCardCategory("連加＊Ｋ區東森廣場Taipei", 390)).toBe("飲食");
     expect(
       familyCardCategory("連加＊LINEPAY*WU GU QU GONGTAIPEI", 10),
     ).toBe("飲食");

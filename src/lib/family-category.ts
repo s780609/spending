@@ -63,7 +63,11 @@ export function isFamilyCategory(value: string): value is FamilyCategory {
 }
 
 const RULES: { category: FamilyCategory; keywords: string[] }[] = [
-  { category: "內部轉帳", keywords: ["轉出2888", "轉入2888"] },
+  // 使用者指定：ATM 803-00008885…、812-00288810… 存入為自家帳戶互轉
+  {
+    category: "內部轉帳",
+    keywords: ["轉出2888", "轉入2888", "803-00008885", "812-00288810"],
+  },
   { category: "水電瓦斯", keywords: ["台電", "電費", "台水", "水費", "瓦斯"] },
   { category: "卡費", keywords: ["卡費"] },
   { category: "房租", keywords: ["房租"] },
@@ -105,6 +109,8 @@ const CARD_RULES: { category: FamilyCategory; keywords: string[] }[] = [
     category: "飲食",
     keywords: ["萊爾富", "８５˚Ｃ", "85°C", "八方雲集", "WU GU QU GONG"],
   },
+  // 使用者指定：秀泰生活樹林店、Ｋ區東森廣場 → 飲食
+  { category: "飲食", keywords: ["秀泰生活樹林店", "東森廣場"] },
   // 使用者指定：悠遊卡自動加值（台北捷運）→ 交通
   { category: "交通", keywords: ["悠遊卡自動加值", "台北捷運"] },
 ];
