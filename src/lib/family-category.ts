@@ -90,11 +90,20 @@ export function autoFamilyCategory(
 
 /**
  * 信用卡店家 → 家庭分類的專屬覆寫：個人 autoCategory 不涵蓋的家庭分類（如水電瓦斯）
- * 在此補上，優先於 autoCategory。先中先贏。
+ * 在此補上，優先於 autoCategory。先中先贏；包含即算（前綴「連加＊」為 LINE Pay）。
  */
 const CARD_RULES: { category: FamilyCategory; keywords: string[] }[] = [
   // 使用者指定：欣泰瓦斯費 → 水電瓦斯
   { category: "水電瓦斯", keywords: ["欣泰"] },
+  // 使用者指定：Xpark（卡單為全形「Ｘｐａｒｋ」）、兒童新樂園、小人國 → 娛樂
+  { category: "娛樂", keywords: ["Ｘｐａｒｋ", "Xpark", "兒童新樂園", "小人國"] },
+  // 使用者指定：萊爾富、85°C（卡單為全形「８５˚Ｃ」）、八方雲集、WU GU QU GONG → 飲食
+  {
+    category: "飲食",
+    keywords: ["萊爾富", "８５˚Ｃ", "85°C", "八方雲集", "WU GU QU GONG"],
+  },
+  // 使用者指定：悠遊卡自動加值（台北捷運）→ 交通
+  { category: "交通", keywords: ["悠遊卡自動加值", "台北捷運"] },
 ];
 
 /** 信用卡明細自動分類：先套家庭專屬規則，再重用消費關鍵字規則映射進家庭分類 */
