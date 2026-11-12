@@ -95,8 +95,11 @@ export function autoFamilyCategory(
 const CARD_RULES: { category: FamilyCategory; keywords: string[] }[] = [
   // 使用者指定：欣泰瓦斯費 → 水電瓦斯
   { category: "水電瓦斯", keywords: ["欣泰"] },
-  // 使用者指定：Xpark（卡單為全形「Ｘｐａｒｋ」）、兒童新樂園、小人國 → 娛樂
-  { category: "娛樂", keywords: ["Ｘｐａｒｋ", "Xpark", "兒童新樂園", "小人國"] },
+  // 使用者指定：Xpark（卡單為全形「Ｘｐａｒｋ」）、兒童新樂園、小人國、力行國際貿易 → 娛樂
+  {
+    category: "娛樂",
+    keywords: ["Ｘｐａｒｋ", "Xpark", "兒童新樂園", "小人國", "力行國際貿易"],
+  },
   // 使用者指定：萊爾富、85°C（卡單為全形「８５˚Ｃ」）、八方雲集、WU GU QU GONG → 飲食
   {
     category: "飲食",

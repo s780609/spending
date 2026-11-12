@@ -27,6 +27,7 @@ describe("familyCardCategory 信用卡明細", () => {
     expect(familyCardCategory("連加＊連加＊ＸｐａｒｋTAIPEI", 190)).toBe("娛樂");
     expect(familyCardCategory("連加＊連加＊兒童新樂園TAIPEI", 221)).toBe("娛樂");
     expect(familyCardCategory("小人國主題樂園", 1500)).toBe("娛樂");
+    expect(familyCardCategory("力行國際貿易有限公司New Ta", 90)).toBe("娛樂");
     expect(familyCardCategory("連加＊連加＊萊爾富TAIPEI", 59)).toBe("飲食");
     expect(familyCardCategory("連加＊８５˚Ｃ五股成泰Taipei", 120)).toBe("飲食");
     expect(familyCardCategory("連加＊連加＊八方雲集TAIPEI", 90)).toBe("飲食");
