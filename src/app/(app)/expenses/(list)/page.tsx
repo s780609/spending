@@ -130,50 +130,6 @@ export default async function Home({
           </div>
         </div>
 
-        {categorySummary.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-2">
-            <li>
-              <Link
-                href={`/expenses?month=${month}`}
-                className={
-                  !filter
-                    ? "block rounded-full bg-gray-950 dark:bg-white px-3 py-1.5 text-xs font-medium text-white dark:text-gray-950"
-                    : "block rounded-full bg-white dark:bg-gray-900 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
-                }
-              >
-                全部{" "}
-                <span className={!filter ? "" : "font-medium text-gray-950 dark:text-gray-50"}>
-                  {formatAmount(total)}
-                </span>
-              </Link>
-            </li>
-            {categorySummary.map(([category, sum]) => {
-              const active = category === filter;
-              return (
-                <li key={category}>
-                  <Link
-                    href={
-                      active
-                        ? `/expenses?month=${month}`
-                        : `/expenses?month=${month}&category=${encodeURIComponent(category)}`
-                    }
-                    className={
-                      active
-                        ? "block rounded-full bg-gray-950 dark:bg-white px-3 py-1.5 text-xs font-medium text-white dark:text-gray-950"
-                        : "block rounded-full bg-white dark:bg-gray-900 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
-                    }
-                  >
-                    {category}{" "}
-                    <span className={active ? "" : "font-medium text-gray-950 dark:text-gray-50"}>
-                      {formatAmount(sum)}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
         {(categoryByMonth.length > 0 || trend.length > 0) && (
           <BookkeepingChartsPanel
             categoryByMonth={categoryByMonth}
@@ -229,6 +185,50 @@ export default async function Home({
         </form>
         </AddPanel>
 
+        {categorySummary.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-2">
+            <li>
+              <Link
+                href={`/expenses?month=${month}`}
+                className={
+                  !filter
+                    ? "block rounded-full bg-gray-950 dark:bg-white px-3 py-1.5 text-xs font-medium text-white dark:text-gray-950"
+                    : "block rounded-full bg-white dark:bg-gray-900 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
+                }
+              >
+                全部{" "}
+                <span className={!filter ? "" : "font-medium text-gray-950 dark:text-gray-50"}>
+                  {formatAmount(total)}
+                </span>
+              </Link>
+            </li>
+            {categorySummary.map(([category, sum]) => {
+              const active = category === filter;
+              return (
+                <li key={category}>
+                  <Link
+                    href={
+                      active
+                        ? `/expenses?month=${month}`
+                        : `/expenses?month=${month}&category=${encodeURIComponent(category)}`
+                    }
+                    className={
+                      active
+                        ? "block rounded-full bg-gray-950 dark:bg-white px-3 py-1.5 text-xs font-medium text-white dark:text-gray-950"
+                        : "block rounded-full bg-white dark:bg-gray-900 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
+                    }
+                  >
+                    {category}{" "}
+                    <span className={active ? "" : "font-medium text-gray-950 dark:text-gray-50"}>
+                      {formatAmount(sum)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
         {rows.length === 0 ? (
           <p className="mt-12 text-center text-sm leading-7 text-gray-600 dark:text-gray-400">
             這個月還沒有任何支出紀錄，新增一筆或到「匯入 CSV」匯入電子發票。
@@ -238,7 +238,7 @@ export default async function Home({
             「{filter}」這個月沒有紀錄，點「全部」清除篩選。
           </p>
         ) : (
-          <ul className="mt-6 space-y-2">
+          <ul className="mt-4 space-y-2">
             {visible.map((row) => {
               const summary = (
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
