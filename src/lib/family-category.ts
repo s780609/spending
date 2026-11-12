@@ -109,7 +109,13 @@ const CARD_RULES: { category: FamilyCategory; keywords: string[] }[] = [
   { category: "交通", keywords: ["悠遊卡自動加值", "台北捷運"] },
 ];
 
-/** 信用卡明細自動分類：先套家庭專屬規則，再重用消費關鍵字規則映射進家庭分類 */
+/** LINE Pay 小額門檻：未滿此金額且無其他規則命中時歸飲食 */
+const LINE_PAY_SMALL_AMOUNT = 200;
+
+/**
+ * 信用卡明細自動分類：先套家庭專屬規則，再重用消費關鍵字規則映射進家庭分類，
+ * 都沒中時 LINE Pay 小額歸飲食
+ */
 export function familyCardCategory(
   description: string,
   amount: number,
@@ -127,5 +133,12 @@ export function familyCardCategory(
     }
   }
   const guess = autoCategory(description, []);
-  return isFamilyCategory(guess) ? guess : "未分類";
+  if (isFamilyCategory(guess) && guess !== "未分類") {
+    return guess;
+  }
+  // 使用者指定：其他規則都沒中時，LINE Pay（「連加」開頭）小額消費多為餐飲
+  if (description.startsWith("連加") && Math.abs(amount) < LINE_PAY_SMALL_AMOUNT) {
+    return "飲食";
+  }
+  return "未分類";
 }

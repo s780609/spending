@@ -51,4 +51,16 @@ describe("familyCardCategory 信用卡明細", () => {
       "未分類",
     );
   });
+
+  it("LINE Pay（連加開頭）未滿 200 元且無其他規則命中時歸飲食", () => {
+    expect(familyCardCategory("連加＊連加＊聚珍臺灣TAIPEI", 199)).toBe("飲食");
+    expect(familyCardCategory("連加＊連加＊聚珍臺灣TAIPEI", 200)).toBe(
+      "未分類",
+    );
+    // 其他規則優先：停車仍歸交通、兒童新樂園仍歸娛樂
+    expect(familyCardCategory("連加＊嘟嘟房台北車站站", 60)).toBe("交通");
+    expect(familyCardCategory("連加＊連加＊兒童新樂園TAIPEI", 45)).toBe("娛樂");
+    // 非連加開頭不套用
+    expect(familyCardCategory("聚珍臺灣TAIPEI", 50)).toBe("未分類");
+  });
 });
