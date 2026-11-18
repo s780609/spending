@@ -1,4 +1,5 @@
 import { login } from "@/app/actions";
+import { PasswordInput } from "@/app/password-input";
 import { SubmitButton } from "@/app/submit-button";
 
 export default async function LoginPage({
@@ -20,14 +21,7 @@ export default async function LoginPage({
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
           記帳小工具
         </h1>
-        <input
-          type="password"
-          name="password"
-          placeholder="輸入密碼"
-          required
-          autoFocus
-          className="mt-6 w-full rounded-lg bg-white dark:bg-gray-900 px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm"
-        />
+        <PasswordInput />
         {error && (
           <p className="mt-2 text-sm text-red-600">密碼錯誤，請再試一次</p>
         )}
