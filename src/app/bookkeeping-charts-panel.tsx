@@ -6,16 +6,20 @@ import {
   type ExpenseDetailRow,
 } from "@/app/actions";
 import {
-  CategoryBreakdown,
   categoryRows,
   MonthlyTrend,
   YearPicker,
-  yearMonthlyTotals,
 } from "@/app/charts";
+import {
+  CARD,
+  CategoryBars,
+  ChangeBadge,
+  monthStats,
+  ntd,
+  Pills,
+  SpendingHero,
+} from "@/app/spending-dashboard";
 import { CATEGORIES } from "@/lib/categories";
-
-const CARD =
-  "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
 
 interface MonthCategoryEntry {
   month: string;
@@ -23,14 +27,22 @@ interface MonthCategoryEntry {
   total: number;
 }
 
+const SCOPES = [
+  { value: "month", label: "本月" },
+  { value: "year", label: "年度" },
+] as const;
+
 export function BookkeepingChartsPanel({
   categoryByMonth,
   trend,
   month,
+  budget,
 }: {
   categoryByMonth: MonthCategoryEntry[];
   trend: { month: string; total: number }[];
   month: string;
+  /** 檢視月份有設預算的分類：預算合計與已花費合計；沒設預算為 null */
+  budget: { budget: number; spent: number } | null;
 }) {
   const [modal, setModal] = useState<{
     title: string;
@@ -50,69 +62,84 @@ export function BookkeepingChartsPanel({
 
   const total = modal?.rows.reduce((s, r) => s + r.amount, 0) ?? 0;
 
-  const years = [...new Set(trend.map((entry) => entry.month.slice(0, 4)))]
+  const stats = monthStats(trend, month);
+  const years = [...new Set([...trend.map((entry) => entry.month.slice(0, 4)), stats.year])]
     .sort()
     .reverse();
-  const [year, setYear] = useState(month.slice(0, 4));
-  const yearTrend = yearMonthlyTotals(trend, year);
-  const yearTotal = yearTrend.reduce((s, entry) => s + entry.total, 0);
-  const monthRows = categoryRows(categoryByMonth, (m) => m === month);
-  const yearRows = categoryRows(categoryByMonth, (m) =>
-    m.startsWith(`${year}-`),
-  );
-  const openYearCategory = (category: string) =>
-    openDetail(`${year} 年 · ${category}`, {
-      category,
-      startMonth: `${year}-01`,
-      endMonth: `${year}-12`,
-    });
+  const [scope, setScope] = useState<"month" | "year">("month");
+  const [year, setYear] = useState(stats.year);
+  const rows =
+    scope === "month"
+      ? categoryRows(categoryByMonth, (m) => m === month)
+      : categoryRows(categoryByMonth, (m) => m.startsWith(`${year}-`));
+  const openCategory = (category: string) =>
+    scope === "month"
+      ? openDetail(`${month} · ${category}`, {
+          category,
+          startMonth: month,
+          endMonth: month,
+        })
+      : openDetail(`${year} 年 · ${category}`, {
+          category,
+          startMonth: `${year}-01`,
+          endMonth: `${year}-12`,
+        });
 
   return (
     <>
-      <section className={`mt-6 ${CARD}`}>
-        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
-          {month} 分類佔比
-        </h2>
-        <CategoryBreakdown
-          rows={monthRows}
-          categories={CATEGORIES}
-          onSelect={(category) =>
-            openDetail(`${month} · ${category}`, {
-              category,
-              startMonth: month,
-              endMonth: month,
-            })
-          }
+      <SpendingHero
+        label={`${month} 支出`}
+        value={stats.current}
+        lines={[
+          [
+            <ChangeBadge key="c" change={stats.change} />,
+            `${stats.year} 年累計 ${ntd(stats.yearTotal)}`,
+            `月均 ${ntd(stats.monthlyAvg)}`,
+          ],
+        ]}
+        meter={
+          budget && budget.budget > 0
+            ? {
+                ratio: budget.spent / budget.budget,
+                label: `預算使用 ${((budget.spent / budget.budget) * 100).toFixed(1)}%（${ntd(budget.spent)} / ${ntd(budget.budget)}）`,
+              }
+            : undefined
+        }
+      />
+
+      <section className={`mt-3 ${CARD}`}>
+        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出走勢</h2>
+        <MonthlyTrend
+          data={trend}
+          onPointClick={(label) => {
+            const isYear = /^\d{4}$/.test(label);
+            openDetail(`${label} 全部支出`, {
+              startMonth: isYear ? `${label}-01` : label,
+              endMonth: isYear ? `${label}-12` : label,
+            });
+          }}
         />
       </section>
 
       <section className={`mt-3 ${CARD}`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
-            年度 · NT$ {Math.round(yearTotal).toLocaleString("zh-TW")}
+            分類
+            <span className="ml-2 font-normal text-gray-500 dark:text-gray-400">
+              {scope === "month" ? month : `${year} 年`}
+            </span>
           </h2>
-          <YearPicker years={years} value={year} onChange={setYear} />
-        </div>
-        <CategoryBreakdown
-          rows={yearRows}
-          categories={CATEGORIES}
-          onSelect={openYearCategory}
-        />
-        {yearTrend.length > 0 && (
-          <div className="mt-3">
-            <h3 className="text-xs text-gray-500 dark:text-gray-400">每月支出</h3>
-            <MonthlyTrend
-              data={yearTrend}
-              yearView
-              onPointClick={(label) =>
-                openDetail(`${label} 全部支出`, {
-                  startMonth: label,
-                  endMonth: label,
-                })
-              }
-            />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Pills options={SCOPES} value={scope} onChange={setScope} />
+            {scope === "year" && years.length > 1 && (
+              <>
+                <span className="mx-1 h-4 w-px bg-gray-950/10 dark:bg-white/10" aria-hidden />
+                <YearPicker years={years} value={year} onChange={setYear} />
+              </>
+            )}
           </div>
-        )}
+        </div>
+        <CategoryBars rows={rows} categories={CATEGORIES} onSelect={openCategory} />
       </section>
 
       {(modal || isPending) && (

@@ -5,21 +5,21 @@ import {
   getFamilySpendingDetail,
   type FamilyDetailRow,
 } from "@/app/actions";
+import { categoryRows, MonthlyTrend, YearPicker } from "@/app/charts";
 import {
-  ACTIVE_PILL,
-  CategoryBreakdown,
-  categoryRows,
-  IDLE_PILL,
-} from "@/app/charts";
-import { FamilyYearSummary } from "@/app/family-year-summary";
+  CARD,
+  CategoryBars,
+  ChangeBadge,
+  monthStats,
+  ntd,
+  Pills,
+  SpendingHero,
+} from "@/app/spending-dashboard";
 import {
   FAMILY_CATEGORIES,
   familyEntriesBySource,
   type FamilySource,
 } from "@/lib/family-category";
-
-const CARD =
-  "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
 
 interface MonthCategoryEntry {
   month: string;
@@ -28,15 +28,40 @@ interface MonthCategoryEntry {
 }
 
 const SOURCE_LABELS = { all: "合併", bank: "帳戶", card: "信用卡" } as const;
+const SOURCES = (Object.keys(SOURCE_LABELS) as FamilySource[]).map((value) => ({
+  value,
+  label: SOURCE_LABELS[value],
+}));
+const SCOPES = [
+  { value: "month", label: "本月" },
+  { value: "year", label: "年度" },
+] as const;
+
+/** 依月份加總 */
+function monthlyTotals(entries: MonthCategoryEntry[]) {
+  const byMonth = new Map<string, number>();
+  for (const entry of entries) {
+    byMonth.set(entry.month, (byMonth.get(entry.month) ?? 0) + entry.total);
+  }
+  return [...byMonth.entries()]
+    .map(([month, total]) => ({ month, total }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+}
 
 export function FamilyChartsPanel({
   bank,
   card,
   month,
+  balance,
+  cardNewCharges,
 }: {
   bank: MonthCategoryEntry[];
   card: MonthCategoryEntry[];
   month: string;
+  /** 最新對帳單存款與其月份 */
+  balance: { amount: number; month: string } | null;
+  /** 檢視月份卡單「本期新增」 */
+  cardNewCharges: number | null;
 }) {
   const [modal, setModal] = useState<{
     title: string;
@@ -56,53 +81,104 @@ export function FamilyChartsPanel({
 
   const total = modal?.rows.reduce((s, r) => s + r.amount, 0) ?? 0;
 
-  const [monthSource, setMonthSource] = useState<FamilySource>("all");
-  const monthRows = categoryRows(
-    familyEntriesBySource(bank, card, monthSource),
-    (m) => m === month,
+  // 主卡一律用「合併」口徑；比例條拆帳戶（排除項後）／信用卡
+  const merged = familyEntriesBySource(bank, card, "all");
+  const stats = monthStats(monthlyTotals(merged), month);
+  const mergedBank = familyEntriesBySource(bank, [], "all")
+    .filter((e) => e.month === month)
+    .reduce((s, e) => s + e.total, 0);
+  const mergedCard = stats.current - mergedBank;
+
+  const [trendSource, setTrendSource] = useState<FamilySource>("all");
+  const trend = monthlyTotals(familyEntriesBySource(bank, card, trendSource));
+
+  const [scope, setScope] = useState<"month" | "year">("month");
+  const [source, setSource] = useState<FamilySource>("all");
+  const [year, setYear] = useState(stats.year);
+  const years = [...new Set([...merged.map((e) => e.month.slice(0, 4)), stats.year])]
+    .sort()
+    .reverse();
+  const rows = categoryRows(
+    familyEntriesBySource(bank, card, source),
+    scope === "month" ? (m) => m === month : (m) => m.startsWith(`${year}-`),
   );
+  const openCategory = (category: string) =>
+    scope === "month"
+      ? openDetail(`${month} · ${category} · ${SOURCE_LABELS[source]}`, {
+          source,
+          category,
+          startMonth: month,
+          endMonth: month,
+        })
+      : openDetail(`${year} 年 · ${category} · ${SOURCE_LABELS[source]}`, {
+          source,
+          category,
+          startMonth: `${year}-01`,
+          endMonth: `${year}-12`,
+        });
 
   return (
     <>
-      <section className={`mt-6 ${CARD}`}>
-        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
-          {month} 分類佔比
-        </h2>
-        <div className="mt-1 flex flex-wrap gap-1.5">
-          {(Object.keys(SOURCE_LABELS) as FamilySource[]).map((source) => (
-            <button
-              key={source}
-              type="button"
-              onClick={() => setMonthSource(source)}
-              className={monthSource === source ? ACTIVE_PILL : IDLE_PILL}
-            >
-              {SOURCE_LABELS[source]}
-            </button>
-          ))}
+      <SpendingHero
+        label={`${month} 支出`}
+        value={stats.current}
+        lines={[
+          [
+            <ChangeBadge key="c" change={stats.change} />,
+            `${stats.year} 年累計 ${ntd(stats.yearTotal)}`,
+            `月均 ${ntd(stats.monthlyAvg)}`,
+          ],
+          [
+            `目前存款 ${balance ? `${ntd(balance.amount)}（${balance.month} 對帳單）` : "—"}`,
+            `卡費新增 ${cardNewCharges === null ? "—" : ntd(cardNewCharges)}`,
+          ],
+        ]}
+        segments={[
+          { key: "bank", label: "帳戶", value: mergedBank, color: "#8b5cf6" },
+          { key: "card", label: "信用卡", value: mergedCard, color: "#3b82f6" },
+        ]}
+      />
+
+      <section className={`mt-3 ${CARD}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">每月支出走勢</h2>
+          <Pills options={SOURCES} value={trendSource} onChange={setTrendSource} />
         </div>
-        <CategoryBreakdown
-          rows={monthRows}
-          categories={FAMILY_CATEGORIES}
-          onSelect={(category) =>
-            openDetail(
-              `${month} · ${category} · ${SOURCE_LABELS[monthSource]}`,
-              {
-                source: monthSource,
-                category,
-                startMonth: month,
-                endMonth: month,
-              },
-            )
-          }
+        <MonthlyTrend
+          data={trend}
+          onPointClick={(label) => {
+            const isYear = /^\d{4}$/.test(label);
+            openDetail(`${label} 支出 · ${SOURCE_LABELS[trendSource]}`, {
+              source: trendSource,
+              startMonth: isYear ? `${label}-01` : label,
+              endMonth: isYear ? `${label}-12` : label,
+            });
+          }}
         />
       </section>
-      <FamilyYearSummary
-        key={month.slice(0, 4)}
-        bank={bank}
-        card={card}
-        initialYear={month.slice(0, 4)}
-        onDetail={({ title, ...params }) => openDetail(title, params)}
-      />
+
+      <section className={`mt-3 ${CARD}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+            分類
+            <span className="ml-2 font-normal text-gray-500 dark:text-gray-400">
+              {scope === "month" ? month : `${year} 年`}
+            </span>
+          </h2>
+          <Pills options={SOURCES} value={source} onChange={setSource} />
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <Pills options={SCOPES} value={scope} onChange={setScope} />
+          {scope === "year" && years.length > 1 && (
+            <>
+              <span className="mx-1 h-4 w-px bg-gray-950/10 dark:bg-white/10" aria-hidden />
+              <YearPicker years={years} value={year} onChange={setYear} />
+            </>
+          )}
+        </div>
+        <CategoryBars rows={rows} categories={FAMILY_CATEGORIES} onSelect={openCategory} />
+      </section>
+
       <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
         帳戶口徑不含內部轉帳。「合併」＝帳戶（再排除利息、卡費、未分類、其他）＋信用卡（排除卡費），卡費改以信用卡明細逐筆計入。卡單依實際消費日歸月、退款以負數淨掉，僅排除「自動轉帳扣繳」繳款列。點圖表可查看對應明細。
       </p>

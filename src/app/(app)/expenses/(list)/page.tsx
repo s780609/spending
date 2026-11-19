@@ -36,9 +36,8 @@ export default async function Home({
 
   // 預算提醒一律看「實際當月」，與正在檢視的月份無關
   const today = todayTaipei();
-  const overBudget = (await getBudgetStatus(today.slice(0, 7))).filter(
-    (s) => s.over,
-  );
+  const currentBudget = await getBudgetStatus(today.slice(0, 7));
+  const overBudget = currentBudget.filter((s) => s.over);
 
   const db = getDb();
   const rows = await db.query.expenses.findMany({
@@ -71,10 +70,16 @@ export default async function Home({
     .from(expenses)
     .groupBy(monthExpr, expenses.category);
 
-  const year = month.slice(0, 4);
-  const yearTotal = trend
-    .filter((entry) => entry.month.startsWith(`${year}-`))
-    .reduce((sum, entry) => sum + entry.total, 0);
+  // 主卡預算條：檢視月份有設預算的分類合計
+  const viewedBudget =
+    month === today.slice(0, 7) ? currentBudget : await getBudgetStatus(month);
+  const budget =
+    viewedBudget.length > 0
+      ? {
+          budget: viewedBudget.reduce((s, b) => s + b.budget, 0),
+          spent: viewedBudget.reduce((s, b) => s + b.spent, 0),
+        }
+      : null;
 
   const total = rows.reduce((sum, row) => sum + Number(row.amount), 0);
   const byCategory = new Map<string, number>();
@@ -114,20 +119,6 @@ export default async function Home({
               →
             </Link>
           </div>
-          <div className="flex flex-wrap items-end gap-x-6 gap-y-1">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              本月支出{" "}
-              <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
-                NT$ {formatAmount(total)}
-              </span>
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {year} 年支出{" "}
-              <span className="text-2xl font-bold tracking-tight text-gray-950 dark:text-gray-50">
-                NT$ {formatAmount(yearTotal)}
-              </span>
-            </p>
-          </div>
         </div>
 
         {(categoryByMonth.length > 0 || trend.length > 0) && (
@@ -135,6 +126,7 @@ export default async function Home({
             categoryByMonth={categoryByMonth}
             trend={trend}
             month={month}
+            budget={budget}
           />
         )}
 
