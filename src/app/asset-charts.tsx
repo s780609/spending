@@ -1,15 +1,12 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import {
   Area,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,87 +19,8 @@ import {
   useChartTheme,
 } from "@/app/chart-theme";
 
-const ACTIVE_PILL =
-  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
-const IDLE_PILL =
-  "rounded-full px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
-
-const PIE_COLORS = [
-  "#0ea5e9", "#f97316", "#22c55e", "#a855f7", "#ec4899", "#ef4444",
-  "#14b8a6", "#eab308", "#8b5cf6", "#64748b", "#84cc16", "#06b6d4",
-];
-
 function formatNtd(value: unknown): string {
   return `NT$ ${Math.round(Number(value)).toLocaleString("zh-TW")}`;
-}
-
-const MARKET_TABS = [
-  { label: "全部", value: "ALL" },
-  { label: "台股", value: "TW" },
-  { label: "美股", value: "US" },
-];
-
-export function AssetPie({
-  data,
-}: {
-  data: { symbol: string; name: string | null; market: string; valueTwd: number }[];
-}) {
-  const [market, setMarket] = useState("ALL");
-
-  const sums = new Map<string, number>();
-  for (const entry of data) {
-    if (market !== "ALL" && entry.market !== market) continue;
-    const label = entry.name || entry.symbol;
-    sums.set(label, (sums.get(label) ?? 0) + entry.valueTwd);
-  }
-  const pieData = [...sums.entries()]
-    .map(([name, value]) => ({ name, value }))
-    .filter((entry) => entry.value > 0)
-    .sort((a, b) => b.value - a.value);
-
-  return (
-    <div>
-      <div className="mt-1 flex flex-wrap gap-1.5">
-        {MARKET_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setMarket(tab.value)}
-            className={market === tab.value ? ACTIVE_PILL : IDLE_PILL}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      {pieData.length === 0 ? (
-        <p className="flex h-[260px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">
-          沒有持股資料
-        </p>
-      ) : (
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={50}
-              outerRadius={85}
-              paddingAngle={2}
-            >
-              {pieData.map((entry, index) => (
-                <Cell
-                  key={entry.name}
-                  fill={PIE_COLORS[index % PIE_COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip formatter={formatNtd} />
-            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-          </PieChart>
-        </ResponsiveContainer>
-      )}
-    </div>
-  );
 }
 
 function NetWorthTooltip({

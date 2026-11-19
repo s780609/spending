@@ -2,8 +2,8 @@ import { asc } from "drizzle-orm";
 import Link from "next/link";
 import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
-import { AssetPie, NetWorthChart } from "@/app/asset-charts";
-import { AssetDashboard, AssetTakeaway } from "@/app/asset-dashboard";
+import { NetWorthChart } from "@/app/asset-charts";
+import { AllocationCard, NetWorthHero } from "@/app/asset-dashboard";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
 import { DividendCalendar } from "@/app/dividend-calendar";
@@ -38,53 +38,6 @@ const PILL_ACTIVE =
   "rounded-full bg-gray-950 dark:bg-white px-2.5 py-1 text-xs font-medium text-white dark:text-gray-950";
 const PILL_IDLE =
   "rounded-full px-2.5 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
-
-/** 負債佔總資產的量條（meter）：負債段＋淨資產段組成總資產 */
-function DebtRatioMeter({
-  totalAssets,
-  totalLiabilities,
-  netWorth,
-}: {
-  totalAssets: number;
-  totalLiabilities: number;
-  netWorth: number;
-}) {
-  const ratio =
-    totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : null;
-  // 淨資產為負時比率會超過 100%，條圖填滿即可，數字照實顯示
-  const fillPct = ratio === null ? 0 : Math.min(100, Math.max(0, ratio));
-
-  return (
-    <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">負債佔總資產</h2>
-        <p className="sensitive text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
-          {ratio === null ? "—" : `${ratio.toFixed(1)}%`}
-        </p>
-      </div>
-      <div className="sensitive mt-3 flex h-3 gap-0.5">
-        {fillPct > 0 && (
-          <div
-            className="rounded-full bg-sky-500"
-            style={{ width: `${fillPct}%` }}
-          />
-        )}
-        {fillPct < 100 && <div className="flex-1 rounded-full bg-gray-200 dark:bg-gray-700" />}
-      </div>
-      <div className="sensitive mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-sky-500" />
-          負債 {ntd(totalLiabilities)}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10" />
-          淨資產 {ntd(netWorth)}
-          {ratio !== null && `（${(100 - ratio).toFixed(1)}%）`}
-        </span>
-      </div>
-    </section>
-  );
-}
 
 function assetHref(broker?: string, symbol?: string, sort?: string): string {
   const params = new URLSearchParams();
@@ -262,74 +215,21 @@ export default async function AssetsPage({
           }
         >
 
-        <AssetTakeaway
-          summary={assetSummary}
+        <NetWorthHero
           totalAssets={sheet.totalAssets}
           totalLiabilities={sheet.totalLiabilities}
           netWorth={sheet.netWorth}
+          leverage={sheet.leverage}
         />
 
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[
-            { label: "總資產", value: ntd(sheet.totalAssets) },
-            { label: "總負債", value: ntd(sheet.totalLiabilities) },
-            { label: "淨資產", value: ntd(sheet.netWorth) },
-            {
-              label: "槓桿比率",
-              value: sheet.leverage === null ? "—" : sheet.leverage.toFixed(2),
-            },
-            {
-              label: "美股總市值（美元）",
-              value: `$${assetSummary.usTotalUsd.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}`,
-            },
-            {
-              label: "USD/TWD 匯率",
-              value: sheet.usdTwd ? sheet.usdTwd.toFixed(4) : "—",
-            },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
-            >
-              <p className="text-xs text-gray-600 dark:text-gray-400">{card.label}</p>
-              <p className="sensitive mt-1 text-lg font-bold tracking-tight text-gray-950 dark:text-gray-50">
-                {card.value}
-              </p>
-            </div>
-          ))}
-        </div>
+        <section className="mt-3 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
+          <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
+            淨資產與槓桿走勢
+          </h2>
+          <div className="sensitive"><NetWorthChart data={chartData} /></div>
+        </section>
 
-        <DebtRatioMeter
-          totalAssets={sheet.totalAssets}
-          totalLiabilities={sheet.totalLiabilities}
-          netWorth={sheet.netWorth}
-        />
-
-        <AssetDashboard summary={assetSummary} />
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">持股佔比</h2>
-            <div className="sensitive"><AssetPie
-              data={sheet.holdings.map((h) => ({
-                symbol: h.symbol,
-                name: h.name,
-                market: h.market,
-                valueTwd: h.valueTwd,
-              }))}
-            />
-              </div>
-          </section>
-          <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
-            <h2 className="text-sm font-medium text-gray-950 dark:text-gray-50">
-              淨資產與槓桿走勢
-            </h2>
-            <div className="sensitive"><NetWorthChart data={chartData} /></div>
-          </section>
-        </div>
+        <AllocationCard summary={assetSummary} />
 
         {/* ===== 資產：持股 ===== */}
         <AddPanel title="持股" buttonLabel="新增持股">
