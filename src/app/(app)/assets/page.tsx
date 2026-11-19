@@ -3,6 +3,7 @@ import Link from "next/link";
 import { addHolding, addLoan, deleteHolding, deleteLoan } from "@/app/actions";
 import { AddPanel } from "@/app/add-panel";
 import { AssetPie, NetWorthChart } from "@/app/asset-charts";
+import { AssetDashboard, AssetTakeaway } from "@/app/asset-dashboard";
 import { CollapsibleSection } from "@/app/collapsible-section";
 import { DeleteButton } from "@/app/delete-button";
 import { DividendCalendar } from "@/app/dividend-calendar";
@@ -14,6 +15,7 @@ import { PledgeExtensionAlert, type PledgeExtensionItem } from "@/app/pledge-ext
 import { SharesEditor } from "@/app/shares-editor";
 import { getDb } from "@/db";
 import { networthSnapshots } from "@/db/schema";
+import { summarizeAssets } from "@/lib/asset-dashboard";
 import { recordDailySnapshot } from "@/lib/balance-sheet";
 import { todayTaipei } from "@/lib/dates";
 import { pledgeExtensionDeadline } from "@/lib/loan-math";
@@ -107,6 +109,7 @@ export default async function AssetsPage({
 
   // 開頁同時計算資產負債並補記今日快照
   const sheet = await recordDailySnapshot();
+  const assetSummary = summarizeAssets(sheet.holdings);
 
   const brokers = [...new Set(sheet.holdings.map((h) => h.broker))];
   const brokerFilter =
@@ -259,7 +262,14 @@ export default async function AssetsPage({
           }
         >
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <AssetTakeaway
+          summary={assetSummary}
+          totalAssets={sheet.totalAssets}
+          totalLiabilities={sheet.totalLiabilities}
+          netWorth={sheet.netWorth}
+        />
+
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[
             { label: "總資產", value: ntd(sheet.totalAssets) },
             { label: "總負債", value: ntd(sheet.totalLiabilities) },
@@ -267,6 +277,17 @@ export default async function AssetsPage({
             {
               label: "槓桿比率",
               value: sheet.leverage === null ? "—" : sheet.leverage.toFixed(2),
+            },
+            {
+              label: "美股總市值（美元）",
+              value: `$${assetSummary.usTotalUsd.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`,
+            },
+            {
+              label: "USD/TWD 匯率",
+              value: sheet.usdTwd ? sheet.usdTwd.toFixed(4) : "—",
             },
           ].map((card) => (
             <div
@@ -286,6 +307,8 @@ export default async function AssetsPage({
           totalLiabilities={sheet.totalLiabilities}
           netWorth={sheet.netWorth}
         />
+
+        <AssetDashboard summary={assetSummary} />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <section className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10">
