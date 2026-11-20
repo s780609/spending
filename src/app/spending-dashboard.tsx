@@ -86,8 +86,11 @@ export function SpendingHero({
         >
           {items.map((item, j) => (
             <span key={j} className="whitespace-nowrap">
-              {j > 0 && <span className="mr-1.5 text-gray-300 dark:text-gray-600">·</span>}
               {item}
+              {/* 分隔點掛在項目尾端，換行時才不會出現在行首 */}
+              {j < items.length - 1 && (
+                <span className="ml-1.5 text-gray-300 dark:text-gray-600">·</span>
+              )}
             </span>
           ))}
         </p>
