@@ -7,14 +7,12 @@ import {
 } from "@/app/actions";
 import { categoryRows, MonthlyTrend, YearPicker } from "@/app/charts";
 import {
-  CARD,
   CategoryBars,
   ChangeBadge,
-  monthStats,
-  ntd,
   Pills,
   SpendingHero,
 } from "@/app/spending-dashboard";
+import { CARD, monthlyTotals, monthStats, ntd } from "@/lib/spending-stats";
 import {
   FAMILY_CATEGORIES,
   familyEntriesBySource,
@@ -36,17 +34,6 @@ const SCOPES = [
   { value: "month", label: "本月" },
   { value: "year", label: "年度" },
 ] as const;
-
-/** 依月份加總 */
-function monthlyTotals(entries: MonthCategoryEntry[]) {
-  const byMonth = new Map<string, number>();
-  for (const entry of entries) {
-    byMonth.set(entry.month, (byMonth.get(entry.month) ?? 0) + entry.total);
-  }
-  return [...byMonth.entries()]
-    .map(([month, total]) => ({ month, total }))
-    .sort((a, b) => a.month.localeCompare(b.month));
-}
 
 export function FamilyChartsPanel({
   bank,

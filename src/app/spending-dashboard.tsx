@@ -1,50 +1,30 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Line, LineChart, ResponsiveContainer, YAxis } from "recharts";
+import { useChartTheme } from "@/app/chart-theme";
 import { ACTIVE_PILL, colorOf, IDLE_PILL } from "@/app/charts";
-import { shiftMonth } from "@/lib/dates";
+import { CARD, ntd, pct } from "@/lib/spending-stats";
 
-export const CARD =
-  "rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10";
-
-export function ntd(value: number): string {
-  return `NT$ ${Math.round(value).toLocaleString("zh-TW")}`;
-}
-
-function pct(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
-}
-
-/** 本月 vs 上月、當年累計與月均（只算有資料的月份） */
-export function monthStats(
-  totals: { month: string; total: number }[],
-  month: string,
-) {
-  const byMonth = new Map(totals.map((t) => [t.month, t.total]));
-  const current = byMonth.get(month) ?? 0;
-  const prev = byMonth.get(shiftMonth(month, -1));
-  const year = month.slice(0, 4);
-  const yearEntries = totals.filter((t) => t.month.startsWith(`${year}-`));
-  const yearTotal = yearEntries.reduce((s, t) => s + t.total, 0);
-  return {
-    current,
-    change: prev && prev > 0 ? (current - prev) / prev : null,
-    year,
-    yearTotal,
-    monthlyAvg: yearEntries.length > 0 ? yearTotal / yearEntries.length : 0,
-  };
-}
-
-/** 較上月變化：支出增加為紅、減少為綠 */
-export function ChangeBadge({ change }: { change: number | null }) {
+/** 變化百分比：預設為支出（增加紅、減少綠）；upIsGood 時反過來（如淨資產） */
+export function ChangeBadge({
+  change,
+  label = "較上月",
+  upIsGood = false,
+}: {
+  change: number | null;
+  label?: string;
+  upIsGood?: boolean;
+}) {
   if (change === null) {
-    return <span>較上月 —</span>;
+    return <span>{label} —</span>;
   }
   const up = change > 0;
+  const good = up === upIsGood;
   return (
     <span>
-      較上月{" "}
-      <span className={up ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
+      {label}{" "}
+      <span className={good ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
         {up ? "▲" : "▼"} {pct(Math.abs(change))}
       </span>
     </span>
@@ -230,5 +210,36 @@ export function CategoryBars({
         ))}
       </ul>
     </>
+  );
+}
+
+/** 迷你折線圖：無座標軸，只看趨勢 */
+export function Sparkline({
+  values,
+  height = 44,
+}: {
+  values: number[];
+  height?: number;
+}) {
+  const theme = useChartTheme();
+  if (values.length < 2) {
+    return <div style={{ height }} />;
+  }
+  return (
+    <div className="sensitive" style={{ height }} aria-hidden>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={values.map((value, i) => ({ i, value }))} margin={{ top: 4, right: 2, bottom: 4, left: 2 }}>
+          <YAxis hide domain={["dataMin", "dataMax"]} />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke={theme.primary}
+            strokeWidth={1.75}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

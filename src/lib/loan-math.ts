@@ -40,6 +40,9 @@ export interface PledgeExtension {
  * 每按一次「已申請展期」次數 +1，期限即往後一期。
  * 逾期（daysRemaining < 0）會持續存在直到使用者確認展期，不會被時間自動略過。
  */
+/** 質押展期期限在這麼多天內（或已超期）就提醒 */
+export const PLEDGE_ALERT_DAYS = 30;
+
 export function pledgeExtensionDeadline(
   startDate: string,
   today: string,

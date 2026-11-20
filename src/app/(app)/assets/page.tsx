@@ -18,14 +18,11 @@ import { networthSnapshots } from "@/db/schema";
 import { summarizeAssets } from "@/lib/asset-dashboard";
 import { recordDailySnapshot } from "@/lib/balance-sheet";
 import { todayTaipei } from "@/lib/dates";
-import { pledgeExtensionDeadline } from "@/lib/loan-math";
+import { PLEDGE_ALERT_DAYS, pledgeExtensionDeadline } from "@/lib/loan-math";
 import { dividendTwd, projectMonthlyDividends } from "@/lib/dividend-schedule";
 import { fetchDividendHistory } from "@/lib/prices";
 
 export const dynamic = "force-dynamic";
-
-/** 展期期限在幾天內就跳提醒 */
-const PLEDGE_ALERT_DAYS = 30;
 
 function ntd(value: number): string {
   return `NT$ ${Math.round(value).toLocaleString("zh-TW")}`;

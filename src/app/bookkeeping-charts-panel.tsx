@@ -11,14 +11,12 @@ import {
   YearPicker,
 } from "@/app/charts";
 import {
-  CARD,
   CategoryBars,
   ChangeBadge,
-  monthStats,
-  ntd,
   Pills,
   SpendingHero,
 } from "@/app/spending-dashboard";
+import { CARD, monthStats, ntd } from "@/lib/spending-stats";
 import { CATEGORIES } from "@/lib/categories";
 
 interface MonthCategoryEntry {
