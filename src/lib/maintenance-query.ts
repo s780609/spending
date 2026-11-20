@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { bikeSettings, maintenanceRecords } from "@/db/schema";
 import {
   computeMaintenanceStatus,
+  estimateDailyKm,
   MAINTENANCE_ITEMS,
   type MaintenanceStatus,
 } from "@/lib/maintenance";
@@ -10,11 +11,14 @@ import {
 export interface BikeSettings {
   startDate: string | null;
   mileageAdjustment: number;
+  /** 目前里程最後更新日，未紀錄為 null */
+  mileageUpdatedOn: string | null;
 }
 
 const DEFAULT_SETTINGS: BikeSettings = {
   startDate: null,
   mileageAdjustment: 0,
+  mileageUpdatedOn: null,
 };
 
 export interface MaintenanceRecordRow {
@@ -23,6 +27,8 @@ export interface MaintenanceRecordRow {
   date: string;
   mileage: number;
   note: string | null;
+  cost: number | null;
+  expenseId: number | null;
 }
 
 export interface MaintenanceData {
@@ -31,6 +37,10 @@ export interface MaintenanceData {
   settings: BikeSettings;
   /** 目前里程（手動輸入的校正值） */
   estMileage: number;
+  /** 推估平均每日里程，資料不足為 null */
+  dailyKm: number | null;
+  /** 目前里程的觀測日：更新日，沒有則為最近一筆紀錄日，再沒有則為今天 */
+  mileageAsOf: string;
 }
 
 /** 讀單列設定，未設定時回傳預設（不寫入，避免在頁面渲染時產生副作用） */
@@ -42,6 +52,7 @@ export async function getBikeSettings(): Promise<BikeSettings> {
   return {
     startDate: row.startDate,
     mileageAdjustment: row.mileageAdjustment,
+    mileageUpdatedOn: row.mileageUpdatedOn,
   };
 }
 
@@ -74,6 +85,17 @@ export async function getMaintenanceData(
     settings.startDate,
   );
 
+  const mileageAsOf = settings.mileageUpdatedOn ?? records[0]?.date ?? today;
+  const dailyKm = estimateDailyKm(
+    [
+      ...records.map((r) => ({ date: r.date, mileage: r.mileage })),
+      ...(settings.mileageUpdatedOn
+        ? [{ date: settings.mileageUpdatedOn, mileage: estMileage }]
+        : []),
+    ],
+    today,
+  );
+
   return {
     status,
     records: records.map((r) => ({
@@ -82,8 +104,12 @@ export async function getMaintenanceData(
       date: r.date,
       mileage: r.mileage,
       note: r.note,
+      cost: r.cost === null ? null : Number(r.cost),
+      expenseId: r.expenseId,
     })),
     settings,
     estMileage,
+    dailyKm,
+    mileageAsOf,
   };
 }

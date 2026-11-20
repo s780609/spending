@@ -17,6 +17,7 @@ import { todayTaipei } from "@/lib/dates";
 import { familyEntriesBySource } from "@/lib/family-category";
 import { generateRecurringExpenses } from "@/lib/generate-recurring";
 import { PLEDGE_ALERT_DAYS, pledgeExtensionDeadline } from "@/lib/loan-math";
+import { diffDays, MILEAGE_STALE_DAYS } from "@/lib/maintenance";
 import { getMaintenanceData } from "@/lib/maintenance-query";
 import {
   CARD,
@@ -195,6 +196,9 @@ export default async function DashboardPage() {
   const family = monthStats(familyTrend, month);
 
   // ===== 提醒 =====
+  const mileageUpdatedOn = maintenance.settings.mileageUpdatedOn;
+  const mileageStaleDays =
+    mileageUpdatedOn !== null ? diffDays(today, mileageUpdatedOn) : null;
   const reminders: Reminder[] = [
     ...budget
       .filter((b) => b.over)
@@ -223,6 +227,15 @@ export default async function DashboardPage() {
         text: `機車${s.name}該${s.inspectOnly ? "檢查" : "更換"}`,
         href: "/motorcycle",
       })),
+    ...(mileageStaleDays !== null && mileageStaleDays > MILEAGE_STALE_DAYS
+      ? [
+          {
+            key: "bike-mileage",
+            text: `機車里程 ${mileageStaleDays} 天沒更新`,
+            href: "/motorcycle",
+          },
+        ]
+      : []),
   ];
 
   return (

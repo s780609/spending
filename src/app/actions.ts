@@ -31,7 +31,7 @@ import {
   recurringExpenses,
 } from "@/db/schema";
 import { shiftMonth } from "@/lib/dates";
-import { isMaintenanceItem } from "@/lib/maintenance";
+import { isMaintenanceItem, MAINTENANCE_ITEMS } from "@/lib/maintenance";
 import { getBikeSettings } from "@/lib/maintenance-query";
 import { autoCategory } from "@/lib/auto-category";
 import { AUTH_COOKIE, authToken } from "@/lib/auth";
@@ -213,68 +213,125 @@ export async function deleteBudget(id: number) {
   revalidatePath("/expenses");
 }
 
+/** 表單數字欄位：空白或非數字回傳 null */
+function optionalNumber(raw: FormDataEntryValue | null): number | null {
+  if (raw == null || String(raw).trim() === "") return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+/** 寫入目前里程與更新日（upsert 單列設定） */
+async function setBikeMileage(mileage: number, updatedOn: string) {
+  await getDb()
+    .insert(bikeSettings)
+    .values({ id: 1, mileageAdjustment: mileage, mileageUpdatedOn: updatedOn })
+    .onConflictDoUpdate({
+      target: bikeSettings.id,
+      set: { mileageAdjustment: mileage, mileageUpdatedOn: updatedOn },
+    });
+}
+
+/**
+ * 新增保養紀錄：可一次勾選多個項目（同一次進廠），里程預設為目前里程；
+ * 填的里程比目前里程大時順便更新目前里程。有填花費時可一併記一筆交通支出。
+ */
 export async function addMaintenanceRecord(formData: FormData) {
-  const itemKey = String(formData.get("itemKey") ?? "");
+  const itemKeys = [
+    ...new Set(formData.getAll("itemKey").map(String).filter(isMaintenanceItem)),
+  ];
   const date = String(formData.get("date") ?? "");
   const note = String(formData.get("note") ?? "").trim();
-
-  if (!isMaintenanceItem(itemKey) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (itemKeys.length === 0 || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return;
   }
 
-  const db = getDb();
   const settings = await getBikeSettings();
-  // 里程不再依換機油次數推算，直接以手動輸入的目前里程為準
-  const mileage = settings.mileageAdjustment;
+  const mileageInput = optionalNumber(formData.get("mileage"));
+  const mileage =
+    mileageInput !== null && mileageInput >= 0
+      ? Math.round(mileageInput)
+      : settings.mileageAdjustment;
+  const costInput = optionalNumber(formData.get("cost"));
+  const cost = costInput !== null && costInput > 0 ? costInput : null;
+  const createExpense = cost !== null && formData.get("createExpense") === "on";
 
-  await db.insert(maintenanceRecords).values({
-    itemKey,
-    date,
-    mileage,
-    note: note || null,
-  });
+  const db = getDb();
+  let expenseId: number | null = null;
+  if (createExpense) {
+    const names = itemKeys.map(
+      (key) => MAINTENANCE_ITEMS.find((item) => item.key === key)?.name ?? key,
+    );
+    const [row] = await db
+      .insert(expenses)
+      .values({
+        date,
+        vendor: `機車保養：${names.join("、")}`,
+        amount: String(cost),
+        category: isCategory("交通") ? "交通" : DEFAULT_CATEGORY,
+      })
+      .returning({ id: expenses.id });
+    expenseId = row.id;
+  }
+
+  // 花費只記在第一筆，同次進廠合計時才不會重複
+  await db.insert(maintenanceRecords).values(
+    itemKeys.map((itemKey, index) => ({
+      itemKey,
+      date,
+      mileage,
+      note: note || null,
+      cost: index === 0 && cost !== null ? String(cost) : null,
+      expenseId: index === 0 ? expenseId : null,
+    })),
+  );
+
+  if (mileage > settings.mileageAdjustment) {
+    await setBikeMileage(mileage, date);
+  }
   revalidatePath("/motorcycle");
+  if (expenseId !== null) {
+    revalidatePath("/expenses");
+  }
 }
 
+/** 刪除保養紀錄；若當初一併建立了記帳支出，連同支出一起刪 */
 export async function deleteMaintenanceRecord(id: number) {
-  await getDb()
+  const db = getDb();
+  const [row] = await db
     .delete(maintenanceRecords)
-    .where(eq(maintenanceRecords.id, id));
+    .where(eq(maintenanceRecords.id, id))
+    .returning({ expenseId: maintenanceRecords.expenseId });
+  if (row?.expenseId != null) {
+    await db.delete(expenses).where(eq(expenses.id, row.expenseId));
+    revalidatePath("/expenses");
+  }
   revalidatePath("/motorcycle");
 }
 
+/** 只更新目前里程（主卡快速更新） */
+export async function updateBikeMileage(formData: FormData) {
+  const mileage = optionalNumber(formData.get("currentMileage"));
+  if (mileage === null || mileage < 0) {
+    return;
+  }
+  await setBikeMileage(Math.round(mileage), todayTaipei());
+  revalidatePath("/motorcycle");
+  revalidatePath("/");
+}
+
+/** 機車設定：起算日（出廠年月） */
 export async function saveBikeSettings(formData: FormData) {
   const startMonthRaw = String(formData.get("startMonth") ?? "");
   const startDate = /^\d{4}-\d{2}$/.test(startMonthRaw)
     ? `${startMonthRaw}-01`
     : null;
 
-  const db = getDb();
-  const settings = await getBikeSettings();
-
-  // 目前里程直接存入校正值，不再依換機油次數換算
-  let mileageAdjustment = settings.mileageAdjustment;
-  const currentMileageRaw = formData.get("currentMileage");
-  const currentMileage = Number(currentMileageRaw);
-  if (
-    currentMileageRaw != null &&
-    String(currentMileageRaw) !== "" &&
-    Number.isFinite(currentMileage) &&
-    currentMileage >= 0
-  ) {
-    mileageAdjustment = Math.round(currentMileage);
-  }
-
-  await db
+  await getDb()
     .insert(bikeSettings)
-    .values({
-      id: 1,
-      startDate,
-      mileageAdjustment,
-    })
+    .values({ id: 1, startDate })
     .onConflictDoUpdate({
       target: bikeSettings.id,
-      set: { startDate, mileageAdjustment },
+      set: { startDate },
     });
   revalidatePath("/motorcycle");
 }

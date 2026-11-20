@@ -187,6 +187,8 @@ export const bikeSettings = pgTable("bike_settings", {
   kmPerOilChange: integer("km_per_oil_change").notNull().default(2000),
   /** 目前里程（手動輸入的校正值） */
   mileageAdjustment: integer("mileage_adjustment").notNull().default(0),
+  /** 目前里程最後更新的日期（判斷里程是否太久沒更新），未紀錄為 null */
+  mileageUpdatedOn: date("mileage_updated_on"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -197,9 +199,13 @@ export const maintenanceRecords = pgTable("maintenance_records", {
   itemKey: text("item_key").notNull(),
   /** 保養日期 YYYY-MM-DD */
   date: date("date").notNull(),
-  /** 紀錄當下的目前里程（手動校正值） */
+  /** 保養當下的里程（表單輸入，預設為目前里程） */
   mileage: integer("mileage").notNull(),
   note: text("note"),
+  /** 這次進廠的花費（同次多筆時只記在其中一筆），未填為 null */
+  cost: numeric("cost", { precision: 10, scale: 2 }),
+  /** 一併建立的記帳支出 id，刪除此紀錄時一起刪 */
+  expenseId: integer("expense_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

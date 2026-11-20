@@ -247,3 +247,118 @@ export function computeMaintenanceStatus(
     };
   });
 }
+
+/** 「快到了」門檻：里程剩這麼多 km 以內 */
+export const SOON_KM = 500;
+/** 「快到了」門檻：時間剩這麼多天以內 */
+export const SOON_DAYS = 30;
+/** 里程超過這麼多天沒更新就提醒 */
+export const MILEAGE_STALE_DAYS = 30;
+
+export type Urgency = "due" | "soon" | "ok";
+
+/** 到期＞快到了（未到期但里程剩 ≤SOON_KM 或時間剩 ≤SOON_DAYS）＞正常 */
+export function urgencyOf(s: MaintenanceStatus): Urgency {
+  if (s.due) return "due";
+  if (
+    (s.kmRemaining != null && s.kmRemaining <= SOON_KM) ||
+    (s.daysRemaining != null && s.daysRemaining <= SOON_DAYS)
+  ) {
+    return "soon";
+  }
+  return "ok";
+}
+
+/** 這個間隔已用掉的比例（里程與時間取較高者；0 起跳、可超過 1）；兩者都沒有回傳 null */
+export function usedRatio(s: MaintenanceStatus): number | null {
+  const ratios: number[] = [];
+  if (s.km != null && s.kmRemaining != null) {
+    ratios.push(1 - s.kmRemaining / s.km);
+  }
+  if (s.months != null && s.daysRemaining != null) {
+    ratios.push(1 - s.daysRemaining / (s.months * 30.4375));
+  }
+  return ratios.length ? Math.max(0, ...ratios) : null;
+}
+
+/**
+ * 推估平均每天騎多少 km：取近一年內（不足則全部）最早與最晚的里程觀測點相減。
+ * 觀測點來自保養紀錄與「目前里程」更新；跨度不到 14 天或里程沒增加時回傳 null。
+ */
+export function estimateDailyKm(
+  points: { date: string; mileage: number }[],
+  today: string,
+): number | null {
+  if (points.length < 2) return null;
+  const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const yearAgo = addMonths(today, -12);
+  const recent = sorted.filter((p) => p.date >= yearAgo);
+  const pool = recent.length >= 2 ? recent : sorted;
+  const first = pool[0];
+  const last = pool[pool.length - 1];
+  const days = diffDays(last.date, first.date);
+  const km = last.mileage - first.mileage;
+  if (days < 14 || km <= 0) return null;
+  return km / days;
+}
+
+/** YYYY-MM-DD 加 n 天 */
+export function addDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+/**
+ * 預估到期日：里程制依每日里程從「里程觀測日」往後推，與時間制到期日取較早者。
+ * 已到期、或無法推估（沒有每日里程又沒有時間制）時回傳 null。
+ */
+export function predictDueDate(
+  s: MaintenanceStatus,
+  dailyKm: number | null,
+  mileageAsOf: string,
+): string | null {
+  if (s.due) return null;
+  const candidates: string[] = [];
+  if (s.kmRemaining != null && dailyKm != null && dailyKm > 0) {
+    candidates.push(addDays(mileageAsOf, Math.floor(s.kmRemaining / dailyKm)));
+  }
+  if (s.dueDate != null) {
+    candidates.push(s.dueDate);
+  }
+  return candidates.length ? candidates.sort()[0] : null;
+}
+
+/** 依急迫程度排序：到期 → 快到了 → 正常；同級內已用比例高者在前 */
+export function sortByUrgency(list: MaintenanceStatus[]): MaintenanceStatus[] {
+  const rank: Record<Urgency, number> = { due: 0, soon: 1, ok: 2 };
+  return [...list].sort(
+    (a, b) =>
+      rank[urgencyOf(a)] - rank[urgencyOf(b)] ||
+      (usedRatio(b) ?? -1) - (usedRatio(a) ?? -1),
+  );
+}
+
+export interface MaintenanceVisit<T> {
+  date: string;
+  mileage: number;
+  /** 同次進廠的花費合計，都沒填為 null */
+  cost: number | null;
+  records: T[];
+}
+
+/** 同一天、同里程的紀錄視為同一次進廠；輸入需已由新到舊排序 */
+export function groupVisits<
+  T extends { date: string; mileage: number; cost: number | null },
+>(records: T[]): MaintenanceVisit<T>[] {
+  const visits: MaintenanceVisit<T>[] = [];
+  for (const r of records) {
+    const last = visits[visits.length - 1];
+    if (last && last.date === r.date && last.mileage === r.mileage) {
+      last.records.push(r);
+      if (r.cost != null) last.cost = (last.cost ?? 0) + r.cost;
+    } else {
+      visits.push({ date: r.date, mileage: r.mileage, cost: r.cost, records: [r] });
+    }
+  }
+  return visits;
+}
