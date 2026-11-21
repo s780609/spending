@@ -36,7 +36,7 @@ export function HoldingsView({
             onClick={() => setView(tab.key)}
             className={`flex-1 rounded-full px-4 py-1.5 text-center text-xs whitespace-nowrap sm:flex-none ${
               tab.key === view
-                ? "bg-white dark:bg-gray-900 font-semibold text-gray-950 dark:text-gray-50 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
+                ? "bg-white dark:bg-gray-800 font-semibold text-gray-950 dark:text-emerald-300 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10"
                 : "font-medium text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white"
             }`}
           >

@@ -1,7 +1,5 @@
 "use client";
 
-import { useDarkMode } from "@/lib/use-dark-mode";
-
 export type ChartTheme = {
   isDark: boolean;
   grid: string;
@@ -20,23 +18,6 @@ export type ChartTheme = {
   legend: string;
   /** 點外圈描邊，對齊卡片底色 */
   activeDotStroke: string;
-};
-
-const LIGHT_THEME: ChartTheme = {
-  isDark: false,
-  grid: "#e5e7eb",
-  axis: "#9ca3af",
-  primary: "#18181b",
-  secondary: "#0ea5e9",
-  primaryFillTop: 0.14,
-  primaryFillBottom: 0,
-  cursor: "#d1d5db",
-  tooltipBg: "#ffffff",
-  tooltipBorder: "rgba(9, 9, 11, 0.08)",
-  tooltipText: "#18181b",
-  tooltipMuted: "#6b7280",
-  legend: "#6b7280",
-  activeDotStroke: "#ffffff",
 };
 
 /**
@@ -60,9 +41,9 @@ const DARK_THEME: ChartTheme = {
   activeDotStroke: "#111827",
 };
 
+/** 全站固定深色主題，圖表一律用深色配色 */
 export function useChartTheme(): ChartTheme {
-  const isDark = useDarkMode();
-  return isDark ? DARK_THEME : LIGHT_THEME;
+  return DARK_THEME;
 }
 
 /** 一般資料點：實心圓 + 卡片色描邊 */

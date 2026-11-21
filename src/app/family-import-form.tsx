@@ -30,12 +30,12 @@ export function FamilyImportForm() {
           name="password"
           placeholder="PDF 密碼"
           autoComplete="off"
-          className="rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:w-40 sm:text-sm"
+          className="rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:w-40 sm:text-sm"
         />
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 disabled:opacity-50 sm:py-2 sm:text-sm"
+          className="rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950 disabled:opacity-50 sm:py-2 sm:text-sm"
         >
           {isPending ? "匯入中…" : "匯入"}
         </button>

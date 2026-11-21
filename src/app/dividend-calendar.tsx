@@ -66,7 +66,7 @@ export function DividendCalendar({
                   </span>
                   <span className="h-2 overflow-hidden rounded-full bg-gray-950/[0.04] dark:bg-white/[0.06]">
                     <span
-                      className="block h-full rounded-full bg-gray-950 dark:bg-white"
+                      className="block h-full rounded-full bg-gray-950 dark:bg-emerald-400"
                       style={{ width: `${pct}%` }}
                     />
                   </span>

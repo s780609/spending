@@ -29,10 +29,10 @@ function ntd(value: number): string {
 }
 
 const INPUT_CLS =
-  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm";
+  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:text-sm";
 
 const PILL_ACTIVE =
-  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-1 text-xs font-medium text-white dark:text-gray-950";
+  "rounded-full bg-gray-950 dark:bg-emerald-400 px-2.5 py-1 text-xs font-medium text-white dark:text-gray-950";
 const PILL_IDLE =
   "rounded-full px-2.5 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
 
@@ -269,7 +269,7 @@ export default async function AssetsPage({
           />
           <button
             type="submit"
-            className="col-span-2 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:col-span-1 sm:py-2 sm:text-sm"
+            className="col-span-2 rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950 sm:col-span-1 sm:py-2 sm:text-sm"
           >
             新增持股
           </button>
@@ -572,7 +572,7 @@ export default async function AssetsPage({
           </label>
           <button
             type="submit"
-            className="col-span-2 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:col-span-1 sm:py-2 sm:text-sm"
+            className="col-span-2 rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950 sm:col-span-1 sm:py-2 sm:text-sm"
           >
             新增貸款
           </button>
@@ -676,7 +676,7 @@ export default async function AssetsPage({
                                       ? "font-semibold text-red-600"
                                       : loan.maintenanceRatio < 167
                                         ? "font-semibold text-amber-600"
-                                        : "font-medium text-green-600"
+                                        : "font-medium text-green-600 dark:text-emerald-400"
                                   }
                                 >
                                   {Math.round(loan.maintenanceRatio)}%

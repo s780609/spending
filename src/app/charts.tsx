@@ -48,7 +48,7 @@ function formatNtd(value: unknown): string {
 }
 
 export const ACTIVE_PILL =
-  "rounded-full bg-gray-950 dark:bg-white px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
+  "rounded-full bg-gray-950 dark:bg-emerald-400 px-2.5 py-0.5 text-xs font-medium text-white dark:text-gray-950";
 export const IDLE_PILL =
   "rounded-full px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5";
 
@@ -207,7 +207,7 @@ export function CategoryBreakdown({
                   <span
                     className={`w-24 shrink-0 text-right tabular-nums font-medium ${
                       row.value < 0
-                        ? "text-green-600"
+                        ? "text-green-600 dark:text-emerald-400"
                         : "text-gray-950 dark:text-gray-50"
                     }`}
                   >

@@ -225,7 +225,7 @@ export function FamilyChartsPanel({
                     </span>
                     <span
                       className={`shrink-0 text-sm font-medium ${
-                        row.amount < 0 ? "text-green-600" : "text-gray-950 dark:text-gray-50"
+                        row.amount < 0 ? "text-green-600 dark:text-emerald-400" : "text-gray-950 dark:text-gray-50"
                       }`}
                     >
                       {Math.round(row.amount).toLocaleString("zh-TW")}

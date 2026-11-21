@@ -198,7 +198,7 @@ export default async function FamilyPage({
                     </span>
                     <span
                       className={`shrink-0 text-right text-base font-semibold sm:order-4 sm:w-24 sm:text-sm sm:font-medium ${
-                        tx.deposit !== null ? "text-green-600" : "text-gray-950 dark:text-gray-50"
+                        tx.deposit !== null ? "text-green-600 dark:text-emerald-400" : "text-gray-950 dark:text-gray-50"
                       }`}
                     >
                       {tx.deposit !== null
@@ -273,7 +273,7 @@ export default async function FamilyPage({
                     <span
                       className={`shrink-0 text-right text-base font-semibold sm:order-4 sm:w-24 sm:text-sm sm:font-medium ${
                         Number(tx.amount) < 0
-                          ? "text-green-600"
+                          ? "text-green-600 dark:text-emerald-400"
                           : "text-gray-950 dark:text-gray-50"
                       }`}
                     >

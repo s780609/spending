@@ -26,7 +26,7 @@ export function AddPanel({
           className={
             open
               ? "rounded-full px-3 py-1 text-xs text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/5 dark:hover:bg-white/5"
-              : "rounded-full bg-gray-950 dark:bg-white px-3 py-1 text-xs font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
+              : "rounded-full bg-gray-950 dark:bg-emerald-400 px-3 py-1 text-xs font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950"
           }
         >
           {open ? "收合" : `＋ ${buttonLabel}`}

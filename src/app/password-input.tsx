@@ -15,7 +15,7 @@ export function PasswordInput() {
         required
         autoFocus
         autoComplete="current-password"
-        className="w-full rounded-lg bg-white dark:bg-gray-900 py-2 pl-3 pr-10 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm"
+        className="w-full rounded-lg bg-white dark:bg-gray-900 py-2 pl-3 pr-10 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:text-sm"
       />
       <button
         type="button"

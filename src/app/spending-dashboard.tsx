@@ -24,7 +24,7 @@ export function ChangeBadge({
   return (
     <span>
       {label}{" "}
-      <span className={good ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+      <span className={good ? "text-green-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
         {up ? "▲" : "▼"} {pct(Math.abs(change))}
       </span>
     </span>
@@ -196,7 +196,7 @@ export function CategoryBars({
                 />
                 <span
                   className={`whitespace-nowrap tabular-nums ${
-                    r.value < 0 ? "text-green-600" : "text-gray-950 dark:text-gray-50"
+                    r.value < 0 ? "text-green-600 dark:text-emerald-400" : "text-gray-950 dark:text-gray-50"
                   }`}
                 >
                   {ntd(r.value)}

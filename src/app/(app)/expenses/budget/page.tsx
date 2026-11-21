@@ -44,7 +44,7 @@ export default async function BudgetPage() {
         <select
           name="category"
           defaultValue="手遊"
-          className="order-1 col-span-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:col-span-1 sm:text-sm"
+          className="order-1 col-span-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:order-none sm:col-span-1 sm:text-sm"
         >
           {BUDGET_CATEGORIES.map((category) => (
             <option key={category} value={category}>
@@ -59,11 +59,11 @@ export default async function BudgetPage() {
           min={0}
           step="any"
           required
-          className="order-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 placeholder:text-gray-400 dark:placeholder:text-gray-500 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:order-none sm:text-sm"
+          className="order-2 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-950 dark:text-gray-50 placeholder:text-gray-400 dark:placeholder:text-gray-500 ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:order-none sm:text-sm"
         />
         <button
           type="submit"
-          className="order-3 rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:order-none sm:py-2 sm:text-sm"
+          className="order-3 rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950 sm:order-none sm:py-2 sm:text-sm"
         >
           設定
         </button>
@@ -114,7 +114,7 @@ export default async function BudgetPage() {
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-950/[0.06] dark:bg-white/[0.08]">
                   <div
                     className={`h-full rounded-full ${
-                      s.over ? "bg-red-500" : "bg-gray-950 dark:bg-gray-400"
+                      s.over ? "bg-red-500" : "bg-gray-950 dark:bg-emerald-400"
                     }`}
                     style={{ width: `${pct}%` }}
                   />

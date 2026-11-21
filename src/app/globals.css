@@ -1,47 +1,53 @@
 @import "tailwindcss";
 
+/* 全站固定深色主題（配合 App 圖示）：dark: 變體改由 <html class="dark"> 啟用，不再跟隨系統 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-body {
-  background: #f9fafb;
-  color: #0a0a0a;
+:root {
+  /* 讓原生 select / date / number 等控件套用 dark 樣式 */
+  color-scheme: dark;
+  background: #030712;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* 讓原生 select / date / number 等控件套用系統 dark 樣式 */
-    color-scheme: dark;
-  }
+/* 同 App 圖示：深色漸層底＋右上角翠綠光暈 */
+body {
+  color: #f9fafb;
+  background:
+    radial-gradient(
+      60rem 36rem at 100% -8rem,
+      rgba(52, 211, 153, 0.14),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #111827 0%, #030712 32rem);
+  background-repeat: no-repeat;
+  background-color: #030712;
+}
 
-  body {
-    background: #030712;
-    color: #f9fafb;
-  }
+/*
+ * 未顯式設色的 native form 控件在 dark 卡片上會文字／背景糊在一起。
+ * 個別元件若有 Tailwind 色類（較高 specificity）仍會覆蓋這裡。
+ */
+select,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+    [type="submit"]
+  ):not([type="button"]):not([type="image"]):not([type="file"]),
+textarea {
+  color: #f9fafb;
+  background-color: #1f2937; /* gray-800 */
+}
 
-  /*
-   * 未顯式設色的 native form 控件在 dark 卡片上會文字／背景糊在一起。
-   * 個別元件若有 Tailwind 色類（較高 specificity）仍會覆蓋這裡。
-   */
-  select,
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
-      [type="submit"]
-    ):not([type="button"]):not([type="image"]):not([type="file"]),
-  textarea {
-    color: #f9fafb;
-    background-color: #1f2937; /* gray-800 */
-  }
+select option,
+select optgroup {
+  color: #f9fafb;
+  background-color: #1f2937;
+}
 
-  select option,
-  select optgroup {
-    color: #f9fafb;
-    background-color: #1f2937;
-  }
-
-  ::placeholder {
-    color: #6b7280; /* gray-500 */
-    opacity: 1;
-  }
+::placeholder {
+  color: #6b7280; /* gray-500 */
+  opacity: 1;
 }

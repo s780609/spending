@@ -34,9 +34,9 @@ const GROUP_LABEL: Record<MaintenanceStatus["group"], string> = {
 };
 
 const INPUT =
-  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white sm:text-sm";
+  "rounded-lg px-3 py-2 text-base ring-1 ring-inset ring-gray-950/10 dark:ring-white/10 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400 sm:text-sm";
 const PRIMARY_BUTTON =
-  "rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900 sm:py-2 sm:text-sm";
+  "rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-base font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950 sm:py-2 sm:text-sm";
 
 const URGENCY_STYLE: Record<
   Urgency,
@@ -370,7 +370,7 @@ export default async function MotorcyclePage() {
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <input type="checkbox" name="createExpense" defaultChecked className="h-4 w-4 accent-gray-950 dark:accent-white" />
+            <input type="checkbox" name="createExpense" defaultChecked className="h-4 w-4 accent-gray-950 dark:accent-emerald-400" />
             有填花費時，同時記一筆記帳支出（交通）
           </label>
           <SubmitButton pendingLabel="記錄中" className={PRIMARY_BUTTON}>

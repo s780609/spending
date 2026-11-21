@@ -23,7 +23,7 @@ function StyledSelect({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
-        className="appearance-none rounded-lg bg-white dark:bg-gray-900 py-1.5 pl-3 pr-8 text-base font-semibold tracking-tight text-gray-950 dark:text-gray-50 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/[0.025] dark:hover:bg-white/[0.025] focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-white"
+        className="appearance-none rounded-lg bg-white dark:bg-gray-900 py-1.5 pl-3 pr-8 text-base font-semibold tracking-tight text-gray-950 dark:text-gray-50 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/10 hover:bg-gray-950/[0.025] dark:hover:bg-white/[0.025] focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-emerald-400"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

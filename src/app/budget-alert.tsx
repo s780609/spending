@@ -77,7 +77,7 @@ export function BudgetAlert({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="mt-5 w-full rounded-full bg-gray-950 dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 dark:hover:text-gray-900"
+          className="mt-5 w-full rounded-full bg-gray-950 dark:bg-emerald-400 px-4 py-2.5 text-sm font-medium text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-emerald-300 dark:hover:text-gray-950"
         >
           知道了
         </button>
