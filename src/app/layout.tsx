@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "記帳小工具",
   description: "簡單記帳與電子發票 CSV 匯入",
+  // iOS 加到主畫面時顯示的名稱
+  appleWebApp: { title: "記帳" },
 };
 
 export default function RootLayout({

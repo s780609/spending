@@ -10,6 +10,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // api/snapshot 由 CRON_SECRET 自行驗證，供 Vercel Cron 呼叫
-  matcher: ["/((?!login|api/snapshot|_next/static|_next/image|favicon.ico).*)"],
+  // api/snapshot 由 CRON_SECRET 自行驗證，供 Vercel Cron 呼叫；
+  // 圖示與 manifest 不需登入（iOS 加到主畫面、瀏覽器抓 manifest 時可能不帶 cookie）
+  matcher: [
+    "/((?!login|api/snapshot|_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest).*)",
+  ],
 };

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f2937"/><stop offset="1" stop-color="#030712"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.75" cy="0.2" r="0.6">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.32"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hi" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#059669"/><stop offset="1" stop-color="#6ee7b7"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <rect x="196" y="596" width="168" height="232" rx="52" fill="#ffffff" opacity="0.35"/>
+  <rect x="428" y="470" width="168" height="358" rx="52" fill="#ffffff" opacity="0.7"/>
+  <rect x="660" y="340" width="168" height="488" rx="52" fill="url(#hi)"/>
+  <circle cx="744" cy="214" r="104" fill="url(#coin)"/>
+  <circle cx="744" cy="214" r="76" fill="none" stroke="#fffbeb" stroke-opacity="0.7" stroke-width="12"/>
+  <path d="M744 160 v108 M773 180 c-9-12-19-17-31-17 c-19 0-31 10-31 24 c0 33 64 19 64 52 c0 16-14 26-33 26 c-14 0-26-6-35-17" fill="none" stroke="#78350f" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
